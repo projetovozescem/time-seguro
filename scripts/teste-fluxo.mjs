@@ -723,6 +723,202 @@ console.log("\n--- campanhas, trilha e eventos: caminho das telas do item 2 ---"
   }
 }
 // =====================================================================
+console.log("\n--- item 3: trilha e avaliacao do colaborador ---");
+{
+  // Precisa de uma licao PUBLICADA na campanha ativa, com perguntas na avaliacao.
+  const [ativa] = await consultar(
+    `select id from public.campanhas
+      where empresa_id = ${lit(empresa.id)} and status = 'ativa' limit 1`,
+  );
+
+  if (!ativa) {
+    console.log("  --   sem campanha ativa; trilha nao exercitada");
+  } else {
+    const [tema] = await consultar(
+      `select t.id from public.temas t
+        join public.campanha_temas ct on ct.tema_id = t.id
+       where ct.campanha_id = ${lit(ativa.id)} limit 1`,
+    );
+    const perguntasDoTema = await consultar(
+      `select id, correta from public.perguntas
+        where empresa_id = ${lit(empresa.id)} and tema_id = ${lit(tema.id)}
+          and status = 'ativa' limit 2`,
+    );
+
+    const [licao] = await consultar(`
+      insert into public.licoes
+        (empresa_id, campanha_id, tema_id, titulo, conteudo_md, carga_minutos,
+         nota_minima, obrigatoria, publicada, ordem)
+      values (${lit(empresa.id)}, ${lit(ativa.id)}, ${lit(tema.id)},
+              ${lit(`Licao de fluxo ${selo}`)},
+              '## Conteudo de teste',
+              5, 50, false, true, 99)
+      returning id
+    `);
+
+    for (const [i, p] of perguntasDoTema.entries()) {
+      await consultar(`
+        insert into public.licao_perguntas (licao_id, pergunta_id, empresa_id, ordem)
+        values (${lit(licao.id)}, ${lit(p.id)}, ${lit(empresa.id)}, ${i + 1})
+      `);
+    }
+
+    // 1. A trilha lista a licao publicada.
+    const trilha = await rpc("colaborador_trilha", { p_token: token });
+    checar(
+      trilha.corpo?.ok === true,
+      "colaborador_trilha responde",
+      JSON.stringify(trilha.corpo).slice(0, 120),
+    );
+    const naTrilha = (trilha.corpo?.licoes ?? []).find((l) => l.id === licao.id);
+    checar(Boolean(naTrilha), "a licao publicada aparece na trilha");
+    checar(
+      naTrilha?.conteudo_concluido === false,
+      `nasce como nao concluida (veio ${naTrilha?.conteudo_concluido})`,
+    );
+
+    // 2. Antes de concluir o conteudo, a avaliacao NAO vem.
+    const antes = await rpc("colaborador_licao", { p_token: token, p_licao: licao.id });
+    checar(antes.corpo?.ok === true, "colaborador_licao responde");
+    checar(
+      antes.corpo?.avaliacao === null || (antes.corpo?.avaliacao ?? []).length === 0,
+      `avaliacao escondida antes de estudar (veio ${JSON.stringify(antes.corpo?.avaliacao)})`,
+    );
+    checar(
+      typeof antes.corpo?.licao?.conteudo_md === "string",
+      "o conteudo da licao vem para a tela",
+    );
+
+    // 3. Terminei de estudar: pontua uma vez.
+    const pontosAntes = (
+      await consultar(`
+        select coalesce(sum(pontos), 0)::int as p from public.pontos_lancamentos
+         where colaborador_id = ${lit(fluxo.id)} and origem = 'licao_conteudo'
+      `)
+    )[0].p;
+    const concluir = await rpc("colaborador_concluir_conteudo", {
+      p_token: token,
+      p_licao: licao.id,
+    });
+    checar(
+      concluir.corpo?.ok === true,
+      "concluir conteudo aceito",
+      JSON.stringify(concluir.corpo).slice(0, 120),
+    );
+
+    const deNovo = await rpc("colaborador_concluir_conteudo", {
+      p_token: token,
+      p_licao: licao.id,
+    });
+    const pontosDepois = (
+      await consultar(`
+        select coalesce(sum(pontos), 0)::int as p from public.pontos_lancamentos
+         where colaborador_id = ${lit(fluxo.id)} and origem = 'licao_conteudo'
+      `)
+    )[0].p;
+    checar(
+      pontosDepois - pontosAntes === (concluir.corpo?.pontos ?? 0),
+      `conteudo pontua exatamente o que a RPC disse (${concluir.corpo?.pontos})`,
+    );
+    checar(
+      deNovo.corpo?.ok !== true || (deNovo.corpo?.pontos ?? 0) === 0,
+      "concluir duas vezes nao pontua de novo",
+    );
+
+    // 4. Agora a avaliacao vem — e SEM gabarito.
+    const depois = await rpc("colaborador_licao", { p_token: token, p_licao: licao.id });
+    const avaliacao = depois.corpo?.avaliacao ?? [];
+    checar(
+      avaliacao.length === perguntasDoTema.length,
+      `avaliacao com ${avaliacao.length} pergunta(s)`,
+    );
+    checar(
+      avaliacao.every((p) => p.correta === undefined && p.explicacao === undefined),
+      "a avaliacao nao traz gabarito",
+    );
+
+    // 5. Errar de proposito: nota 0, reprovado, sem ponto de aprovacao.
+    const erradas = perguntasDoTema.map((p) => ({
+      pergunta_id: p.id,
+      alternativa: p.correta === 0 ? 1 : 0,
+    }));
+    const reprovado = await rpc("colaborador_enviar_avaliacao", {
+      p_token: token,
+      p_licao: licao.id,
+      p_respostas: erradas,
+    });
+    checar(
+      reprovado.corpo?.ok === true,
+      "avaliacao aceita",
+      JSON.stringify(reprovado.corpo).slice(0, 120),
+    );
+    checar(reprovado.corpo?.nota === 0, `errar tudo da nota 0 (veio ${reprovado.corpo?.nota})`);
+    checar(reprovado.corpo?.aprovado === false, "reprovado com nota 0");
+    checar((reprovado.corpo?.pontos ?? 0) === 0, "reprovado nao pontua");
+    checar(
+      (reprovado.corpo?.gabarito ?? []).every((g) => typeof g.correta === "number"),
+      "o gabarito volta DEPOIS de enviar",
+    );
+
+    // 6. Acertar tudo: nota 100, aprovado, pontua aprovacao + nota maxima.
+    const certas = perguntasDoTema.map((p) => ({ pergunta_id: p.id, alternativa: p.correta }));
+    const aprovado = await rpc("colaborador_enviar_avaliacao", {
+      p_token: token,
+      p_licao: licao.id,
+      p_respostas: certas,
+    });
+    checar(aprovado.corpo?.nota === 100, `acertar tudo da nota 100 (veio ${aprovado.corpo?.nota})`);
+    checar(aprovado.corpo?.aprovado === true, "aprovado com nota 100");
+    checar((aprovado.corpo?.pontos ?? 0) > 0, `aprovacao pontua (${aprovado.corpo?.pontos})`);
+
+    const origens = await consultar(`
+      select origem from public.pontos_lancamentos
+       where colaborador_id = ${lit(fluxo.id)} and origem_id = ${lit(licao.id)}
+    `);
+    const nomes = origens.map((o) => o.origem);
+    checar(nomes.includes("licao_aprovada"), `lancou licao_aprovada (${nomes.join()})`);
+    checar(nomes.includes("licao_nota_maxima"), "lancou o bonus de nota 100");
+
+    // 7. Terceira tentativa no mesmo dia: limite anti-fraude.
+    const terceira = await rpc("colaborador_enviar_avaliacao", {
+      p_token: token,
+      p_licao: licao.id,
+      p_respostas: certas,
+    });
+    checar(
+      terceira.corpo?.ok === true || terceira.corpo?.motivo === "limite_tentativas",
+      `terceira tentativa responde de forma conhecida (${terceira.corpo?.motivo ?? "ok"})`,
+    );
+    const quarta = await rpc("colaborador_enviar_avaliacao", {
+      p_token: token,
+      p_licao: licao.id,
+      p_respostas: certas,
+    });
+    checar(
+      quarta.corpo?.motivo === "limite_tentativas",
+      `quarta tentativa bloqueada por limite_tentativas (veio ${quarta.corpo?.motivo})`,
+    );
+
+    // 8. Aprovacao nao pontua duas vezes.
+    const aprovacoes = await consultar(`
+      select count(*)::int as n from public.pontos_lancamentos
+       where colaborador_id = ${lit(fluxo.id)} and origem = 'licao_aprovada'
+         and origem_id = ${lit(licao.id)}
+    `);
+    checar(aprovacoes[0].n === 1, `licao_aprovada lancada uma vez so (foram ${aprovacoes[0].n})`);
+
+    // 9. Limpa o que o teste criou.
+    await consultar(`delete from public.respostas where licao_id = ${lit(licao.id)}`);
+    await consultar(`delete from public.pontos_lancamentos where origem_id = ${lit(licao.id)}`);
+    await consultar(`delete from public.progresso_licoes where licao_id = ${lit(licao.id)}`);
+    await consultar(`delete from public.licao_perguntas where licao_id = ${lit(licao.id)}`);
+    const removida = await consultar(
+      `delete from public.licoes where id = ${lit(licao.id)} returning id`,
+    );
+    checar(removida.length === 1, "a licao de teste foi removida no fim");
+  }
+}
+// =====================================================================
 console.log(
   falhas === 0
     ? `\nFluxo: ${total} verificações passaram.`

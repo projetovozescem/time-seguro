@@ -66,3 +66,21 @@ Afirmei que ativar campanha sem tema devolve `campanha_sem_temas`. A RPC checa
 aquele caminho não era alcançável. O teste passou a afirmar que a ativação é
 recusada com um dos dois motivos conhecidos. Ler a ordem das validações no SQL
 antes de escrever a expectativa.
+
+## 2026-10-01 — `/app/inicio` lia um contrato que não existe
+
+A primeira versão da home assumiu `quiz_do_dia` e `posicao.geral`. A RPC
+`colaborador_resumo` devolve `quiz_hoje` e `posicao_individual`. A tela
+compilava, o `test:fluxo` passava (só exercitava o quiz) e a home simplesmente
+não mostrava nada. Reescrita sobre o retorno real, lido do SQL.
+
+Daí nasceu `src/lib/contratos.test.ts`: lê o `jsonb_build_object` de cada RPC nas
+migrations e confere as chaves que as telas esperam. Inclui uma asserção negativa
+para os nomes que eu havia inventado. **Tipo escrito à mão sobre resposta de RPC
+não é contrato; é palpite — precisa de teste contra o SQL.**
+
+## 2026-10-01 — O extrator do teste de contrato mentiu na primeira versão
+
+Procurava o fim do corpo da função por `end $$;`. Função `language sql` fecha com
+`$$;` sem `end`, então o corpo de `empresa_publica` invadiu a função seguinte e o
+teste a acusou de não devolver `codigo`. Passou a delimitar pelo par de `$$`.

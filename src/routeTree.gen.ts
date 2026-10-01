@@ -19,6 +19,8 @@ import { Route as AppTermoRouteImport } from './routes/app.termo'
 import { Route as PainelLoginRouteImport } from './routes/painel.login'
 import { Route as ProtegidoPainelIndexRouteImport } from './routes/_protegido.painel.index'
 import { Route as ProtegidoPainelEventosRouteImport } from './routes/_protegido.painel.eventos'
+import { Route as AppTrilhaIndexRouteImport } from './routes/app.trilha.index'
+import { Route as AppTrilhaLicaoIdRouteImport } from './routes/app.trilha.$licaoId'
 import { Route as ProtegidoPainelCampanhasIndexRouteImport } from './routes/_protegido.painel.campanhas.index'
 import { Route as ProtegidoPainelCampanhasIdRouteImport } from './routes/_protegido.painel.campanhas.$id'
 import { Route as ProtegidoPainelPerguntasIndexRouteImport } from './routes/_protegido.painel.perguntas.index'
@@ -73,6 +75,16 @@ const ProtegidoPainelEventosRoute = ProtegidoPainelEventosRouteImport.update({
   path: '/painel/eventos',
   getParentRoute: () => ProtegidoRoute,
 } as any)
+const AppTrilhaIndexRoute = AppTrilhaIndexRouteImport.update({
+  id: '/app/trilha/',
+  path: '/app/trilha/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppTrilhaLicaoIdRoute = AppTrilhaLicaoIdRouteImport.update({
+  id: '/app/trilha/$licaoId',
+  path: '/app/trilha/$licaoId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProtegidoPainelCampanhasIndexRoute =
   ProtegidoPainelCampanhasIndexRouteImport.update({
     id: '/painel/campanhas/',
@@ -107,7 +119,9 @@ export interface FileRoutesByFullPath {
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
   '/painel/eventos': typeof ProtegidoPainelEventosRoute
+  '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
   '/painel/': typeof ProtegidoPainelIndexRoute
+  '/app/trilha/': typeof AppTrilhaIndexRoute
   '/painel/campanhas/$id': typeof ProtegidoPainelCampanhasIdRoute
   '/painel/perguntas/importar': typeof ProtegidoPainelPerguntasImportarRoute
   '/painel/campanhas/': typeof ProtegidoPainelCampanhasIndexRoute
@@ -122,7 +136,9 @@ export interface FileRoutesByTo {
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
   '/painel/eventos': typeof ProtegidoPainelEventosRoute
+  '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
   '/painel': typeof ProtegidoPainelIndexRoute
+  '/app/trilha': typeof AppTrilhaIndexRoute
   '/painel/campanhas/$id': typeof ProtegidoPainelCampanhasIdRoute
   '/painel/perguntas/importar': typeof ProtegidoPainelPerguntasImportarRoute
   '/painel/campanhas': typeof ProtegidoPainelCampanhasIndexRoute
@@ -139,7 +155,9 @@ export interface FileRoutesById {
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
   '/_protegido/painel/eventos': typeof ProtegidoPainelEventosRoute
+  '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
   '/_protegido/painel/': typeof ProtegidoPainelIndexRoute
+  '/app/trilha/': typeof AppTrilhaIndexRoute
   '/_protegido/painel/campanhas/$id': typeof ProtegidoPainelCampanhasIdRoute
   '/_protegido/painel/perguntas/importar': typeof ProtegidoPainelPerguntasImportarRoute
   '/_protegido/painel/campanhas/': typeof ProtegidoPainelCampanhasIndexRoute
@@ -156,7 +174,9 @@ export interface FileRouteTypes {
     | '/app/termo'
     | '/painel/login'
     | '/painel/eventos'
+    | '/app/trilha/$licaoId'
     | '/painel/'
+    | '/app/trilha/'
     | '/painel/campanhas/$id'
     | '/painel/perguntas/importar'
     | '/painel/campanhas/'
@@ -171,7 +191,9 @@ export interface FileRouteTypes {
     | '/app/termo'
     | '/painel/login'
     | '/painel/eventos'
+    | '/app/trilha/$licaoId'
     | '/painel'
+    | '/app/trilha'
     | '/painel/campanhas/$id'
     | '/painel/perguntas/importar'
     | '/painel/campanhas'
@@ -187,7 +209,9 @@ export interface FileRouteTypes {
     | '/app/termo'
     | '/painel/login'
     | '/_protegido/painel/eventos'
+    | '/app/trilha/$licaoId'
     | '/_protegido/painel/'
+    | '/app/trilha/'
     | '/_protegido/painel/campanhas/$id'
     | '/_protegido/painel/perguntas/importar'
     | '/_protegido/painel/campanhas/'
@@ -203,6 +227,8 @@ export interface RootRouteChildren {
   AppQuizRoute: typeof AppQuizRoute
   AppTermoRoute: typeof AppTermoRoute
   PainelLoginRoute: typeof PainelLoginRoute
+  AppTrilhaLicaoIdRoute: typeof AppTrilhaLicaoIdRoute
+  AppTrilhaIndexRoute: typeof AppTrilhaIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -277,6 +303,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtegidoPainelEventosRouteImport
       parentRoute: typeof ProtegidoRoute
     }
+    '/app/trilha/': {
+      id: '/app/trilha/'
+      path: '/app/trilha'
+      fullPath: '/app/trilha/'
+      preLoaderRoute: typeof AppTrilhaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/trilha/$licaoId': {
+      id: '/app/trilha/$licaoId'
+      path: '/app/trilha/$licaoId'
+      fullPath: '/app/trilha/$licaoId'
+      preLoaderRoute: typeof AppTrilhaLicaoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_protegido/painel/campanhas/': {
       id: '/_protegido/painel/campanhas/'
       path: '/painel/campanhas'
@@ -339,6 +379,8 @@ const rootRouteChildren: RootRouteChildren = {
   AppQuizRoute: AppQuizRoute,
   AppTermoRoute: AppTermoRoute,
   PainelLoginRoute: PainelLoginRoute,
+  AppTrilhaLicaoIdRoute: AppTrilhaLicaoIdRoute,
+  AppTrilhaIndexRoute: AppTrilhaIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

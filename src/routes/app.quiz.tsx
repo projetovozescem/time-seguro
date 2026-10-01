@@ -112,7 +112,7 @@ function AppQuiz() {
 
   if (erro) {
     return (
-      <AlunoLayout>
+      <AlunoLayout comNavegacao>
         <p role="alert" className="rounded-2xl bg-superficie p-6 text-sm text-vermelho shadow-sm">
           {erro}
         </p>
@@ -122,7 +122,7 @@ function AppQuiz() {
 
   if (!lista) {
     return (
-      <AlunoLayout>
+      <AlunoLayout comNavegacao>
         <p className="rounded-2xl bg-superficie p-6 text-sm text-texto-suave shadow-sm">
           Carregando o quiz…
         </p>
@@ -132,7 +132,7 @@ function AppQuiz() {
 
   if (!lista.ok) {
     return (
-      <AlunoLayout>
+      <AlunoLayout comNavegacao>
         <div className="rounded-3xl bg-superficie p-6 text-center shadow-sm">
           <p className="text-sm text-texto">{mensagem(lista.motivo)}</p>
           <Link
@@ -150,7 +150,7 @@ function AppQuiz() {
   if (indice >= lista.perguntas.length) {
     const total = lista.perguntas.length;
     return (
-      <AlunoLayout>
+      <AlunoLayout comNavegacao>
         <div className="rounded-3xl bg-superficie p-6 text-center shadow-sm">
           <p className="font-display text-xl font-extrabold text-marinho">
             {pontosDeHoje > 0 ? "Quiz de hoje concluído!" : "Você já fez o quiz de hoje."}
@@ -176,7 +176,7 @@ function AppQuiz() {
   const explicacao = correcao?.ok ? correcao.explicacao : correcao?.explicacao;
 
   return (
-    <AlunoLayout>
+    <AlunoLayout comNavegacao>
       <div className="rounded-3xl bg-superficie p-5 shadow-sm">
         <div className="flex items-center justify-between gap-3">
           <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-texto-suave">

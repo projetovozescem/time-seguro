@@ -248,3 +248,53 @@
     radial-gradient(circle at 78% 88%, #0b3c5d14 0 24%, transparent 24.5%),
     linear-gradient(160deg, #f4f6f9 0%, #e9eef4 100%);
 }
+
+/* Markdown da trilha (docs/TIME_05 §6). Tipografia mínima legível no celular:
+   16px de base evita o zoom automático do iOS. */
+.prose-time > :first-child {
+  margin-top: 0;
+}
+.prose-time h2 {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 1.25rem 0 0.5rem;
+}
+.prose-time h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 1rem 0 0.375rem;
+}
+.prose-time p {
+  margin: 0.75rem 0;
+}
+.prose-time ul,
+.prose-time ol {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+  list-style: revert;
+}
+.prose-time li {
+  margin: 0.25rem 0;
+}
+.prose-time strong {
+  font-weight: 700;
+}
+.prose-time a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+.prose-time blockquote {
+  border-left: 3px solid var(--color-amarelo);
+  padding-left: 0.875rem;
+  margin: 0.875rem 0;
+  color: var(--muted-foreground);
+}
+.prose-time code {
+  font-size: 0.875em;
+  background: var(--muted);
+  padding: 0.125rem 0.3rem;
+  border-radius: 0.25rem;
+}

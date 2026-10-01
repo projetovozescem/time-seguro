@@ -158,3 +158,19 @@ aproveitou foi a ideia da tela. O legado segue em `docs/legado-vozes/`.
 
 Exigido nominalmente pelo TIME_04 §4 (editor com pré-visualização) e pelo TIME_05
 §6 ("usar react-markdown, sem HTML bruto"). 75 KB, usado nas duas pontas.
+
+## 2026-10-01 — Contrato das RPCs é verificado contra o SQL
+
+`src/lib/contratos.test.ts` extrai as chaves do `jsonb_build_object` de cada RPC
+nas migrations e compara com o que as telas leem. Cobre `colaborador_resumo`,
+`perguntas_do_dia`, `responder_pergunta`, `trilha`, `licao`, `enviar_avaliacao`,
+`empresa_publica` e `login` — e afirma também que o gabarito é condicional.
+Motivo: um tipo TypeScript escrito à mão sobre resposta de RPC compila com
+qualquer nome de campo, então não é contrato nenhum.
+
+## 2026-10-01 — Navegação inferior em componente próprio
+
+`NavegacaoApp` com os 5 itens do TIME_05 §1, ligada por `comNavegacao` no
+`AlunoLayout`. As telas de entrada (login, novo PIN, termo) ficam sem ela: antes
+de resolver a pendência nada mais funciona, e oferecer atalho só levaria a erro.
+Item sem rota aparece desabilitado.
