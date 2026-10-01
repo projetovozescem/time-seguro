@@ -11,6 +11,12 @@ import { PainelLayout } from "@/components/layout/PainelLayout";
  */
 export const Route = createFileRoute("/_protegido")({
   beforeLoad: async () => {
+    // A sessao do Supabase Auth mora no `localStorage`, que nao existe no
+    // servidor. Validar la mandaria TODA recarga (F5) e todo link direto para o
+    // login, mesmo com o tecnico logado. No servidor so renderiza a casca; quem
+    // decide e o navegador, e a barreira de verdade continua sendo o RLS.
+    if (typeof window === "undefined") return;
+
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/painel/login" });
   },

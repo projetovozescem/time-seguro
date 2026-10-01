@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -22,6 +22,19 @@ type Formato = keyof typeof FORMATOS;
 
 /** Escala de captura: 2 já dá qualidade de impressão sem estourar a memória. */
 const ESCALA = 2;
+
+/**
+ * Origem do site (https://dominio) para montar o endereco dos QR Codes.
+ *
+ * Vem de `useEffect` e nao de `window` no render: o servidor nao tem `window`, e
+ * calcular na renderizacao gera um QR diferente no servidor e no navegador (aviso
+ * de hidratacao). Antes de montar, o QR usa o caminho relativo.
+ */
+function useOrigem(): string {
+  const [origem, setOrigem] = useState("");
+  useEffect(() => setOrigem(window.location.origin), []);
+  return origem;
+}
 
 function useBaixarPng(nomeBase: string) {
   const alvo = useRef<HTMLDivElement>(null);
@@ -57,8 +70,8 @@ function CartazEntreNoTime({ empresa, formato }: { empresa: string; formato: For
   const { largura, altura } = FORMATOS[formato];
   const paisagem = formato === "tv";
 
-  const url =
-    typeof window === "undefined" ? "/app/entrar" : `${window.location.origin}/app/entrar`;
+  const origem = useOrigem();
+  const url = `${origem}/app/entrar`;
 
   return (
     <section className="flex flex-col gap-3">
@@ -150,10 +163,8 @@ function CartazRespeito({ empresa, codigo }: { empresa: string; codigo: string }
   const { alvo, gerando, baixar } = useBaixarPng("cartaz-canal-de-respeito");
   const { largura, altura } = FORMATOS.a4;
 
-  const url =
-    typeof window === "undefined"
-      ? `/respeito/${codigo}`
-      : `${window.location.origin}/respeito/${codigo}`;
+  const origem = useOrigem();
+  const url = `${origem}/respeito/${codigo}`;
 
   return (
     <section className="flex flex-col gap-3">

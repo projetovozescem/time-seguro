@@ -120,7 +120,7 @@ export function sequenciaAtual(dias: readonly string[], hoje = diaOperacionalISO
 }
 
 /** Soma dias a uma data pura, sem passar por `new Date(iso)` (docs/TIME_00 §6). */
-function somarDias(iso: string, dias: number): string {
+export function somarDias(iso: string, dias: number): string {
   const [ano, mes, dia] = iso.slice(0, 10).split("-").map(Number);
   const d = new Date(ano!, mes! - 1, dia! + dias);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;

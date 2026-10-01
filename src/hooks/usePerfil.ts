@@ -35,15 +35,24 @@ export function usePerfil() {
     queryKey: ["perfil"],
     staleTime: 5 * 60 * 1000,
     queryFn: async (): Promise<Perfil | null> => {
+      // O RLS de `perfis_tecnicos` libera TODOS os perfis da empresa (o admin
+      // precisa listar a equipe em Configuracoes), nao so o proprio. Sem filtrar
+      // pelo usuario, `maybeSingle()` falha assim que a empresa tem 2 perfis e o
+      // menu inteiro some.
+      const { data: sessao } = await supabase.auth.getSession();
+      const userId = sessao.session?.user.id;
+      if (!userId) return null;
+
       const { data, error } = await supabase
         .from("perfis_tecnicos")
         .select("nome, papel, comite_assedio, empresas ( id, nome, codigo )")
+        .eq("user_id", userId)
         .maybeSingle();
 
       if (error) throw error;
       if (!data) return null;
 
-      // O RLS já limita a linha ao próprio usuário; o join traz a empresa dele.
+      // O filtro acima garante a linha do proprio usuario; o join traz a empresa dele.
       const empresa = data.empresas as unknown as Perfil["empresa"] | null;
       if (!empresa) return null;
 

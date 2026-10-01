@@ -92,3 +92,25 @@ registrado a regra contrária algumas horas antes. A regra vale e passou a ser
 seguida: **script gerador vai para arquivo pela ferramenta de escrita, nunca
 inline no shell.** Quando o texto precisa de caractere de controle na saída,
 montar por `JSON.stringify("\n...")` dentro do próprio script.
+
+## Painel "vazio" ao logar pela primeira vez no navegador (01/10/2026)
+
+Primeira vez que o painel foi **renderizado de verdade** (Chrome headless pelo
+protocolo DevTools, login com o `.env`). Tres defeitos que nenhum gate pegava
+porque nenhum gate abre navegador:
+
+1. `usePerfil` usava `.maybeSingle()` sem filtrar o usuario. O RLS de
+   `perfis_tecnicos` libera TODOS os perfis da empresa (o admin lista a equipe em
+   Configuracoes), entao com 2 perfis na empresa a consulta falhava e o menu e o
+   cabecalho sumiam. Corrigido com `.eq("user_id", ...)`.
+2. O guard `_protegido` rodava no servidor, onde nao ha `localStorage`: todo F5 e
+   todo link direto jogavam para o login. Corrigido: so valida no navegador.
+3. `/painel` (Inicio) era placeholder desde a Fase 2: "Painel em construcao".
+   Construido o dashboard do TIME_04 §3.
+
+Licao: "compila + RLS + fluxo SQL passando" NAO prova que a tela funciona. O
+script de verificacao no navegador (scratchpad `ver-painel.mjs`) deveria virar
+parte do `verify` se houver Chrome na maquina.
+
+Dado sujo: `test:fluxo` deixa colaboradores "TesteFluxo..." na empresa `piloto`
+a cada execucao (68 ate agora). Nao apaga por falta de confirmacao do usuario.
