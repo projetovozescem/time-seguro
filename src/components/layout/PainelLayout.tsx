@@ -36,8 +36,13 @@ const MENU = [
     soComite: true,
   },
   { emoji: "🥇", rotulo: "Ranking", rota: "/painel/ranking" as const, minimo: "cipa" as const },
-  { emoji: "📈", rotulo: "Analytics", rota: null, minimo: "cipa" as const },
-  { emoji: "📄", rotulo: "Relatórios", rota: null, minimo: "cipa" as const },
+  { emoji: "📈", rotulo: "Analytics", rota: "/painel/analytics" as const, minimo: "cipa" as const },
+  {
+    emoji: "📄",
+    rotulo: "Relatórios",
+    rota: "/painel/relatorios" as const,
+    minimo: "cipa" as const,
+  },
   {
     emoji: "🎓",
     rotulo: "Certificados",

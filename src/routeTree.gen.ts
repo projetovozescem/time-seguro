@@ -24,9 +24,11 @@ import { Route as PainelLoginRouteImport } from './routes/painel.login'
 import { Route as RespeitoCodigoRouteImport } from './routes/respeito.$codigo'
 import { Route as VerificarCodigoRouteImport } from './routes/verificar.$codigo'
 import { Route as ProtegidoPainelIndexRouteImport } from './routes/_protegido.painel.index'
+import { Route as ProtegidoPainelAnalyticsRouteImport } from './routes/_protegido.painel.analytics'
 import { Route as ProtegidoPainelCertificadosRouteImport } from './routes/_protegido.painel.certificados'
 import { Route as ProtegidoPainelEventosRouteImport } from './routes/_protegido.painel.eventos'
 import { Route as ProtegidoPainelRankingRouteImport } from './routes/_protegido.painel.ranking'
+import { Route as ProtegidoPainelRelatoriosRouteImport } from './routes/_protegido.painel.relatorios'
 import { Route as ProtegidoPainelRelatosRouteImport } from './routes/_protegido.painel.relatos'
 import { Route as ProtegidoPainelRespeitoRouteImport } from './routes/_protegido.painel.respeito'
 import { Route as ProtegidoTvIndexRouteImport } from './routes/_protegido.tv.index'
@@ -114,6 +116,12 @@ const ProtegidoPainelIndexRoute = ProtegidoPainelIndexRouteImport.update({
   path: '/painel/',
   getParentRoute: () => ProtegidoRoute,
 } as any)
+const ProtegidoPainelAnalyticsRoute =
+  ProtegidoPainelAnalyticsRouteImport.update({
+    id: '/painel/analytics',
+    path: '/painel/analytics',
+    getParentRoute: () => ProtegidoRoute,
+  } as any)
 const ProtegidoPainelCertificadosRoute =
   ProtegidoPainelCertificadosRouteImport.update({
     id: '/painel/certificados',
@@ -130,6 +138,12 @@ const ProtegidoPainelRankingRoute = ProtegidoPainelRankingRouteImport.update({
   path: '/painel/ranking',
   getParentRoute: () => ProtegidoRoute,
 } as any)
+const ProtegidoPainelRelatoriosRoute =
+  ProtegidoPainelRelatoriosRouteImport.update({
+    id: '/painel/relatorios',
+    path: '/painel/relatorios',
+    getParentRoute: () => ProtegidoRoute,
+  } as any)
 const ProtegidoPainelRelatosRoute = ProtegidoPainelRelatosRouteImport.update({
   id: '/painel/relatos',
   path: '/painel/relatos',
@@ -210,9 +224,11 @@ export interface FileRoutesByFullPath {
   '/painel/login': typeof PainelLoginRoute
   '/respeito/$codigo': typeof RespeitoCodigoRoute
   '/verificar/$codigo': typeof VerificarCodigoRoute
+  '/painel/analytics': typeof ProtegidoPainelAnalyticsRoute
   '/painel/certificados': typeof ProtegidoPainelCertificadosRoute
   '/painel/eventos': typeof ProtegidoPainelEventosRoute
   '/painel/ranking': typeof ProtegidoPainelRankingRoute
+  '/painel/relatorios': typeof ProtegidoPainelRelatoriosRoute
   '/painel/relatos': typeof ProtegidoPainelRelatosRoute
   '/painel/respeito': typeof ProtegidoPainelRespeitoRoute
   '/tv/jogo': typeof ProtegidoTvJogoRoute
@@ -241,9 +257,11 @@ export interface FileRoutesByTo {
   '/painel/login': typeof PainelLoginRoute
   '/respeito/$codigo': typeof RespeitoCodigoRoute
   '/verificar/$codigo': typeof VerificarCodigoRoute
+  '/painel/analytics': typeof ProtegidoPainelAnalyticsRoute
   '/painel/certificados': typeof ProtegidoPainelCertificadosRoute
   '/painel/eventos': typeof ProtegidoPainelEventosRoute
   '/painel/ranking': typeof ProtegidoPainelRankingRoute
+  '/painel/relatorios': typeof ProtegidoPainelRelatoriosRoute
   '/painel/relatos': typeof ProtegidoPainelRelatosRoute
   '/painel/respeito': typeof ProtegidoPainelRespeitoRoute
   '/tv/jogo': typeof ProtegidoTvJogoRoute
@@ -274,9 +292,11 @@ export interface FileRoutesById {
   '/painel/login': typeof PainelLoginRoute
   '/respeito/$codigo': typeof RespeitoCodigoRoute
   '/verificar/$codigo': typeof VerificarCodigoRoute
+  '/_protegido/painel/analytics': typeof ProtegidoPainelAnalyticsRoute
   '/_protegido/painel/certificados': typeof ProtegidoPainelCertificadosRoute
   '/_protegido/painel/eventos': typeof ProtegidoPainelEventosRoute
   '/_protegido/painel/ranking': typeof ProtegidoPainelRankingRoute
+  '/_protegido/painel/relatorios': typeof ProtegidoPainelRelatoriosRoute
   '/_protegido/painel/relatos': typeof ProtegidoPainelRelatosRoute
   '/_protegido/painel/respeito': typeof ProtegidoPainelRespeitoRoute
   '/_protegido/tv/jogo': typeof ProtegidoTvJogoRoute
@@ -307,9 +327,11 @@ export interface FileRouteTypes {
     | '/painel/login'
     | '/respeito/$codigo'
     | '/verificar/$codigo'
+    | '/painel/analytics'
     | '/painel/certificados'
     | '/painel/eventos'
     | '/painel/ranking'
+    | '/painel/relatorios'
     | '/painel/relatos'
     | '/painel/respeito'
     | '/tv/jogo'
@@ -338,9 +360,11 @@ export interface FileRouteTypes {
     | '/painel/login'
     | '/respeito/$codigo'
     | '/verificar/$codigo'
+    | '/painel/analytics'
     | '/painel/certificados'
     | '/painel/eventos'
     | '/painel/ranking'
+    | '/painel/relatorios'
     | '/painel/relatos'
     | '/painel/respeito'
     | '/tv/jogo'
@@ -370,9 +394,11 @@ export interface FileRouteTypes {
     | '/painel/login'
     | '/respeito/$codigo'
     | '/verificar/$codigo'
+    | '/_protegido/painel/analytics'
     | '/_protegido/painel/certificados'
     | '/_protegido/painel/eventos'
     | '/_protegido/painel/ranking'
+    | '/_protegido/painel/relatorios'
     | '/_protegido/painel/relatos'
     | '/_protegido/painel/respeito'
     | '/_protegido/tv/jogo'
@@ -515,6 +541,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtegidoPainelIndexRouteImport
       parentRoute: typeof ProtegidoRoute
     }
+    '/_protegido/painel/analytics': {
+      id: '/_protegido/painel/analytics'
+      path: '/painel/analytics'
+      fullPath: '/painel/analytics'
+      preLoaderRoute: typeof ProtegidoPainelAnalyticsRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
     '/_protegido/painel/certificados': {
       id: '/_protegido/painel/certificados'
       path: '/painel/certificados'
@@ -534,6 +567,13 @@ declare module '@tanstack/react-router' {
       path: '/painel/ranking'
       fullPath: '/painel/ranking'
       preLoaderRoute: typeof ProtegidoPainelRankingRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
+    '/_protegido/painel/relatorios': {
+      id: '/_protegido/painel/relatorios'
+      path: '/painel/relatorios'
+      fullPath: '/painel/relatorios'
+      preLoaderRoute: typeof ProtegidoPainelRelatoriosRouteImport
       parentRoute: typeof ProtegidoRoute
     }
     '/_protegido/painel/relatos': {
@@ -624,9 +664,11 @@ declare module '@tanstack/react-router' {
 }
 
 interface ProtegidoRouteChildren {
+  ProtegidoPainelAnalyticsRoute: typeof ProtegidoPainelAnalyticsRoute
   ProtegidoPainelCertificadosRoute: typeof ProtegidoPainelCertificadosRoute
   ProtegidoPainelEventosRoute: typeof ProtegidoPainelEventosRoute
   ProtegidoPainelRankingRoute: typeof ProtegidoPainelRankingRoute
+  ProtegidoPainelRelatoriosRoute: typeof ProtegidoPainelRelatoriosRoute
   ProtegidoPainelRelatosRoute: typeof ProtegidoPainelRelatosRoute
   ProtegidoPainelRespeitoRoute: typeof ProtegidoPainelRespeitoRoute
   ProtegidoTvJogoRoute: typeof ProtegidoTvJogoRoute
@@ -640,9 +682,11 @@ interface ProtegidoRouteChildren {
 }
 
 const ProtegidoRouteChildren: ProtegidoRouteChildren = {
+  ProtegidoPainelAnalyticsRoute: ProtegidoPainelAnalyticsRoute,
   ProtegidoPainelCertificadosRoute: ProtegidoPainelCertificadosRoute,
   ProtegidoPainelEventosRoute: ProtegidoPainelEventosRoute,
   ProtegidoPainelRankingRoute: ProtegidoPainelRankingRoute,
+  ProtegidoPainelRelatoriosRoute: ProtegidoPainelRelatoriosRoute,
   ProtegidoPainelRelatosRoute: ProtegidoPainelRelatosRoute,
   ProtegidoPainelRespeitoRoute: ProtegidoPainelRespeitoRoute,
   ProtegidoTvJogoRoute: ProtegidoTvJogoRoute,
