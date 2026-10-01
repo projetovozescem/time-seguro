@@ -6,7 +6,10 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi"] },
+  // docs/legado-maxgames: codigo do Max Games guardado como referencia para as
+  // fases 3 e 8 (TIME_11 §0.4). Vai ser portado para TypeScript em
+  // src/lib/importacao/ e src/lib/jogos/ — nao e codigo deste projeto.
+  { ignores: ["dist", ".output", ".vinxi", "docs/legado-maxgames", ".specify"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

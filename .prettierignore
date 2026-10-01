@@ -10,3 +10,7 @@ routeTree.gen.ts
 # Gerado pelo Supabase CLI (supabase gen types) - formatar aqui daria conflito
 # a cada regeracao.
 src/integrations/supabase/types.ts
+
+# Legado do Max Games guardado como referencia (docs/TIME_11 §0.4).
+docs/legado-maxgames
+.specify
