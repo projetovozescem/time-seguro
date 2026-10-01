@@ -24,8 +24,18 @@ const MENU = [
     rota: "/painel/perguntas" as const,
     minimo: "tecnico" as const,
   },
-  { emoji: "👷", rotulo: "Colaboradores", rota: null, minimo: "tecnico" as const },
-  { emoji: "🏭", rotulo: "Setores e Locais", rota: null, minimo: "tecnico" as const },
+  {
+    emoji: "👷",
+    rotulo: "Colaboradores",
+    rota: "/painel/colaboradores" as const,
+    minimo: "tecnico" as const,
+  },
+  {
+    emoji: "🏭",
+    rotulo: "Setores e Locais",
+    rota: "/painel/setores" as const,
+    minimo: "tecnico" as const,
+  },
   { emoji: "📅", rotulo: "Eventos", rota: "/painel/eventos" as const, minimo: "cipa" as const },
   { emoji: "📢", rotulo: "Relatos", rota: "/painel/relatos" as const, minimo: "cipa" as const },
   {
@@ -49,9 +59,19 @@ const MENU = [
     rota: "/painel/certificados" as const,
     minimo: "cipa" as const,
   },
-  { emoji: "🖼️", rotulo: "Materiais", rota: null, minimo: "tecnico" as const },
+  {
+    emoji: "🖼️",
+    rotulo: "Materiais",
+    rota: "/painel/materiais" as const,
+    minimo: "tecnico" as const,
+  },
   { emoji: "📺", rotulo: "Modo TV", rota: "/tv" as const, minimo: "tecnico" as const },
-  { emoji: "⚙️", rotulo: "Configurações", rota: null, minimo: "admin" as const },
+  {
+    emoji: "⚙️",
+    rotulo: "Configurações",
+    rota: "/painel/configuracoes" as const,
+    minimo: "admin" as const,
+  },
 ];
 
 function Navegacao({ aoNavegar }: { aoNavegar?: () => void }) {
@@ -72,34 +92,22 @@ function Navegacao({ aoNavegar }: { aoNavegar?: () => void }) {
 
   return (
     <nav className="flex h-full flex-col gap-0.5 overflow-y-auto p-3">
-      {visiveis.map((item) =>
-        item.rota ? (
-          <Link
-            key={item.rotulo}
-            to={item.rota}
-            onClick={aoNavegar}
-            activeOptions={{ exact: item.rota === "/painel" }}
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-sidebar-accent"
-            activeProps={{
-              className: cn("bg-marinho text-white hover:bg-marinho"),
-            }}
-          >
-            <span aria-hidden>{item.emoji}</span>
-            {item.rotulo}
-          </Link>
-        ) : (
-          <span
-            key={item.rotulo}
-            aria-disabled
-            title="Esta tela ainda não foi construída."
-            className="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-texto-suave/50"
-          >
-            <span aria-hidden>{item.emoji}</span>
-            {item.rotulo}
-            <span className="ml-auto text-[10px] uppercase tracking-wide">em breve</span>
-          </span>
-        ),
-      )}
+      {/* Todas as telas do menu existem: nao ha mais item "em breve". */}
+      {visiveis.map((item) => (
+        <Link
+          key={item.rotulo}
+          to={item.rota}
+          onClick={aoNavegar}
+          activeOptions={{ exact: item.rota === "/painel" }}
+          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-sidebar-accent"
+          activeProps={{
+            className: cn("bg-marinho text-white hover:bg-marinho"),
+          }}
+        >
+          <span aria-hidden>{item.emoji}</span>
+          {item.rotulo}
+        </Link>
+      ))}
 
       <div className="mt-auto pt-3">
         <button

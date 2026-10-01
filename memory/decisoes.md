@@ -188,3 +188,20 @@ não compila. O padrão do projeto passou a ser espalhar condicionalmente:
 primeira versão reprovou pela própria documentação. O teste passou a remover
 comentários antes das asserções de ausência, e a usar a fonte completa nas
 asserções de presença.
+
+## PIN dos cartões vai em memória, não em `sessionStorage`
+
+`tecnico_gerar_pins` devolve o PIN puro uma única vez; depois existe só o bcrypt.
+A página de impressão recebe os cartões por um módulo em memória
+(`src/lib/cartoes-pendentes.ts`) e os descarta ao desmontar. Motivo: PIN em
+`sessionStorage` grava no disco do computador do técnico, e PIN na URL entra no
+histórico do navegador. O preço é que recarregar `/painel/colaboradores/cartoes`
+perde os cartões — a tela diz isso e manda gerar de novo.
+
+## Bucket `logos` é público; o das fotos de relato continua privado
+
+O logo aparece no app do colaborador, que **não tem sessão do Supabase Auth**, e
+nos cartazes. Bucket público é servido sem policy para `anon`, então a asserção
+"anon sem policy em `storage.objects`" continua valendo. Para a policy nova não
+afrouxar o bucket das fotos, o `test:rls` exige que toda policy de escrita em
+`storage.objects` traga `bucket_id = 'logos'` no `with check`.

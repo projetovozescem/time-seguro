@@ -90,6 +90,61 @@ if (policies.length === 0) {
   estado(true, "policy de leitura das fotos pelo técnico");
 }
 
+// =====================================================================
+titulo("Storage: bucket do logo da empresa (docs/TIME_04 §14)");
+
+// Bucket PÚBLICO: o logo aparece no app do colaborador, que não tem sessão do
+// Supabase Auth, e nos cartazes. Bucket público é servido sem policy para
+// `anon` — por isso a checagem de `anon sem policy` abaixo continua valendo.
+const logos = await consultar("select id, public from storage.buckets where id = 'logos'");
+const logosOk = logos.length === 1 && logos[0].public === true;
+
+if (!logosOk) {
+  pendencias++;
+  estado(false, "bucket logos público");
+  if (APLICAR) {
+    await consultar(`
+      insert into storage.buckets (id, name, public)
+      values ('logos', 'logos', true)
+      on conflict (id) do update set public = true
+    `);
+    console.log("       -> criado (público)");
+  }
+} else {
+  estado(true, "bucket logos público");
+}
+
+// Só o admin da empresa grava, e só na pasta da própria empresa.
+const policiesLogo = await consultar(`
+  select policyname from pg_policies
+   where schemaname = 'storage' and tablename = 'objects'
+     and policyname = 'logos_admin_grava'
+`);
+
+if (policiesLogo.length === 0) {
+  pendencias++;
+  estado(false, "policy de gravação do logo pelo admin");
+  if (APLICAR) {
+    await consultar(`
+      create policy logos_admin_grava on storage.objects
+        for all to authenticated
+        using (
+          bucket_id = 'logos'
+          and (storage.foldername(name))[1] = public.minha_empresa()::text
+          and public.meu_papel() = 'admin'
+        )
+        with check (
+          bucket_id = 'logos'
+          and (storage.foldername(name))[1] = public.minha_empresa()::text
+          and public.meu_papel() = 'admin'
+        )
+    `);
+    console.log("       -> criada");
+  }
+} else {
+  estado(true, "policy de gravação do logo pelo admin");
+}
+
 // anon não enxerga nada do bucket.
 const policiesAnon = await consultar(`
   select policyname, roles::text from pg_policies

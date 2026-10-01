@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { rpcApp } from "@/lib/rpc";
 
-type Termo = { versao: string; texto: string };
+type Termo = { versao: number; texto: string };
 type Resposta = { ok: true } | { ok: false; motivo: string };
 
 /**

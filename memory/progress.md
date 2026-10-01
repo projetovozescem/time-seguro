@@ -154,8 +154,38 @@ segue 200. O gate de RLS subiu para 242 verificações, agora cobrindo Storage.
 3. Item 9: analytics e MAPA DE LACUNAS (TIME_09 §1.2).
 4. Itens 10 a 12: relatório de evidência, certificados e `/verificar`,
    materiais e deploy.
-5. Pendências menores: leitura de PDF no importador, tela de colaboradores
-   e cartões de acesso (TIME_04 §6), setores e locais (TIME_04 §7).
+5. Pendências menores: leitura de PDF no importador (`pdfjs-dist`).
+
+## Telas do painel: nenhuma falta (01/10/2026)
+
+O menu lateral não tem mais item "em breve" — o galho que desenhava item sem
+rota foi removido porque virou código morto. Entraram nesta rodada:
+
+- `/painel/colaboradores` — lista com busca, filtro de setor e inativos,
+  cadastro manual, importação CSV (`matricula;nome;setor;turno`, parser em
+  `src/lib/colaboradores.ts`), desbloqueio de PIN e anonimização LGPD (só admin).
+- `/painel/colaboradores/cartoes` — 8 cartões por folha A4, com PIN provisório.
+  Os PINs chegam **em memória** (`src/lib/cartoes-pendentes.ts`): não passam por
+  `sessionStorage` nem pela URL, e recarregar a página os perde de propósito,
+  porque `tecnico_gerar_pins` devolve o PIN puro uma única vez.
+- `/painel/setores` — setores com cor da paleta do TIME_10 e locais por setor,
+  com etiqueta 10×7 cm em PNG (`html2canvas`) para colar na parede.
+  `locais.setor_id` é `not null`: a tela exige setor e desabilita "Novo local"
+  enquanto não houver um.
+- `/painel/materiais` — cartaz "Entre no T.I.M.E." (A4 e 16:9) e cartaz do Canal
+  de Respeito (A4) em PNG, com o QR da empresa. Tamanho em pixel fixo porque o
+  `html2canvas` captura o que está na tela.
+- `/painel/configuracoes` — nome e logo da empresa, código só leitura, editor do
+  termo LGPD com "Publicar nova versão" (incrementa `termo_lgpd_versao`) e lista
+  dos usuários do painel.
+
+Bucket **`logos`** (público) e a policy `logos_admin_grava` nasceram aqui, por
+`npm run db:configurar --aplicar`: escrita só do admin e só na pasta
+`<empresa_id>/`. O `test:rls` passou a exigir que **toda** policy de escrita em
+`storage.objects` se limite ao bucket `logos` — sem isso a policy nova afrouxaria
+o bucket privado das fotos de relato. Três buracos abertos de propósito (policy
+de escrita sem bucket, bucket privado, policy sem exigir admin) reprovaram o
+gate e, ao fechar, ele voltou verde.
 
 ## Não verificado
 

@@ -58,3 +58,15 @@ O arquivo antigo ainda descreve o schema do V.O.Z.E.S. (turmas, participantes).
 **Suposição:** gerar `src/lib/database.types.ts` com `gen types` contra o DEV e
 só então apagar o antigo e repontar os imports. Não escrevi o tipo à mão: seriam
 30 tabelas de adivinhação divergindo do banco real.
+
+## 8. `colaboradores.turno` é texto livre
+
+O schema declara `turno text`, sem `check` e sem tabela de domínio, e o comentário
+da RPC `tecnico_importar_colaboradores` usa `"turno": "A"` como exemplo. Já a
+lista `TURNOS` (`manha`/`tarde`/`noite`/`adm`) do `src/lib/colaboradores.ts` é
+**convenção da interface**, não regra do banco.
+**Suposição:** a tela e o importador só oferecem os quatro valores e avisam na
+importação quando o CSV traz outro, mas nada no banco impede um turno diferente
+(nem o importador do servidor). `rotuloDoTurno` mostra o valor cru quando não
+conhece. Se a especificação quiser travar, é um `check` em migration nova —
+não mudar a existente.

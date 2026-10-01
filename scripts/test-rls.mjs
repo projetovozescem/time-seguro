@@ -334,7 +334,8 @@ try {
   }
 
   const policiesStorage = await consultar(`
-    select policyname, cmd, roles::text as papeis
+    select policyname, cmd, roles::text as papeis,
+           coalesce(qual, '') as usando, coalesce(with_check, '') as conferindo
       from pg_policies where schemaname = 'storage' and tablename = 'objects'
   `);
   /** Papéis de uma policy, como lista. `roles::text` vem no formato {a,b}. */
@@ -358,16 +359,50 @@ try {
     policiesStorage.some((p) => p.cmd === "SELECT" && /authenticated/.test(p.papeis)),
     "falta a policy de leitura das fotos pelo técnico",
   );
-  afirmar(
-    !policiesStorage.some((p) => p.cmd === "INSERT"),
-    "existe policy de INSERT em storage.objects — o upload só pode vir da Edge Function",
+  // Gravação: a foto de relato só entra pela Edge Function, com URL assinada.
+  // A única policy de escrita que pode existir é a do logo da empresa, e ela
+  // precisa estar presa ao bucket `logos` — senão abriria o bucket das fotos.
+  const escrevem = policiesStorage.filter((p) =>
+    ["INSERT", "UPDATE", "DELETE", "ALL"].includes(p.cmd),
   );
+  for (const p of escrevem) {
+    afirmar(
+      /bucket_id = 'logos'/.test(p.conferindo),
+      `policy ${p.policyname} (${p.cmd}) grava em storage.objects sem se limitar ao bucket logos`,
+    );
+  }
 
   const bucket = await consultar(
     "select id, public from storage.buckets where id = 'relatos-fotos'",
   );
   afirmar(bucket.length === 1, "bucket relatos-fotos não existe");
   afirmar(bucket[0]?.public === false, "bucket relatos-fotos está público");
+
+  // Bucket do logo (docs/TIME_04 §14): público para ler, porque o app do
+  // colaborador não tem sessão do Supabase Auth; escrita só do admin, e só na
+  // pasta da própria empresa.
+  const bucketLogos = await consultar("select id, public from storage.buckets where id = 'logos'");
+  afirmar(bucketLogos.length === 1, "bucket logos não existe");
+  afirmar(bucketLogos[0]?.public === true, "bucket logos não está público");
+
+  const policyLogo = policiesStorage.find((p) => p.policyname === "logos_admin_grava");
+  afirmar(policyLogo !== undefined, "falta a policy logos_admin_grava");
+  if (policyLogo) {
+    afirmar(
+      papeisDe(policyLogo.papeis).join(",") === "authenticated",
+      "logos_admin_grava não está restrita a authenticated",
+    );
+    for (const [trecho, erro] of [
+      ["meu_papel", "sem exigir o papel admin"],
+      ["minha_empresa", "sem prender à pasta da própria empresa"],
+      ["'admin'", "sem comparar o papel com admin"],
+    ]) {
+      afirmar(
+        policyLogo.conferindo.includes(trecho),
+        `logos_admin_grava grava ${erro} (with check)`,
+      );
+    }
+  }
 
   // ------------------------------------------------------------------
   // 8. Views aplicam o RLS

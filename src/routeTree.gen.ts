@@ -26,11 +26,14 @@ import { Route as VerificarCodigoRouteImport } from './routes/verificar.$codigo'
 import { Route as ProtegidoPainelIndexRouteImport } from './routes/_protegido.painel.index'
 import { Route as ProtegidoPainelAnalyticsRouteImport } from './routes/_protegido.painel.analytics'
 import { Route as ProtegidoPainelCertificadosRouteImport } from './routes/_protegido.painel.certificados'
+import { Route as ProtegidoPainelConfiguracoesRouteImport } from './routes/_protegido.painel.configuracoes'
 import { Route as ProtegidoPainelEventosRouteImport } from './routes/_protegido.painel.eventos'
+import { Route as ProtegidoPainelMateriaisRouteImport } from './routes/_protegido.painel.materiais'
 import { Route as ProtegidoPainelRankingRouteImport } from './routes/_protegido.painel.ranking'
 import { Route as ProtegidoPainelRelatoriosRouteImport } from './routes/_protegido.painel.relatorios'
 import { Route as ProtegidoPainelRelatosRouteImport } from './routes/_protegido.painel.relatos'
 import { Route as ProtegidoPainelRespeitoRouteImport } from './routes/_protegido.painel.respeito'
+import { Route as ProtegidoPainelSetoresRouteImport } from './routes/_protegido.painel.setores'
 import { Route as ProtegidoTvIndexRouteImport } from './routes/_protegido.tv.index'
 import { Route as ProtegidoTvJogoRouteImport } from './routes/_protegido.tv.jogo'
 import { Route as AppLocalLocalIdRouteImport } from './routes/app.local.$localId'
@@ -38,6 +41,8 @@ import { Route as AppTrilhaIndexRouteImport } from './routes/app.trilha.index'
 import { Route as AppTrilhaLicaoIdRouteImport } from './routes/app.trilha.$licaoId'
 import { Route as ProtegidoPainelCampanhasIndexRouteImport } from './routes/_protegido.painel.campanhas.index'
 import { Route as ProtegidoPainelCampanhasIdRouteImport } from './routes/_protegido.painel.campanhas.$id'
+import { Route as ProtegidoPainelColaboradoresIndexRouteImport } from './routes/_protegido.painel.colaboradores.index'
+import { Route as ProtegidoPainelColaboradoresCartoesRouteImport } from './routes/_protegido.painel.colaboradores.cartoes'
 import { Route as ProtegidoPainelPerguntasIndexRouteImport } from './routes/_protegido.painel.perguntas.index'
 import { Route as ProtegidoPainelPerguntasImportarRouteImport } from './routes/_protegido.painel.perguntas.importar'
 import { Route as ProtegidoTvCheckinEventoIdRouteImport } from './routes/_protegido.tv.checkin.$eventoId'
@@ -128,11 +133,23 @@ const ProtegidoPainelCertificadosRoute =
     path: '/painel/certificados',
     getParentRoute: () => ProtegidoRoute,
   } as any)
+const ProtegidoPainelConfiguracoesRoute =
+  ProtegidoPainelConfiguracoesRouteImport.update({
+    id: '/painel/configuracoes',
+    path: '/painel/configuracoes',
+    getParentRoute: () => ProtegidoRoute,
+  } as any)
 const ProtegidoPainelEventosRoute = ProtegidoPainelEventosRouteImport.update({
   id: '/painel/eventos',
   path: '/painel/eventos',
   getParentRoute: () => ProtegidoRoute,
 } as any)
+const ProtegidoPainelMateriaisRoute =
+  ProtegidoPainelMateriaisRouteImport.update({
+    id: '/painel/materiais',
+    path: '/painel/materiais',
+    getParentRoute: () => ProtegidoRoute,
+  } as any)
 const ProtegidoPainelRankingRoute = ProtegidoPainelRankingRouteImport.update({
   id: '/painel/ranking',
   path: '/painel/ranking',
@@ -152,6 +169,11 @@ const ProtegidoPainelRelatosRoute = ProtegidoPainelRelatosRouteImport.update({
 const ProtegidoPainelRespeitoRoute = ProtegidoPainelRespeitoRouteImport.update({
   id: '/painel/respeito',
   path: '/painel/respeito',
+  getParentRoute: () => ProtegidoRoute,
+} as any)
+const ProtegidoPainelSetoresRoute = ProtegidoPainelSetoresRouteImport.update({
+  id: '/painel/setores',
+  path: '/painel/setores',
   getParentRoute: () => ProtegidoRoute,
 } as any)
 const ProtegidoTvIndexRoute = ProtegidoTvIndexRouteImport.update({
@@ -191,6 +213,18 @@ const ProtegidoPainelCampanhasIdRoute =
     path: '/painel/campanhas/$id',
     getParentRoute: () => ProtegidoRoute,
   } as any)
+const ProtegidoPainelColaboradoresIndexRoute =
+  ProtegidoPainelColaboradoresIndexRouteImport.update({
+    id: '/painel/colaboradores/',
+    path: '/painel/colaboradores/',
+    getParentRoute: () => ProtegidoRoute,
+  } as any)
+const ProtegidoPainelColaboradoresCartoesRoute =
+  ProtegidoPainelColaboradoresCartoesRouteImport.update({
+    id: '/painel/colaboradores/cartoes',
+    path: '/painel/colaboradores/cartoes',
+    getParentRoute: () => ProtegidoRoute,
+  } as any)
 const ProtegidoPainelPerguntasIndexRoute =
   ProtegidoPainelPerguntasIndexRouteImport.update({
     id: '/painel/perguntas/',
@@ -226,11 +260,14 @@ export interface FileRoutesByFullPath {
   '/verificar/$codigo': typeof VerificarCodigoRoute
   '/painel/analytics': typeof ProtegidoPainelAnalyticsRoute
   '/painel/certificados': typeof ProtegidoPainelCertificadosRoute
+  '/painel/configuracoes': typeof ProtegidoPainelConfiguracoesRoute
   '/painel/eventos': typeof ProtegidoPainelEventosRoute
+  '/painel/materiais': typeof ProtegidoPainelMateriaisRoute
   '/painel/ranking': typeof ProtegidoPainelRankingRoute
   '/painel/relatorios': typeof ProtegidoPainelRelatoriosRoute
   '/painel/relatos': typeof ProtegidoPainelRelatosRoute
   '/painel/respeito': typeof ProtegidoPainelRespeitoRoute
+  '/painel/setores': typeof ProtegidoPainelSetoresRoute
   '/tv/jogo': typeof ProtegidoTvJogoRoute
   '/app/local/$localId': typeof AppLocalLocalIdRoute
   '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
@@ -238,9 +275,11 @@ export interface FileRoutesByFullPath {
   '/tv/': typeof ProtegidoTvIndexRoute
   '/app/trilha/': typeof AppTrilhaIndexRoute
   '/painel/campanhas/$id': typeof ProtegidoPainelCampanhasIdRoute
+  '/painel/colaboradores/cartoes': typeof ProtegidoPainelColaboradoresCartoesRoute
   '/painel/perguntas/importar': typeof ProtegidoPainelPerguntasImportarRoute
   '/tv/checkin/$eventoId': typeof ProtegidoTvCheckinEventoIdRoute
   '/painel/campanhas/': typeof ProtegidoPainelCampanhasIndexRoute
+  '/painel/colaboradores/': typeof ProtegidoPainelColaboradoresIndexRoute
   '/painel/perguntas/': typeof ProtegidoPainelPerguntasIndexRoute
 }
 export interface FileRoutesByTo {
@@ -259,11 +298,14 @@ export interface FileRoutesByTo {
   '/verificar/$codigo': typeof VerificarCodigoRoute
   '/painel/analytics': typeof ProtegidoPainelAnalyticsRoute
   '/painel/certificados': typeof ProtegidoPainelCertificadosRoute
+  '/painel/configuracoes': typeof ProtegidoPainelConfiguracoesRoute
   '/painel/eventos': typeof ProtegidoPainelEventosRoute
+  '/painel/materiais': typeof ProtegidoPainelMateriaisRoute
   '/painel/ranking': typeof ProtegidoPainelRankingRoute
   '/painel/relatorios': typeof ProtegidoPainelRelatoriosRoute
   '/painel/relatos': typeof ProtegidoPainelRelatosRoute
   '/painel/respeito': typeof ProtegidoPainelRespeitoRoute
+  '/painel/setores': typeof ProtegidoPainelSetoresRoute
   '/tv/jogo': typeof ProtegidoTvJogoRoute
   '/app/local/$localId': typeof AppLocalLocalIdRoute
   '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
@@ -271,9 +313,11 @@ export interface FileRoutesByTo {
   '/tv': typeof ProtegidoTvIndexRoute
   '/app/trilha': typeof AppTrilhaIndexRoute
   '/painel/campanhas/$id': typeof ProtegidoPainelCampanhasIdRoute
+  '/painel/colaboradores/cartoes': typeof ProtegidoPainelColaboradoresCartoesRoute
   '/painel/perguntas/importar': typeof ProtegidoPainelPerguntasImportarRoute
   '/tv/checkin/$eventoId': typeof ProtegidoTvCheckinEventoIdRoute
   '/painel/campanhas': typeof ProtegidoPainelCampanhasIndexRoute
+  '/painel/colaboradores': typeof ProtegidoPainelColaboradoresIndexRoute
   '/painel/perguntas': typeof ProtegidoPainelPerguntasIndexRoute
 }
 export interface FileRoutesById {
@@ -294,11 +338,14 @@ export interface FileRoutesById {
   '/verificar/$codigo': typeof VerificarCodigoRoute
   '/_protegido/painel/analytics': typeof ProtegidoPainelAnalyticsRoute
   '/_protegido/painel/certificados': typeof ProtegidoPainelCertificadosRoute
+  '/_protegido/painel/configuracoes': typeof ProtegidoPainelConfiguracoesRoute
   '/_protegido/painel/eventos': typeof ProtegidoPainelEventosRoute
+  '/_protegido/painel/materiais': typeof ProtegidoPainelMateriaisRoute
   '/_protegido/painel/ranking': typeof ProtegidoPainelRankingRoute
   '/_protegido/painel/relatorios': typeof ProtegidoPainelRelatoriosRoute
   '/_protegido/painel/relatos': typeof ProtegidoPainelRelatosRoute
   '/_protegido/painel/respeito': typeof ProtegidoPainelRespeitoRoute
+  '/_protegido/painel/setores': typeof ProtegidoPainelSetoresRoute
   '/_protegido/tv/jogo': typeof ProtegidoTvJogoRoute
   '/app/local/$localId': typeof AppLocalLocalIdRoute
   '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
@@ -306,9 +353,11 @@ export interface FileRoutesById {
   '/_protegido/tv/': typeof ProtegidoTvIndexRoute
   '/app/trilha/': typeof AppTrilhaIndexRoute
   '/_protegido/painel/campanhas/$id': typeof ProtegidoPainelCampanhasIdRoute
+  '/_protegido/painel/colaboradores/cartoes': typeof ProtegidoPainelColaboradoresCartoesRoute
   '/_protegido/painel/perguntas/importar': typeof ProtegidoPainelPerguntasImportarRoute
   '/_protegido/tv/checkin/$eventoId': typeof ProtegidoTvCheckinEventoIdRoute
   '/_protegido/painel/campanhas/': typeof ProtegidoPainelCampanhasIndexRoute
+  '/_protegido/painel/colaboradores/': typeof ProtegidoPainelColaboradoresIndexRoute
   '/_protegido/painel/perguntas/': typeof ProtegidoPainelPerguntasIndexRoute
 }
 export interface FileRouteTypes {
@@ -329,11 +378,14 @@ export interface FileRouteTypes {
     | '/verificar/$codigo'
     | '/painel/analytics'
     | '/painel/certificados'
+    | '/painel/configuracoes'
     | '/painel/eventos'
+    | '/painel/materiais'
     | '/painel/ranking'
     | '/painel/relatorios'
     | '/painel/relatos'
     | '/painel/respeito'
+    | '/painel/setores'
     | '/tv/jogo'
     | '/app/local/$localId'
     | '/app/trilha/$licaoId'
@@ -341,9 +393,11 @@ export interface FileRouteTypes {
     | '/tv/'
     | '/app/trilha/'
     | '/painel/campanhas/$id'
+    | '/painel/colaboradores/cartoes'
     | '/painel/perguntas/importar'
     | '/tv/checkin/$eventoId'
     | '/painel/campanhas/'
+    | '/painel/colaboradores/'
     | '/painel/perguntas/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -362,11 +416,14 @@ export interface FileRouteTypes {
     | '/verificar/$codigo'
     | '/painel/analytics'
     | '/painel/certificados'
+    | '/painel/configuracoes'
     | '/painel/eventos'
+    | '/painel/materiais'
     | '/painel/ranking'
     | '/painel/relatorios'
     | '/painel/relatos'
     | '/painel/respeito'
+    | '/painel/setores'
     | '/tv/jogo'
     | '/app/local/$localId'
     | '/app/trilha/$licaoId'
@@ -374,9 +431,11 @@ export interface FileRouteTypes {
     | '/tv'
     | '/app/trilha'
     | '/painel/campanhas/$id'
+    | '/painel/colaboradores/cartoes'
     | '/painel/perguntas/importar'
     | '/tv/checkin/$eventoId'
     | '/painel/campanhas'
+    | '/painel/colaboradores'
     | '/painel/perguntas'
   id:
     | '__root__'
@@ -396,11 +455,14 @@ export interface FileRouteTypes {
     | '/verificar/$codigo'
     | '/_protegido/painel/analytics'
     | '/_protegido/painel/certificados'
+    | '/_protegido/painel/configuracoes'
     | '/_protegido/painel/eventos'
+    | '/_protegido/painel/materiais'
     | '/_protegido/painel/ranking'
     | '/_protegido/painel/relatorios'
     | '/_protegido/painel/relatos'
     | '/_protegido/painel/respeito'
+    | '/_protegido/painel/setores'
     | '/_protegido/tv/jogo'
     | '/app/local/$localId'
     | '/app/trilha/$licaoId'
@@ -408,9 +470,11 @@ export interface FileRouteTypes {
     | '/_protegido/tv/'
     | '/app/trilha/'
     | '/_protegido/painel/campanhas/$id'
+    | '/_protegido/painel/colaboradores/cartoes'
     | '/_protegido/painel/perguntas/importar'
     | '/_protegido/tv/checkin/$eventoId'
     | '/_protegido/painel/campanhas/'
+    | '/_protegido/painel/colaboradores/'
     | '/_protegido/painel/perguntas/'
   fileRoutesById: FileRoutesById
 }
@@ -555,11 +619,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtegidoPainelCertificadosRouteImport
       parentRoute: typeof ProtegidoRoute
     }
+    '/_protegido/painel/configuracoes': {
+      id: '/_protegido/painel/configuracoes'
+      path: '/painel/configuracoes'
+      fullPath: '/painel/configuracoes'
+      preLoaderRoute: typeof ProtegidoPainelConfiguracoesRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
     '/_protegido/painel/eventos': {
       id: '/_protegido/painel/eventos'
       path: '/painel/eventos'
       fullPath: '/painel/eventos'
       preLoaderRoute: typeof ProtegidoPainelEventosRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
+    '/_protegido/painel/materiais': {
+      id: '/_protegido/painel/materiais'
+      path: '/painel/materiais'
+      fullPath: '/painel/materiais'
+      preLoaderRoute: typeof ProtegidoPainelMateriaisRouteImport
       parentRoute: typeof ProtegidoRoute
     }
     '/_protegido/painel/ranking': {
@@ -588,6 +666,13 @@ declare module '@tanstack/react-router' {
       path: '/painel/respeito'
       fullPath: '/painel/respeito'
       preLoaderRoute: typeof ProtegidoPainelRespeitoRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
+    '/_protegido/painel/setores': {
+      id: '/_protegido/painel/setores'
+      path: '/painel/setores'
+      fullPath: '/painel/setores'
+      preLoaderRoute: typeof ProtegidoPainelSetoresRouteImport
       parentRoute: typeof ProtegidoRoute
     }
     '/_protegido/tv/': {
@@ -639,6 +724,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtegidoPainelCampanhasIdRouteImport
       parentRoute: typeof ProtegidoRoute
     }
+    '/_protegido/painel/colaboradores/': {
+      id: '/_protegido/painel/colaboradores/'
+      path: '/painel/colaboradores'
+      fullPath: '/painel/colaboradores/'
+      preLoaderRoute: typeof ProtegidoPainelColaboradoresIndexRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
+    '/_protegido/painel/colaboradores/cartoes': {
+      id: '/_protegido/painel/colaboradores/cartoes'
+      path: '/painel/colaboradores/cartoes'
+      fullPath: '/painel/colaboradores/cartoes'
+      preLoaderRoute: typeof ProtegidoPainelColaboradoresCartoesRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
     '/_protegido/painel/perguntas/': {
       id: '/_protegido/painel/perguntas/'
       path: '/painel/perguntas'
@@ -666,36 +765,48 @@ declare module '@tanstack/react-router' {
 interface ProtegidoRouteChildren {
   ProtegidoPainelAnalyticsRoute: typeof ProtegidoPainelAnalyticsRoute
   ProtegidoPainelCertificadosRoute: typeof ProtegidoPainelCertificadosRoute
+  ProtegidoPainelConfiguracoesRoute: typeof ProtegidoPainelConfiguracoesRoute
   ProtegidoPainelEventosRoute: typeof ProtegidoPainelEventosRoute
+  ProtegidoPainelMateriaisRoute: typeof ProtegidoPainelMateriaisRoute
   ProtegidoPainelRankingRoute: typeof ProtegidoPainelRankingRoute
   ProtegidoPainelRelatoriosRoute: typeof ProtegidoPainelRelatoriosRoute
   ProtegidoPainelRelatosRoute: typeof ProtegidoPainelRelatosRoute
   ProtegidoPainelRespeitoRoute: typeof ProtegidoPainelRespeitoRoute
+  ProtegidoPainelSetoresRoute: typeof ProtegidoPainelSetoresRoute
   ProtegidoTvJogoRoute: typeof ProtegidoTvJogoRoute
   ProtegidoPainelIndexRoute: typeof ProtegidoPainelIndexRoute
   ProtegidoTvIndexRoute: typeof ProtegidoTvIndexRoute
   ProtegidoPainelCampanhasIdRoute: typeof ProtegidoPainelCampanhasIdRoute
+  ProtegidoPainelColaboradoresCartoesRoute: typeof ProtegidoPainelColaboradoresCartoesRoute
   ProtegidoPainelPerguntasImportarRoute: typeof ProtegidoPainelPerguntasImportarRoute
   ProtegidoTvCheckinEventoIdRoute: typeof ProtegidoTvCheckinEventoIdRoute
   ProtegidoPainelCampanhasIndexRoute: typeof ProtegidoPainelCampanhasIndexRoute
+  ProtegidoPainelColaboradoresIndexRoute: typeof ProtegidoPainelColaboradoresIndexRoute
   ProtegidoPainelPerguntasIndexRoute: typeof ProtegidoPainelPerguntasIndexRoute
 }
 
 const ProtegidoRouteChildren: ProtegidoRouteChildren = {
   ProtegidoPainelAnalyticsRoute: ProtegidoPainelAnalyticsRoute,
   ProtegidoPainelCertificadosRoute: ProtegidoPainelCertificadosRoute,
+  ProtegidoPainelConfiguracoesRoute: ProtegidoPainelConfiguracoesRoute,
   ProtegidoPainelEventosRoute: ProtegidoPainelEventosRoute,
+  ProtegidoPainelMateriaisRoute: ProtegidoPainelMateriaisRoute,
   ProtegidoPainelRankingRoute: ProtegidoPainelRankingRoute,
   ProtegidoPainelRelatoriosRoute: ProtegidoPainelRelatoriosRoute,
   ProtegidoPainelRelatosRoute: ProtegidoPainelRelatosRoute,
   ProtegidoPainelRespeitoRoute: ProtegidoPainelRespeitoRoute,
+  ProtegidoPainelSetoresRoute: ProtegidoPainelSetoresRoute,
   ProtegidoTvJogoRoute: ProtegidoTvJogoRoute,
   ProtegidoPainelIndexRoute: ProtegidoPainelIndexRoute,
   ProtegidoTvIndexRoute: ProtegidoTvIndexRoute,
   ProtegidoPainelCampanhasIdRoute: ProtegidoPainelCampanhasIdRoute,
+  ProtegidoPainelColaboradoresCartoesRoute:
+    ProtegidoPainelColaboradoresCartoesRoute,
   ProtegidoPainelPerguntasImportarRoute: ProtegidoPainelPerguntasImportarRoute,
   ProtegidoTvCheckinEventoIdRoute: ProtegidoTvCheckinEventoIdRoute,
   ProtegidoPainelCampanhasIndexRoute: ProtegidoPainelCampanhasIndexRoute,
+  ProtegidoPainelColaboradoresIndexRoute:
+    ProtegidoPainelColaboradoresIndexRoute,
   ProtegidoPainelPerguntasIndexRoute: ProtegidoPainelPerguntasIndexRoute,
 }
 
