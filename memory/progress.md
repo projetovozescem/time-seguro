@@ -7,21 +7,21 @@
 
 Definida pelas fases do `docs/TIME_11` §1. Prazo da inscrição: **05/10/2026**.
 
-| Fase | Entrega                                     | Estado                 |
-| ---- | ------------------------------------------- | ---------------------- |
-| —    | Instalação e configuração (`TIME_13` §1–§2) | feita (1 pendência)    |
-| 0    | Setup e limpeza do V.O.Z.E.S.               | **feita**              |
-| 1    | Banco completo (6 migrations do `TIME_02`)  | migrations no disco; **não aplicadas** |
-| 2    | Auth do painel + colaboradores + PINs       | login feito; resto não |
-| 3    | Perguntas + importador                      | não iniciada           |
-| 4    | Campanha + trilha + eventos                 | não iniciada           |
+| Fase | Entrega                                     | Estado                                                 |
+| ---- | ------------------------------------------- | ------------------------------------------------------ |
+| —    | Instalação e configuração (`TIME_13` §1–§2) | feita (1 pendência)                                    |
+| 0    | Setup e limpeza do V.O.Z.E.S.               | **feita**                                              |
+| 1    | Banco completo (6 migrations do `TIME_02`)  | migrations no disco; **não aplicadas**                 |
+| 2    | Auth do painel + colaboradores + PINs       | login feito; resto não                                 |
+| 3    | Perguntas + importador                      | não iniciada                                           |
+| 4    | Campanha + trilha + eventos                 | não iniciada                                           |
 | 5    | App do colaborador                          | entrar/PIN/termo/início/quiz escritos, não exercitados |
-| 6    | Relatos com foto + validação                | não iniciada           |
-| 7    | Canal de Respeito                           | não iniciada           |
-| 8    | Modo TV (Clássico + check-in)               | não iniciada           |
-| 9    | Ranking, selos, encerramento, certificados  | não iniciada           |
-| 10   | Analytics, mapa de lacunas, relatório       | não iniciada           |
-| 11   | Materiais, dados de demonstração, deploy    | não iniciada           |
+| 6    | Relatos com foto + validação                | não iniciada                                           |
+| 7    | Canal de Respeito                           | não iniciada                                           |
+| 8    | Modo TV (Clássico + check-in)               | não iniciada                                           |
+| 9    | Ranking, selos, encerramento, certificados  | não iniciada                                           |
+| 10   | Analytics, mapa de lacunas, relatório       | não iniciada                                           |
+| 11   | Materiais, dados de demonstração, deploy    | não iniciada                                           |
 
 ## Feito
 
@@ -74,24 +74,57 @@ Definida pelas fases do `docs/TIME_11` §1. Prazo da inscrição: **05/10/2026**
   `/app/novo-pin`, `/app/termo`, `/app/inicio`, `/app/quiz`.
 - 37 testes de unidade em 4 arquivos, todos passando.
 
+## Ordem do desenvolvimento autônomo (docs/TIME_13 §4)
+
+Registrada em 01/10/2026. Prazo da inscrição: **05/10/2026 — 4 dias**.
+Prioridade declarada no §4: primeiro o que torna a demonstração real; Duelo,
+Eliminação, comparativo trimestral e certificado em PDF ficam por último.
+
+| #   | Pilar       | Funcionalidade                               | Fonte                               | Fase TIME_11 |
+| --- | ----------- | -------------------------------------------- | ----------------------------------- | ------------ |
+| 0   | —           | Banco aplicado + tipos + RLS testada         | TIME_02, TIME_03                    | 1            |
+| 1   | Treinar     | Perguntas + importador TXT/CSV/PDF           | TIME_07, TIME_12                    | 3            |
+| 2   | Treinar     | Campanha, trilha e eventos                   | TIME_04 §4 e §8, TIME_08            | 4            |
+| 3   | Treinar     | App do colaborador: trilha e avaliação       | TIME_05 §6                          | 5            |
+| 4   | Treinar     | Pontuação e selos                            | TIME_08                             | 5            |
+| 5   | Identificar | Relatos com foto + Edge Function + validação | TIME_05 §7, TIME_04 §9, TIME_03 §5  | 6            |
+| 6   | Identificar | Canal de Respeito                            | TIME_01 §7, TIME_03 §6, TIME_04 §10 | 7            |
+| 7   | Mobilizar   | Modo TV Clássico + check-in                  | TIME_06                             | 8            |
+| 8   | Mobilizar   | Ranking e encerramento da campanha           | TIME_08 §6                          | 9            |
+| 9   | Evoluir     | Analytics e MAPA DE LACUNAS                  | TIME_09 §1.2                        | 10           |
+| 10  | Evoluir     | Relatório de evidência                       | TIME_09                             | 10           |
+| 11  | Evoluir     | Certificados e /verificar                    | TIME_09 §5                          | 9            |
+| 12  | —           | Materiais, seed de demonstração e deploy     | TIME_11 Fase 11                     | 11           |
+| 13  | Mobilizar   | Duelo de Setores e Eliminação                | TIME_06                             | 8 (⏳)       |
+| 14  | Evoluir     | Comparativo trimestral                       | TIME_09                             | 10 (⏳)      |
+
+O item **0** é pré-requisito de todos os outros: sem schema no banco, nenhum
+gate de RLS, de teste ou de interface pode ser cumprido.
+
 ## Em andamento
 
-Nada. Parado aguardando o projeto Supabase de DEV.
+Item 0. Projeto DEV `niazcsjnxvoeeolwrcqx` configurado e alcançável
+(auth 200, `public.empresas` ainda 404 — schema não aplicado).
+`.env` e `.mcp.json` preenchidos. Falta a connection string para aplicar as
+6 migrations com `npx supabase db push --db-url`.
 
 ## Próximo
 
-1. Aplicar as 6 migrations no DEV (`supabase link` + `db push`).
-2. `gen types` para `src/lib/database.types.ts` e remover o alias `chamar` de
-   `src/lib/rpc.ts` (está marcado como PENDENTE no arquivo).
-3. Rodar `npm run test:rls` e o teste negativo do gate.
-4. Exercitar os fluxos de ponta a ponta e então seguir a Fase 2.
+1. `DATABASE_URL_DEV` no `.env` → `db push` → `gen types --db-url`.
+2. Remover o alias `chamar` de `src/lib/rpc.ts` e apagar
+   `src/integrations/supabase/types.ts`.
+3. `npm run test:rls` + teste negativo do gate.
+4. Bootstrap do TIME_02 §1.6 e bucket do §4; exercitar login e quiz.
+5. Seguir para o item 1 da ordem acima.
 
 ## Bloqueado (precisa do usuário)
 
-- **Projeto Supabase de DEV**: `project_ref`, `VITE_SUPABASE_URL`,
-  `VITE_SUPABASE_ANON_KEY` e a connection string (`DATABASE_URL_DEV`).
-- **Token Supabase novo** para `npx supabase login` — o anterior foi colado no
-  chat e deve ser revogado.
+- **Connection string do DEV** (Supabase > Project Settings > Database >
+  Connection string, modo pooler). **Colar direto no `.env`**, em
+  `DATABASE_URL_DEV=` — não no chat: duas chaves já foram expostas ali.
+- **Revogar a `sb_secret_...`** colada no chat e gerar outra. Ela não está em
+  arquivo nenhum do repositório (verificado).
 - **URL do repositório GitHub** para `git remote add origin`.
-- **Superpowers**: rodar `/plugin install superpowers@claude-plugins-official`.
-- **Confirmar remoção de `drizzle-orm`** do `devDependencies` (órfão).
+- **Superpowers**: `/plugin install superpowers@claude-plugins-official`.
+- **Reiniciar a sessão** para o `.mcp.json` carregar o servidor `supabase`.
+- **Confirmar remoção de `drizzle-orm`** (órfão no devDependencies).
