@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { usePerfil } from "@/hooks/usePerfil";
+import { useTemas } from "@/hooks/usePerguntas";
+import { Comparativo } from "@/components/painel/Comparativo";
 import { useCampanhas, useLicoes } from "@/hooks/useCampanhas";
 import { useSetores } from "@/hooks/useEventos";
 import {
@@ -128,6 +130,7 @@ function useAgregadoDoCanal(habilitado: boolean) {
 
 function Relatorios() {
   const { data: perfil } = usePerfil();
+  const { data: temas = [] } = useTemas();
   const { data: campanhas = [] } = useCampanhas();
   const { data: setores = [] } = useSetores();
 
@@ -480,10 +483,14 @@ function Relatorios() {
         </div>
       )}
 
-      <p className="text-sm text-texto-suave">
-        O comparativo trimestral do <code>docs/TIME_09</code> §3 ainda não foi construído — o{" "}
-        <code>docs/TIME_11</code> o marca como ⏳, para depois da inscrição.
-      </p>
+      <hr className="border-borda" />
+
+      <Comparativo
+        campanhas={campanhas}
+        nomeDoSetor={(id) => setores.find((s) => s.id === id)?.nome ?? "Setor removido"}
+        nomeDoTema={(id) => temas.find((t) => t.id === id)?.nome ?? "Tema removido"}
+        nomeDaEmpresa={perfil?.empresa.nome ?? ""}
+      />
     </div>
   );
 }

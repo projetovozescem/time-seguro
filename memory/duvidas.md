@@ -70,3 +70,12 @@ importação quando o CSV traz outro, mas nada no banco impede um turno diferent
 (nem o importador do servidor). `rotuloDoTurno` mostra o valor cru quando não
 conhece. Se a especificação quiser travar, é um `check` em migration nova —
 não mudar a existente.
+
+## 9. Participação do comparativo usa o efetivo de hoje
+
+O comparativo trimestral (TIME_09 §3) pede "% de ativos" por campanha, mas o
+banco não guarda o quadro de pessoal de cada trimestre: `colaboradores.ativo` é
+um estado atual, sem histórico.
+**Suposição:** usar o efetivo de hoje como denominador em todas as campanhas e
+dizer isso na tela, embaixo da tabela. Guardar o histórico seria uma coluna nova
+em `campanhas` preenchida no encerramento — migration nova, decidir depois.

@@ -12,6 +12,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useCampanhas } from "@/hooks/useCampanhas";
 import { useSetores } from "@/hooks/useEventos";
+import { useLocais } from "@/hooks/useLocais";
 import { useTemas } from "@/hooks/usePerguntas";
 import {
   useDesempenhoPerguntas,
@@ -30,8 +31,9 @@ import {
 import { baixarCsv, montarCsv } from "@/lib/eventos";
 import { LETRAS } from "@/lib/importacao/tipos";
 import { ROTULO_DO_STATUS } from "@/lib/campanha";
+import { AbaEngajamento, AbaRelatos } from "@/components/painel/AbasAnalytics";
 
-type Aba = "geral" | "lacunas" | "perguntas";
+type Aba = "geral" | "lacunas" | "perguntas" | "relatos" | "engajamento";
 
 /** Gaveta da célula: as 5 perguntas mais erradas daquele setor e tema. */
 function GavetaDaCelula({
@@ -110,6 +112,7 @@ function Analytics() {
   const { data: campanhas = [] } = useCampanhas();
   const { data: setores = [] } = useSetores();
   const { data: temas = [] } = useTemas();
+  const { data: locais = [] } = useLocais();
 
   const [campanhaId, setCampanhaId] = useState<string | null>(null);
   const [aba, setAba] = useState<Aba>("lacunas");
@@ -129,6 +132,7 @@ function Analytics() {
     () => new Map(temas.map((t) => [t.id, `${t.icone} ${t.nome}`])),
     [temas],
   );
+  const nomeDoLocal = useMemo(() => new Map(locais.map((l) => [l.id, l.nome])), [locais]);
 
   // Só os temas que aparecem nos dados, para a matriz não virar um deserto.
   const temasDaMatriz = useMemo(() => {
@@ -166,6 +170,8 @@ function Analytics() {
     { id: "geral", rotulo: "Visão geral" },
     { id: "lacunas", rotulo: "🔍 Mapa de lacunas" },
     { id: "perguntas", rotulo: "Perguntas" },
+    { id: "relatos", rotulo: "Relatos" },
+    { id: "engajamento", rotulo: "Engajamento" },
   ];
 
   return (
@@ -241,11 +247,6 @@ function Analytics() {
               </div>
             ))}
           </dl>
-          <p className="text-sm text-texto-suave">
-            As abas de relatos e engajamento do <code>docs/TIME_09</code> §1.4 e §1.5 ainda não
-            foram construídas. O <code>docs/TIME_11</code> marca só o mapa de lacunas como essencial
-            para a inscrição.
-          </p>
         </>
       )}
 
@@ -344,6 +345,16 @@ function Analytics() {
           )}
         </>
       )}
+
+      {aba === "relatos" && (
+        <AbaRelatos
+          campanhaId={campanhaId}
+          nomeDoSetor={(id) => nomeDoSetor.get(id) ?? "Setor removido"}
+          nomeDoLocal={(id) => nomeDoLocal.get(id) ?? "Local removido"}
+        />
+      )}
+
+      {aba === "engajamento" && <AbaEngajamento campanhaId={campanhaId} />}
 
       {aba === "perguntas" && (
         <>
