@@ -74,14 +74,5 @@ export function useCampanhaAtiva() {
   });
 }
 
-/** Dias que faltam para o fim da campanha, nunca negativo. */
-export function diasRestantes(fim: string | null | undefined): number | null {
-  if (!fim) return null;
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-  const [ano, mes, dia] = fim.slice(0, 10).split("-").map(Number);
-  if (!ano || !mes || !dia) return null;
-  const alvo = new Date(ano, mes - 1, dia);
-  const dias = Math.ceil((alvo.getTime() - hoje.getTime()) / 86_400_000);
-  return Math.max(dias, 0);
-}
+// `diasRestantes` vive em lib/datas.ts: data pura nao passa por `new Date(iso)`.
+export { diasRestantes } from "@/lib/datas";

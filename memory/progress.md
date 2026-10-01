@@ -13,8 +13,8 @@ Definida pelas fases do `docs/TIME_11` §1. Prazo da inscrição: **05/10/2026**
 | 0    | Setup e limpeza do V.O.Z.E.S.               | **feita**                                                          |
 | 1    | Banco completo (6 migrations do `TIME_02`)  | **feita e aplicada** (+ a 0007 de correção)                        |
 | 2    | Auth do painel + colaboradores + PINs       | login e guard feitos; telas de colaborador não                     |
-| 3    | Perguntas + importador                      | parser TXT/CSV feito; telas e PDF não                              |
-| 4    | Campanha + trilha + eventos                 | não iniciada                                                       |
+| 3    | Perguntas + importador                      | telas feitas; falta só a leitura de PDF                            |
+| 4    | Campanha + trilha + eventos                 | **feita** (ranking e resultados ficam nas fases 9 e 10)            |
 | 5    | App do colaborador                          | entrar/PIN/termo/início/quiz feitos e exercitados por `test:fluxo` |
 | 6    | Relatos com foto + validação                | bucket e policy prontos; resto não                                 |
 | 7    | Canal de Respeito                           | RPC do banco funciona; telas não                                   |
@@ -104,9 +104,35 @@ gate de RLS, de teste ou de interface pode ser cumprido.
 
 ## Em andamento
 
-Item 1 (perguntas + importador): telas prontas. Falta a leitura de **PDF**
-(`pdfQuestions.ts`, import dinâmico de `pdfjs-dist`) — hoje a tela recusa PDF
-com recado claro e manda colar o texto.
+Nada. Próximo é o item 3 da ordem (app do colaborador: trilha e avaliação).
+
+## Feito em 01/10/2026 — item 2 (campanha, trilha e eventos)
+
+- `src/lib/campanha.ts`: catálogo das 15 chaves de `campanhas.config` com rótulo,
+  pilar e ajuda. **Um teste compara cada chave e cada padrão com o `_cfg(...)` das
+  migrations** — se alguém mudar o SQL, o teste reprova em vez de a tela mentir.
+- `src/lib/datas.ts`: formatação pt-BR sem passar data pura por `new Date(iso)`
+  (que no Brasil devolve o dia anterior), mais `diaOperacionalISO()` espelhando a
+  virada das 05h do banco.
+- `src/lib/eventos.ts`: tipos com cor e pontos padrão (DDS 5, SIPAT e Treinamento
+  15), validação que antecipa os CHECK do banco, e `montarCsv` com `;` e BOM,
+  como o TIME_09 exige.
+- `/painel/campanhas`: lista em cartões com status, período e premiação;
+  formulário com multi-seleção de temas, perguntas por dia mostrando o teto
+  diário, e o acordeão "pontos avançados" que grava só o que difere do padrão.
+- `/painel/campanhas/$id`: cinco abas. Visão geral com números, temas, pontos em
+  vigor (destacando o que foi ajustado) e os botões Ativar e Encerrar — o
+  encerramento com a confirmação e o top N do TIME_04 §4. Trilha com lições
+  ordenáveis, editor Markdown com pré-visualização, vídeo do YouTube e seleção
+  das perguntas da avaliação. Eventos, Ranking e Resultados apontam para onde o
+  assunto será construído.
+- `/painel/eventos`: lista agrupada por dia, filtro por tipo, formulário com
+  setor, pontos e campanha, e a lista de presença com exportação CSV.
+- `react-markdown` 10.1.0 instalado (75 KB): exigido pelo TIME_04 §4 e pelo
+  TIME_05 §6. Serve também à trilha do app.
+- `test:fluxo` subiu para 52 verificações, cobrindo criar campanha, recusa de
+  segunda campanha ativa, vincular tema, lição com pergunta de avaliação, evento,
+  recusa de evento com fim antes do início, e CIPA recusada em campanha e evento.
 
 ## Feito em 01/10/2026 — item 1 (telas de perguntas)
 
@@ -158,8 +184,9 @@ segue 200. O gate de RLS subiu para 242 verificações, agora cobrindo Storage.
 
 ## Próximo
 
-1. Leitura de PDF no importador (TIME_07 §5), fechando o item 1.
-2. Campanha, trilha e eventos — item 2 (TIME_04 §4 e §8, TIME_08).
+1. Item 3: app do colaborador — trilha e avaliação (TIME_05 §6).
+2. Item 4: pontuação e selos no perfil do app (TIME_08).
+3. Pendência do item 1: leitura de PDF no importador (TIME_07 §5).
 
 ## Não verificado
 

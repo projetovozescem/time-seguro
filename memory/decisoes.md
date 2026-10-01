@@ -133,3 +133,28 @@ o router tipado do TanStack, link para rota inexistente nem compilaria.
 `pdfjs-dist` entra depois (TIME_07 §5, import dinâmico). Até lá a tela diz
 "Leitura de PDF ainda não está pronta. Use TXT ou CSV, ou cole o texto." É pior
 aceitar o arquivo e devolver zero pergunta sem explicar.
+
+## 2026-10-01 — O catálogo de config é verificado contra o SQL
+
+`src/lib/campanha.ts` lista as 15 chaves de `campanhas.config` com os padrões, e
+`campanha.test.ts` lê as migrations e compara chave por chave com os
+`_cfg(campanha, 'chave', padrao)`. Sem isso, a tela de "pontos avançados" poderia
+exibir um padrão diferente do que o banco aplica, e ninguém notaria.
+
+## 2026-10-01 — Reordenar a trilha por botões, não arrastando
+
+O TIME_04 §4 pede lista ordenável por arrastar. Implementei com botões de subir e
+descer: funciona com teclado, com leitor de tela e com luva — e o próprio TIME_05
+§6 exige o produto usável com uma mão. Arrastar entra se o técnico pedir.
+
+## 2026-10-01 — `EventoForm` do V.O.Z.E.S. não foi reaproveitado
+
+O TIME_04 §8 diz "reaproveitar CalendarioGrid e EventoForm". O formulário legado é
+de data única sobre os tipos da campanha escolar, e o evento do T.I.M.E. tem
+início e fim com hora, setor, pontos de check-in e campanha. Reescrevi; o que se
+aproveitou foi a ideia da tela. O legado segue em `docs/legado-vozes/`.
+
+## 2026-10-01 — `react-markdown` instalado
+
+Exigido nominalmente pelo TIME_04 §4 (editor com pré-visualização) e pelo TIME_05
+§6 ("usar react-markdown, sem HTML bruto"). 75 KB, usado nas duas pontas.

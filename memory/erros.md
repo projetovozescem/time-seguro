@@ -47,3 +47,22 @@ nunca casava: o teste negativo passou verde com uma policy aberta a `anon`.
 Troquei a regex por uma checagem explícita da lista de papéis. Lição: regex com
 escape não sobrevive a camadas de quoting — e sem o teste negativo isso teria
 ficado escondido.
+
+## 2026-10-01 — Quatro tropeços no MESMO escape, no mesmo dia
+
+`\n`, `\s` e `\uFEFF` perderam a barra ao passar por heredoc do bash e por
+`node -e`, gerando arquivo com quebra de linha literal dentro de string, regex
+sem âncora e BOM invisível no fonte. Custou quatro idas e voltas.
+
+Regra que passa a valer: **conteúdo com escape ou regex vai pela ferramenta de
+escrita de arquivo, nunca por string embutida em comando de shell.** Para
+caractere invisível, usar `String.fromCharCode(0x...)` — é o que
+`src/lib/eventos.ts` faz com o BOM do CSV.
+
+## 2026-10-01 — Asserção errada sobre a ordem das checagens da RPC
+
+Afirmei que ativar campanha sem tema devolve `campanha_sem_temas`. A RPC checa
+`ja_existe_campanha_ativa` primeiro, e o seed deixa uma campanha ativa — então
+aquele caminho não era alcançável. O teste passou a afirmar que a ativação é
+recusada com um dos dois motivos conhecidos. Ler a ordem das validações no SQL
+antes de escrever a expectativa.

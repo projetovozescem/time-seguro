@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
  */
 const MENU = [
   { emoji: "🏠", rotulo: "Início", rota: "/painel" as const, minimo: "cipa" as const },
-  { emoji: "🏆", rotulo: "Campanhas", rota: null, minimo: "cipa" as const },
+  { emoji: "🏆", rotulo: "Campanhas", rota: "/painel/campanhas" as const, minimo: "cipa" as const },
   {
     emoji: "❓",
     rotulo: "Perguntas",
@@ -26,7 +26,7 @@ const MENU = [
   },
   { emoji: "👷", rotulo: "Colaboradores", rota: null, minimo: "tecnico" as const },
   { emoji: "🏭", rotulo: "Setores e Locais", rota: null, minimo: "tecnico" as const },
-  { emoji: "📅", rotulo: "Eventos", rota: null, minimo: "cipa" as const },
+  { emoji: "📅", rotulo: "Eventos", rota: "/painel/eventos" as const, minimo: "cipa" as const },
   { emoji: "📢", rotulo: "Relatos", rota: null, minimo: "cipa" as const },
   { emoji: "💜", rotulo: "Canal de Respeito", rota: null, minimo: "cipa" as const, soComite: true },
   { emoji: "🥇", rotulo: "Ranking", rota: null, minimo: "cipa" as const },

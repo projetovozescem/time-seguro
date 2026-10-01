@@ -18,6 +18,9 @@ import { Route as AppQuizRouteImport } from './routes/app.quiz'
 import { Route as AppTermoRouteImport } from './routes/app.termo'
 import { Route as PainelLoginRouteImport } from './routes/painel.login'
 import { Route as ProtegidoPainelIndexRouteImport } from './routes/_protegido.painel.index'
+import { Route as ProtegidoPainelEventosRouteImport } from './routes/_protegido.painel.eventos'
+import { Route as ProtegidoPainelCampanhasIndexRouteImport } from './routes/_protegido.painel.campanhas.index'
+import { Route as ProtegidoPainelCampanhasIdRouteImport } from './routes/_protegido.painel.campanhas.$id'
 import { Route as ProtegidoPainelPerguntasIndexRouteImport } from './routes/_protegido.painel.perguntas.index'
 import { Route as ProtegidoPainelPerguntasImportarRouteImport } from './routes/_protegido.painel.perguntas.importar'
 
@@ -65,6 +68,23 @@ const ProtegidoPainelIndexRoute = ProtegidoPainelIndexRouteImport.update({
   path: '/painel/',
   getParentRoute: () => ProtegidoRoute,
 } as any)
+const ProtegidoPainelEventosRoute = ProtegidoPainelEventosRouteImport.update({
+  id: '/painel/eventos',
+  path: '/painel/eventos',
+  getParentRoute: () => ProtegidoRoute,
+} as any)
+const ProtegidoPainelCampanhasIndexRoute =
+  ProtegidoPainelCampanhasIndexRouteImport.update({
+    id: '/painel/campanhas/',
+    path: '/painel/campanhas/',
+    getParentRoute: () => ProtegidoRoute,
+  } as any)
+const ProtegidoPainelCampanhasIdRoute =
+  ProtegidoPainelCampanhasIdRouteImport.update({
+    id: '/painel/campanhas/$id',
+    path: '/painel/campanhas/$id',
+    getParentRoute: () => ProtegidoRoute,
+  } as any)
 const ProtegidoPainelPerguntasIndexRoute =
   ProtegidoPainelPerguntasIndexRouteImport.update({
     id: '/painel/perguntas/',
@@ -86,8 +106,11 @@ export interface FileRoutesByFullPath {
   '/app/quiz': typeof AppQuizRoute
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
+  '/painel/eventos': typeof ProtegidoPainelEventosRoute
   '/painel/': typeof ProtegidoPainelIndexRoute
+  '/painel/campanhas/$id': typeof ProtegidoPainelCampanhasIdRoute
   '/painel/perguntas/importar': typeof ProtegidoPainelPerguntasImportarRoute
+  '/painel/campanhas/': typeof ProtegidoPainelCampanhasIndexRoute
   '/painel/perguntas/': typeof ProtegidoPainelPerguntasIndexRoute
 }
 export interface FileRoutesByTo {
@@ -98,8 +121,11 @@ export interface FileRoutesByTo {
   '/app/quiz': typeof AppQuizRoute
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
+  '/painel/eventos': typeof ProtegidoPainelEventosRoute
   '/painel': typeof ProtegidoPainelIndexRoute
+  '/painel/campanhas/$id': typeof ProtegidoPainelCampanhasIdRoute
   '/painel/perguntas/importar': typeof ProtegidoPainelPerguntasImportarRoute
+  '/painel/campanhas': typeof ProtegidoPainelCampanhasIndexRoute
   '/painel/perguntas': typeof ProtegidoPainelPerguntasIndexRoute
 }
 export interface FileRoutesById {
@@ -112,8 +138,11 @@ export interface FileRoutesById {
   '/app/quiz': typeof AppQuizRoute
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
+  '/_protegido/painel/eventos': typeof ProtegidoPainelEventosRoute
   '/_protegido/painel/': typeof ProtegidoPainelIndexRoute
+  '/_protegido/painel/campanhas/$id': typeof ProtegidoPainelCampanhasIdRoute
   '/_protegido/painel/perguntas/importar': typeof ProtegidoPainelPerguntasImportarRoute
+  '/_protegido/painel/campanhas/': typeof ProtegidoPainelCampanhasIndexRoute
   '/_protegido/painel/perguntas/': typeof ProtegidoPainelPerguntasIndexRoute
 }
 export interface FileRouteTypes {
@@ -126,8 +155,11 @@ export interface FileRouteTypes {
     | '/app/quiz'
     | '/app/termo'
     | '/painel/login'
+    | '/painel/eventos'
     | '/painel/'
+    | '/painel/campanhas/$id'
     | '/painel/perguntas/importar'
+    | '/painel/campanhas/'
     | '/painel/perguntas/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -138,8 +170,11 @@ export interface FileRouteTypes {
     | '/app/quiz'
     | '/app/termo'
     | '/painel/login'
+    | '/painel/eventos'
     | '/painel'
+    | '/painel/campanhas/$id'
     | '/painel/perguntas/importar'
+    | '/painel/campanhas'
     | '/painel/perguntas'
   id:
     | '__root__'
@@ -151,8 +186,11 @@ export interface FileRouteTypes {
     | '/app/quiz'
     | '/app/termo'
     | '/painel/login'
+    | '/_protegido/painel/eventos'
     | '/_protegido/painel/'
+    | '/_protegido/painel/campanhas/$id'
     | '/_protegido/painel/perguntas/importar'
+    | '/_protegido/painel/campanhas/'
     | '/_protegido/painel/perguntas/'
   fileRoutesById: FileRoutesById
 }
@@ -232,6 +270,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtegidoPainelIndexRouteImport
       parentRoute: typeof ProtegidoRoute
     }
+    '/_protegido/painel/eventos': {
+      id: '/_protegido/painel/eventos'
+      path: '/painel/eventos'
+      fullPath: '/painel/eventos'
+      preLoaderRoute: typeof ProtegidoPainelEventosRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
+    '/_protegido/painel/campanhas/': {
+      id: '/_protegido/painel/campanhas/'
+      path: '/painel/campanhas'
+      fullPath: '/painel/campanhas/'
+      preLoaderRoute: typeof ProtegidoPainelCampanhasIndexRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
+    '/_protegido/painel/campanhas/$id': {
+      id: '/_protegido/painel/campanhas/$id'
+      path: '/painel/campanhas/$id'
+      fullPath: '/painel/campanhas/$id'
+      preLoaderRoute: typeof ProtegidoPainelCampanhasIdRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
     '/_protegido/painel/perguntas/': {
       id: '/_protegido/painel/perguntas/'
       path: '/painel/perguntas'
@@ -250,14 +309,20 @@ declare module '@tanstack/react-router' {
 }
 
 interface ProtegidoRouteChildren {
+  ProtegidoPainelEventosRoute: typeof ProtegidoPainelEventosRoute
   ProtegidoPainelIndexRoute: typeof ProtegidoPainelIndexRoute
+  ProtegidoPainelCampanhasIdRoute: typeof ProtegidoPainelCampanhasIdRoute
   ProtegidoPainelPerguntasImportarRoute: typeof ProtegidoPainelPerguntasImportarRoute
+  ProtegidoPainelCampanhasIndexRoute: typeof ProtegidoPainelCampanhasIndexRoute
   ProtegidoPainelPerguntasIndexRoute: typeof ProtegidoPainelPerguntasIndexRoute
 }
 
 const ProtegidoRouteChildren: ProtegidoRouteChildren = {
+  ProtegidoPainelEventosRoute: ProtegidoPainelEventosRoute,
   ProtegidoPainelIndexRoute: ProtegidoPainelIndexRoute,
+  ProtegidoPainelCampanhasIdRoute: ProtegidoPainelCampanhasIdRoute,
   ProtegidoPainelPerguntasImportarRoute: ProtegidoPainelPerguntasImportarRoute,
+  ProtegidoPainelCampanhasIndexRoute: ProtegidoPainelCampanhasIndexRoute,
   ProtegidoPainelPerguntasIndexRoute: ProtegidoPainelPerguntasIndexRoute,
 }
 

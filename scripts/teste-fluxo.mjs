@@ -535,6 +535,194 @@ console.log("\n--- CRUD de perguntas: o caminho que a tela do painel usa ---");
 }
 
 // =====================================================================
+console.log("\n--- campanhas, trilha e eventos: caminho das telas do item 2 ---");
+{
+  const cab = (jwt) => ({
+    apikey: ANON,
+    Authorization: `Bearer ${jwt}`,
+    "Content-Type": "application/json",
+    Prefer: "return=representation",
+  });
+
+  const [tema] = await consultar(
+    "select id from public.temas where empresa_id is null order by slug limit 1",
+  );
+
+  // 1. Campanha nasce em rascunho pela tela.
+  const criar = await fetch(`${URL}/rest/v1/campanhas`, {
+    method: "POST",
+    headers: cab(jwtAdmin),
+    body: JSON.stringify({
+      empresa_id: empresa.id,
+      nome: `Campanha de teste ${selo}`,
+      inicio: "2026-10-01",
+      fim: "2026-12-31",
+      status: "rascunho",
+      perguntas_por_dia: 5,
+      ranking_visivel: true,
+      config: { pontos_acerto_diario: 15 },
+    }),
+  });
+  const nova = await criar.json();
+  const campanhaId = Array.isArray(nova) ? nova[0]?.id : undefined;
+  checar(
+    criar.status === 201 && Boolean(campanhaId),
+    `admin cria campanha em rascunho (http ${criar.status})`,
+    JSON.stringify(nova).slice(0, 120),
+  );
+
+  // 2. Ativar sem tema tem de ser recusado (docs/TIME_04 §4).
+  if (campanhaId) {
+    const semTema = await rpc("tecnico_ativar_campanha", { p_campanha: campanhaId }, jwtAdmin);
+    // A RPC checa "ja existe campanha ativa" ANTES de "sem temas", e o seed
+    // deixa uma campanha ativa. Entao aqui so da para afirmar que a ativacao e
+    // recusada; qual das duas razoes vem depende do estado da empresa.
+    checar(
+      semTema.corpo?.ok === false &&
+        ["campanha_sem_temas", "ja_existe_campanha_ativa"].includes(semTema.corpo?.motivo),
+      `ativar e recusado com motivo conhecido (veio ${semTema.corpo?.motivo})`,
+    );
+
+    // 3. Vincula o tema, como o formulário faz.
+    const vincular = await fetch(`${URL}/rest/v1/campanha_temas`, {
+      method: "POST",
+      headers: cab(jwtAdmin),
+      body: JSON.stringify({ campanha_id: campanhaId, tema_id: tema.id, empresa_id: empresa.id }),
+    });
+    checar(vincular.status === 201, `admin vincula tema (http ${vincular.status})`);
+
+    // 4. Só uma campanha ativa por empresa: a do seed já está ativa.
+    const duas = await rpc("tecnico_ativar_campanha", { p_campanha: campanhaId }, jwtAdmin);
+    checar(
+      duas.corpo?.motivo === "ja_existe_campanha_ativa",
+      `segunda campanha ativa é recusada (veio ${duas.corpo?.motivo})`,
+    );
+
+    // 5. Lição da trilha, com a pergunta da avaliação.
+    const [perguntaDoTema] = await consultar(
+      `select id from public.perguntas
+        where empresa_id = ${lit(empresa.id)} and tema_id = ${lit(tema.id)} limit 1`,
+    );
+    const licao = await fetch(`${URL}/rest/v1/licoes`, {
+      method: "POST",
+      headers: cab(jwtAdmin),
+      body: JSON.stringify({
+        empresa_id: empresa.id,
+        campanha_id: campanhaId,
+        tema_id: tema.id,
+        titulo: `Licao de teste ${selo}`,
+        conteudo_md: "## Conteudo\n\nTexto de teste automatico.",
+        carga_minutos: 10,
+        nota_minima: 70,
+        obrigatoria: true,
+        publicada: false,
+        ordem: 1,
+      }),
+    });
+    const licaoCriada = await licao.json();
+    const licaoId = Array.isArray(licaoCriada) ? licaoCriada[0]?.id : undefined;
+    checar(
+      licao.status === 201,
+      `admin cria lição (http ${licao.status})`,
+      JSON.stringify(licaoCriada).slice(0, 120),
+    );
+
+    if (licaoId && perguntaDoTema) {
+      const vinculo = await fetch(`${URL}/rest/v1/licao_perguntas`, {
+        method: "POST",
+        headers: cab(jwtAdmin),
+        body: JSON.stringify({
+          licao_id: licaoId,
+          pergunta_id: perguntaDoTema.id,
+          empresa_id: empresa.id,
+          ordem: 1,
+        }),
+      });
+      checar(vinculo.status === 201, `admin liga pergunta à avaliação (http ${vinculo.status})`);
+    }
+
+    // 6. Evento com check-in: o CHECK do banco exige fim > inicio.
+    const evento = await fetch(`${URL}/rest/v1/eventos`, {
+      method: "POST",
+      headers: cab(jwtAdmin),
+      body: JSON.stringify({
+        empresa_id: empresa.id,
+        campanha_id: campanhaId,
+        tipo: "dds",
+        titulo: `DDS de teste ${selo}`,
+        inicio: "2026-10-02T10:00:00Z",
+        fim: "2026-10-02T10:15:00Z",
+        pontos: 5,
+      }),
+    });
+    checar(evento.status === 201, `admin cria evento (http ${evento.status})`);
+
+    const invertido = await fetch(`${URL}/rest/v1/eventos`, {
+      method: "POST",
+      headers: cab(jwtAdmin),
+      body: JSON.stringify({
+        empresa_id: empresa.id,
+        tipo: "dds",
+        titulo: `Evento invertido ${selo}`,
+        inicio: "2026-10-02T10:15:00Z",
+        fim: "2026-10-02T10:00:00Z",
+        pontos: 5,
+      }),
+    });
+    checar(
+      invertido.status >= 400,
+      `banco recusa evento com fim antes do início (http ${invertido.status})`,
+    );
+
+    // 7. CIPA é somente leitura também aqui.
+    const cipaCampanha = await fetch(`${URL}/rest/v1/campanhas`, {
+      method: "POST",
+      headers: cab(jwtCipa),
+      body: JSON.stringify({
+        empresa_id: empresa.id,
+        nome: `CIPA nao deveria ${selo}`,
+        inicio: "2026-10-01",
+        fim: "2026-12-31",
+        status: "rascunho",
+      }),
+    });
+    checar(
+      cipaCampanha.status === 401 || cipaCampanha.status === 403,
+      `cipa recusada ao criar campanha (http ${cipaCampanha.status})`,
+    );
+
+    const cipaEvento = await fetch(`${URL}/rest/v1/eventos`, {
+      method: "POST",
+      headers: cab(jwtCipa),
+      body: JSON.stringify({
+        empresa_id: empresa.id,
+        tipo: "dds",
+        titulo: `CIPA nao deveria ${selo}`,
+        inicio: "2026-10-03T10:00:00Z",
+        fim: "2026-10-03T10:15:00Z",
+        pontos: 5,
+      }),
+    });
+    checar(
+      cipaEvento.status === 401 || cipaEvento.status === 403,
+      `cipa recusada ao criar evento (http ${cipaEvento.status})`,
+    );
+
+    // 8. Limpa o que este teste criou, em ordem de dependência.
+    if (licaoId) {
+      await consultar(`delete from public.licao_perguntas where licao_id = ${lit(licaoId)}`);
+      await consultar(`delete from public.licoes where id = ${lit(licaoId)}`);
+    }
+    await consultar(`delete from public.eventos where campanha_id = ${lit(campanhaId)}`);
+    await consultar(`delete from public.eventos where titulo like ${lit(`%${selo}%`)}`);
+    await consultar(`delete from public.campanha_temas where campanha_id = ${lit(campanhaId)}`);
+    const sobrou = await consultar(
+      `delete from public.campanhas where id = ${lit(campanhaId)} returning id`,
+    );
+    checar(sobrou.length === 1, "a campanha de teste foi removida no fim");
+  }
+}
+// =====================================================================
 console.log(
   falhas === 0
     ? `\nFluxo: ${total} verificações passaram.`
