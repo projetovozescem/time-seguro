@@ -174,7 +174,12 @@ function AppEntrar() {
         (docs/TIME_03 §6). A rota entra na Fase 7 — por isso ainda não é um
         <Link> tipado.
       */}
-      <p className="mt-6 text-center text-sm text-texto-suave">💜 Canal de Respeito</p>
+      <a
+        href={`/respeito/${codigo}`}
+        className="mt-6 text-center text-sm font-medium text-respeito underline-offset-4 hover:underline"
+      >
+        💜 Canal de Respeito
+      </a>
     </AlunoLayout>
   );
 }

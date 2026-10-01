@@ -1167,6 +1167,177 @@ console.log("\n--- item 5: ciclo de relatos ---");
   checar(removido.length === 1, "o relato de teste foi removido no fim");
 }
 // =====================================================================
+console.log("\n--- item 6: Canal de Respeito (anonimato) ---");
+{
+  // 1. Descricao curta e recusada (o minimo da denuncia e 20, nao 10).
+  const curta = await rpc("registrar_denuncia_assedio", {
+    p_empresa_codigo: empresa.codigo,
+    p_categoria: "moral",
+    p_descricao: "curto demais",
+  });
+  checar(
+    curta.corpo?.motivo === "descricao_curta",
+    `descricao abaixo de 20 recusada (veio ${curta.corpo?.motivo})`,
+  );
+
+  // 2. Categoria invalida recusada.
+  const cat = await rpc("registrar_denuncia_assedio", {
+    p_empresa_codigo: empresa.codigo,
+    p_categoria: "assedio_moral",
+    p_descricao: "Descricao com tamanho suficiente para passar do minimo.",
+  });
+  checar(
+    cat.corpo?.motivo === "categoria_invalida",
+    `categoria invalida recusada (veio ${cat.corpo?.motivo})`,
+  );
+
+  // 3. Registro ANONIMO: sem token nenhum na chamada.
+  const antes = (await consultar("select count(*)::int as n from public.denuncias_assedio"))[0].n;
+
+  const nova = await rpc("registrar_denuncia_assedio", {
+    p_empresa_codigo: empresa.codigo,
+    p_categoria: "moral",
+    p_descricao: `Denuncia de teste automatico ${selo} com texto suficiente.`,
+    p_local: "Setor de demonstracao",
+    p_periodo: "Ultima semana",
+    p_quer_retorno: true,
+  });
+  checar(
+    nova.corpo?.ok === true,
+    "denuncia registrada sem token",
+    JSON.stringify(nova.corpo).slice(0, 140),
+  );
+
+  const protocolo = nova.corpo?.protocolo;
+  const senha = nova.corpo?.senha;
+  checar(
+    typeof protocolo === "string" && protocolo.startsWith("RS-"),
+    `protocolo no formato RS-XXXXXXXX (veio ${protocolo})`,
+  );
+  checar(typeof senha === "string" && senha.length >= 8, "senha de pelo menos 8 caracteres");
+
+  const depois = (await consultar("select count(*)::int as n from public.denuncias_assedio"))[0].n;
+  checar(depois === antes + 1, "uma denuncia a mais no banco");
+
+  // 4. A linha gravada nao identifica ninguem.
+  const [linha] = await consultar(
+    `select id, recebida_em::text as recebida, senha_hash,
+            local_aproximado, periodo_aproximado, quer_retorno, status
+       from public.denuncias_assedio where protocolo = ${lit(protocolo)}`,
+  );
+  checar(Boolean(linha), "a denuncia existe no banco");
+  checar(
+    /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(linha.recebida),
+    `recebida_em e so data, sem hora (veio ${linha.recebida})`,
+  );
+  checar(
+    linha.senha_hash !== senha && String(linha.senha_hash).length > 20,
+    "a senha e guardada como hash, nao em texto",
+  );
+  checar(linha.status === "recebida", `nasce como recebida (veio ${linha.status})`);
+
+  // 5. Zero pontos por denuncia, em qualquer origem.
+  const pontos = await consultar(
+    `select count(*)::int as n from public.pontos_lancamentos
+      where origem_id = ${lit(linha.id)}`,
+  );
+  checar(pontos[0].n === 0, "denuncia nao lanca ponto nenhum");
+
+  // 6. Consulta com protocolo e senha funciona; com senha errada, nao.
+  const consultaOk = await rpc("consultar_denuncia", {
+    p_protocolo: protocolo,
+    p_senha: senha,
+  });
+  checar(consultaOk.corpo?.ok === true, "consulta com protocolo e senha funciona");
+  checar(Array.isArray(consultaOk.corpo?.mensagens), "a consulta devolve a lista de mensagens");
+
+  const senhaErrada = await rpc("consultar_denuncia", {
+    p_protocolo: protocolo,
+    p_senha: "senha-errada",
+  });
+  checar(
+    senhaErrada.corpo?.motivo === "protocolo_ou_senha_invalidos",
+    `senha errada recusada (veio ${senhaErrada.corpo?.motivo})`,
+  );
+
+  // 7. CIPA sem a flag nao ve; o comite ve.
+  const cipaVe = await fetch(
+    `${URL}/rest/v1/denuncias_assedio?select=protocolo&protocolo=eq.${protocolo}`,
+    { headers: { apikey: ANON, Authorization: `Bearer ${jwtCipa}` } },
+  );
+  const linhasCipa = await cipaVe.json();
+  checar(
+    Array.isArray(linhasCipa) && linhasCipa.length === 0,
+    "cipa sem comite_assedio nao ve a denuncia",
+  );
+
+  const comiteVe = await fetch(
+    `${URL}/rest/v1/denuncias_assedio?select=protocolo&protocolo=eq.${protocolo}`,
+    { headers: { apikey: ANON, Authorization: `Bearer ${jwtAdmin}` } },
+  );
+  const linhasComite = await comiteVe.json();
+  checar(Array.isArray(linhasComite) && linhasComite.length === 1, "o comite ve a denuncia");
+
+  // 8. Nem o comite le a senha_hash.
+  const lerHash = await fetch(`${URL}/rest/v1/denuncias_assedio?select=senha_hash&limit=1`, {
+    headers: { apikey: ANON, Authorization: `Bearer ${jwtAdmin}` },
+  });
+  checar(lerHash.status === 403, `senha_hash ilegivel pelo painel (http ${lerHash.status})`);
+
+  // 9. O comite responde; o denunciante le a resposta pelo protocolo.
+  const respondeu = await rpc(
+    "comite_responder_denuncia",
+    {
+      p_denuncia: linha.id,
+      p_mensagem: "Recebemos sua denuncia e vamos apurar.",
+      p_status: "em_apuracao",
+    },
+    jwtAdmin,
+  );
+  checar(
+    respondeu.corpo?.ok === true,
+    "comite responde a denuncia",
+    JSON.stringify(respondeu.corpo).slice(0, 140),
+  );
+
+  const comResposta = await rpc("consultar_denuncia", {
+    p_protocolo: protocolo,
+    p_senha: senha,
+  });
+  checar(
+    comResposta.corpo?.status === "em_apuracao",
+    `o denunciante ve o status novo (veio ${comResposta.corpo?.status})`,
+  );
+  checar(
+    (comResposta.corpo?.mensagens ?? []).some((m) => m.autor === "comite"),
+    "a mensagem do comite chega ao denunciante",
+  );
+
+  // 10. O denunciante responde de volta, ainda sem token.
+  const devolta = await rpc("responder_denuncia_denunciante", {
+    p_protocolo: protocolo,
+    p_senha: senha,
+    p_mensagem: "Obrigado, aguardo o retorno.",
+  });
+  checar(devolta.corpo?.ok === true, "denunciante responde sem token");
+
+  // 11. anon NAO consegue ler a tabela direto, so pelas RPCs.
+  const anonLe = await fetch(`${URL}/rest/v1/denuncias_assedio?select=descricao`, {
+    headers: { apikey: ANON, Authorization: `Bearer ${ANON}` },
+  });
+  checar(
+    anonLe.status === 401 || anonLe.status === 403,
+    `anon nao le denuncias_assedio direto (http ${anonLe.status})`,
+  );
+
+  // 12. Limpa.
+  await consultar(`delete from public.denuncia_mensagens where denuncia_id = ${lit(linha.id)}`);
+  const removida = await consultar(
+    `delete from public.denuncias_assedio where id = ${lit(linha.id)} returning id`,
+  );
+  checar(removida.length === 1, "a denuncia de teste foi removida no fim");
+}
+// =====================================================================
 console.log(
   falhas === 0
     ? `\nFluxo: ${total} verificações passaram.`

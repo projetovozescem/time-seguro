@@ -261,7 +261,12 @@ function PerfilColaborador() {
           Canal de Respeito: link discreto que abre a página pública SEM token
           (docs/TIME_03 §6). A rota entra no item 6.
         */}
-        <p className="pb-2 text-center text-sm text-texto-suave">💜 Canal de Respeito</p>
+        <a
+          href={`/respeito/${sessao.empresa() ?? ""}`}
+          className="mt-6 text-center text-sm font-medium text-respeito underline-offset-4 hover:underline"
+        >
+          💜 Canal de Respeito
+        </a>
       </div>
     </AlunoLayout>
   );
