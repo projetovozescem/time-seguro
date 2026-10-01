@@ -15,7 +15,7 @@ const ITENS = [
   { rotulo: "Quiz", Icone: HelpCircle, rota: "/app/quiz" as const },
   { rotulo: "Trilha", Icone: BookOpen, rota: "/app/trilha" as const },
   { rotulo: "Relatar", Icone: Megaphone, rota: null },
-  { rotulo: "Perfil", Icone: User, rota: null },
+  { rotulo: "Perfil", Icone: User, rota: "/app/perfil" as const },
 ];
 
 export function NavegacaoApp() {

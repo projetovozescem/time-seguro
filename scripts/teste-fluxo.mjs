@@ -919,6 +919,66 @@ console.log("\n--- item 3: trilha e avaliacao do colaborador ---");
   }
 }
 // =====================================================================
+console.log("\n--- item 4: perfil, selos e extrato ---");
+{
+  const perfil = await rpc("colaborador_perfil", { p_token: token });
+  checar(
+    perfil.corpo?.ok === true,
+    "colaborador_perfil responde",
+    JSON.stringify(perfil.corpo).slice(0, 120),
+  );
+  checar(typeof perfil.corpo?.nome === "string", "devolve o nome");
+  checar(typeof perfil.corpo?.matricula === "string", "devolve a matricula");
+
+  const selos = perfil.corpo?.selos ?? [];
+  checar(selos.length === 10, `os 10 selos do seed vem na lista (vieram ${selos.length})`);
+  checar(
+    selos.every((x) => typeof x.slug === "string" && typeof x.conquistado === "boolean"),
+    "cada selo traz slug e conquistado",
+  );
+  checar(
+    selos.some((x) => x.conquistado),
+    "quem respondeu o quiz tem pelo menos um selo",
+  );
+
+  const extrato = perfil.corpo?.extrato ?? [];
+  checar(extrato.length > 0, `o extrato tem linhas (${extrato.length})`);
+  checar(
+    extrato.every((l) => ["conhecimento", "relatos", "engajamento"].includes(l.pilar)),
+    "todo lancamento tem um dos tres pilares",
+  );
+
+  // Toda origem que aparece no extrato precisa ter texto na tela.
+  const COM_TEXTO = new Set([
+    "quiz_diario",
+    "licao_conteudo",
+    "licao_aprovada",
+    "licao_nota_maxima",
+    "relato_validado",
+    "relato_resolvido",
+    "presenca_diaria",
+    "streak_7",
+    "streak_15",
+    "streak_30",
+    "checkin",
+  ]);
+  const semTexto = [...new Set(extrato.map((l) => l.origem))].filter((o) => !COM_TEXTO.has(o));
+  checar(semTexto.length === 0, `toda origem do extrato tem texto (sem: ${semTexto.join()})`);
+
+  checar(Array.isArray(perfil.corpo?.certificados), "certificados vem como lista");
+
+  // Logout revoga a sessao: a RPC seguinte com o mesmo token tem de falhar.
+  const sair = await rpc("colaborador_logout", { p_token: token });
+  checar(sair.corpo?.ok === true, "logout aceito");
+  const depoisDeSair = await rpc("colaborador_resumo", { p_token: token });
+  checar(
+    depoisDeSair.status >= 400 ||
+      depoisDeSair.corpo?.ok === false ||
+      String(depoisDeSair.corpo?.message ?? "").includes("sessao_invalida"),
+    `token revogado deixa de funcionar (http ${depoisDeSair.status})`,
+  );
+}
+// =====================================================================
 console.log(
   falhas === 0
     ? `\nFluxo: ${total} verificações passaram.`

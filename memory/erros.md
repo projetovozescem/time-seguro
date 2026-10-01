@@ -84,3 +84,11 @@ não é contrato; é palpite — precisa de teste contra o SQL.**
 Procurava o fim do corpo da função por `end $$;`. Função `language sql` fecha com
 `$$;` sem `end`, então o corpo de `empresa_publica` invadiu a função seguinte e o
 teste a acusou de não devolver `codigo`. Passou a delimitar pelo par de `$$`.
+
+## 2026-10-01 — Quinta vez no mesmo escape, violando regra que eu mesmo escrevi
+
+Gerei `"\n"` por `node -e` dentro de string de shell de novo, depois de ter
+registrado a regra contrária algumas horas antes. A regra vale e passou a ser
+seguida: **script gerador vai para arquivo pela ferramenta de escrita, nunca
+inline no shell.** Quando o texto precisa de caractere de controle na saída,
+montar por `JSON.stringify("\n...")` dentro do próprio script.

@@ -14,6 +14,7 @@ import { Route as ProtegidoRouteImport } from './routes/_protegido'
 import { Route as AppEntrarRouteImport } from './routes/app.entrar'
 import { Route as AppInicioRouteImport } from './routes/app.inicio'
 import { Route as AppNovoPinRouteImport } from './routes/app.novo-pin'
+import { Route as AppPerfilRouteImport } from './routes/app.perfil'
 import { Route as AppQuizRouteImport } from './routes/app.quiz'
 import { Route as AppTermoRouteImport } from './routes/app.termo'
 import { Route as PainelLoginRouteImport } from './routes/painel.login'
@@ -48,6 +49,11 @@ const AppInicioRoute = AppInicioRouteImport.update({
 const AppNovoPinRoute = AppNovoPinRouteImport.update({
   id: '/app/novo-pin',
   path: '/app/novo-pin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppPerfilRoute = AppPerfilRouteImport.update({
+  id: '/app/perfil',
+  path: '/app/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppQuizRoute = AppQuizRouteImport.update({
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/app/entrar': typeof AppEntrarRoute
   '/app/inicio': typeof AppInicioRoute
   '/app/novo-pin': typeof AppNovoPinRoute
+  '/app/perfil': typeof AppPerfilRoute
   '/app/quiz': typeof AppQuizRoute
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/app/entrar': typeof AppEntrarRoute
   '/app/inicio': typeof AppInicioRoute
   '/app/novo-pin': typeof AppNovoPinRoute
+  '/app/perfil': typeof AppPerfilRoute
   '/app/quiz': typeof AppQuizRoute
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/app/entrar': typeof AppEntrarRoute
   '/app/inicio': typeof AppInicioRoute
   '/app/novo-pin': typeof AppNovoPinRoute
+  '/app/perfil': typeof AppPerfilRoute
   '/app/quiz': typeof AppQuizRoute
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/app/entrar'
     | '/app/inicio'
     | '/app/novo-pin'
+    | '/app/perfil'
     | '/app/quiz'
     | '/app/termo'
     | '/painel/login'
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/app/entrar'
     | '/app/inicio'
     | '/app/novo-pin'
+    | '/app/perfil'
     | '/app/quiz'
     | '/app/termo'
     | '/painel/login'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/app/entrar'
     | '/app/inicio'
     | '/app/novo-pin'
+    | '/app/perfil'
     | '/app/quiz'
     | '/app/termo'
     | '/painel/login'
@@ -224,6 +236,7 @@ export interface RootRouteChildren {
   AppEntrarRoute: typeof AppEntrarRoute
   AppInicioRoute: typeof AppInicioRoute
   AppNovoPinRoute: typeof AppNovoPinRoute
+  AppPerfilRoute: typeof AppPerfilRoute
   AppQuizRoute: typeof AppQuizRoute
   AppTermoRoute: typeof AppTermoRoute
   PainelLoginRoute: typeof PainelLoginRoute
@@ -266,6 +279,13 @@ declare module '@tanstack/react-router' {
       path: '/app/novo-pin'
       fullPath: '/app/novo-pin'
       preLoaderRoute: typeof AppNovoPinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/perfil': {
+      id: '/app/perfil'
+      path: '/app/perfil'
+      fullPath: '/app/perfil'
+      preLoaderRoute: typeof AppPerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/quiz': {
@@ -376,6 +396,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppEntrarRoute: AppEntrarRoute,
   AppInicioRoute: AppInicioRoute,
   AppNovoPinRoute: AppNovoPinRoute,
+  AppPerfilRoute: AppPerfilRoute,
   AppQuizRoute: AppQuizRoute,
   AppTermoRoute: AppTermoRoute,
   PainelLoginRoute: PainelLoginRoute,
