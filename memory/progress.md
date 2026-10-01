@@ -7,21 +7,21 @@
 
 Definida pelas fases do `docs/TIME_11` §1. Prazo da inscrição: **05/10/2026**.
 
-| Fase | Entrega                                     | Estado                                                 |
-| ---- | ------------------------------------------- | ------------------------------------------------------ |
-| —    | Instalação e configuração (`TIME_13` §1–§2) | feita (1 pendência)                                    |
-| 0    | Setup e limpeza do V.O.Z.E.S.               | **feita**                                              |
-| 1    | Banco completo (6 migrations do `TIME_02`)  | migrations no disco; **não aplicadas**                 |
-| 2    | Auth do painel + colaboradores + PINs       | login feito; resto não                                 |
-| 3    | Perguntas + importador                      | não iniciada                                           |
-| 4    | Campanha + trilha + eventos                 | não iniciada                                           |
-| 5    | App do colaborador                          | entrar/PIN/termo/início/quiz escritos, não exercitados |
-| 6    | Relatos com foto + validação                | não iniciada                                           |
-| 7    | Canal de Respeito                           | não iniciada                                           |
-| 8    | Modo TV (Clássico + check-in)               | não iniciada                                           |
-| 9    | Ranking, selos, encerramento, certificados  | não iniciada                                           |
-| 10   | Analytics, mapa de lacunas, relatório       | não iniciada                                           |
-| 11   | Materiais, dados de demonstração, deploy    | não iniciada                                           |
+| Fase | Entrega                                     | Estado                                                             |
+| ---- | ------------------------------------------- | ------------------------------------------------------------------ |
+| —    | Instalação e configuração (`TIME_13` §1–§2) | **feita** (falta só o Superpowers)                                 |
+| 0    | Setup e limpeza do V.O.Z.E.S.               | **feita**                                                          |
+| 1    | Banco completo (6 migrations do `TIME_02`)  | **feita e aplicada** (+ a 0007 de correção)                        |
+| 2    | Auth do painel + colaboradores + PINs       | login e guard feitos; telas de colaborador não                     |
+| 3    | Perguntas + importador                      | parser TXT/CSV feito; telas e PDF não                              |
+| 4    | Campanha + trilha + eventos                 | não iniciada                                                       |
+| 5    | App do colaborador                          | entrar/PIN/termo/início/quiz feitos e exercitados por `test:fluxo` |
+| 6    | Relatos com foto + validação                | bucket e policy prontos; resto não                                 |
+| 7    | Canal de Respeito                           | RPC do banco funciona; telas não                                   |
+| 8    | Modo TV (Clássico + check-in)               | não iniciada                                                       |
+| 9    | Ranking, selos, encerramento, certificados  | não iniciada                                                       |
+| 10   | Analytics, mapa de lacunas, relatório       | não iniciada                                                       |
+| 11   | Materiais, dados de demonstração, deploy    | seed de demonstração feito; resto não                              |
 
 ## Feito
 
@@ -36,7 +36,7 @@ Definida pelas fases do `docs/TIME_11` §1. Prazo da inscrição: **05/10/2026**
 - `AGENTS.md` do `TIME_13` §2.1 com Benjamin-Plus e Karpathy incorporados.
 - `@AGENTS.md` na primeira linha do `CLAUDE.md`.
 - `.claude/agents/banco.md` e `qa.md` do `TIME_13` §2.2.
-- `.mcp.json` (`supabase-dev`) com `project_ref` em **placeholder**.
+- `.mcp.json` com o `project_ref` do projeto DEV. Só carrega ao reiniciar a sessão.
 - `memory/` com os quatro arquivos.
 
 ### Fase 0
@@ -64,7 +64,8 @@ Definida pelas fases do `docs/TIME_11` §1. Prazo da inscrição: **05/10/2026**
   `senha_hash` ilegíveis, `SECURITY DEFINER` + `search_path` em toda função de
   escrita, índice único de `pontos_lancamentos`, `security_invoker` nas views,
   e a conferência do `TIME_02` §7.
-- `scripts/db-migrate.mjs` removido: o caminho é `npx supabase db push`.
+- `scripts/db-migrate.mjs` removido. As migrations vão por `npm run db:aplicar`
+  (Management API), que registra na mesma tabela do CLI.
 
 ### Código do app e do painel
 
@@ -72,7 +73,7 @@ Definida pelas fases do `docs/TIME_11` §1. Prazo da inscrição: **05/10/2026**
   motivos) e `pin.ts`, conforme `TIME_03` §3 e `TIME_05` §9.
 - Rotas: `/`, `/painel/login`, `/painel` (protegida), `/app/entrar`,
   `/app/novo-pin`, `/app/termo`, `/app/inicio`, `/app/quiz`.
-- 37 testes de unidade em 4 arquivos, todos passando.
+- 51 testes de unidade em 4 arquivos, todos passando.
 
 ## Ordem do desenvolvimento autônomo (docs/TIME_13 §4)
 
@@ -103,9 +104,28 @@ gate de RLS, de teste ou de interface pode ser cumprido.
 
 ## Em andamento
 
-Item 1 (perguntas + importador): parser TXT e CSV prontos e testados. Faltam as
-telas `/painel/perguntas` e `/painel/perguntas/importar`, o parser de PDF e o
-exportar TXT pela interface.
+Item 1 (perguntas + importador): telas prontas. Falta a leitura de **PDF**
+(`pdfQuestions.ts`, import dinâmico de `pdfjs-dist`) — hoje a tela recusa PDF
+com recado claro e manda colar o texto.
+
+## Feito em 01/10/2026 — item 1 (telas de perguntas)
+
+- `usePerfil()` com papel, flag do comitê e empresa; `podeAcessar()` aplica a
+  hierarquia admin > tecnico > cipa do TIME_04 §1.
+- `PainelLayout` com o menu de 15 itens do TIME_04 §2, filtrado por papel e pela
+  flag do comitê, mais o cabeçalho com empresa, técnico e chip da campanha ativa.
+  Item cuja tela ainda não existe aparece desabilitado, não como link quebrado.
+- `/painel/perguntas`: filtros (tema, status, origem, dificuldade, busca), cartão
+  expansível com a correta destacada e a taxa de acerto de
+  `v_desempenho_pergunta`, exportar TXT no mesmo formato da importação, e
+  "Copiar para minha empresa" nas perguntas globais.
+- `PerguntaForm`: 2 a 5 alternativas, correta marcada clicando, dificuldade,
+  tema, status e explicação com aviso quando vazia.
+- `/painel/perguntas/importar`: três abas (arquivo, colar texto, banco global),
+  tema padrão do lote, revisão card a card com os avisos 🔴/🟡 do TIME_07 §6,
+  barra fixa com os contadores e insert em blocos de 100.
+- `validacao.ts`: avisos bloqueantes x de atenção, resolução de tema por slug ou
+  nome, duplicada no lote descartada e duplicada no banco desmarcada.
 
 ## Feito em 01/10/2026 — item 0 concluído
 
@@ -138,16 +158,31 @@ segue 200. O gate de RLS subiu para 242 verificações, agora cobrindo Storage.
 
 ## Próximo
 
-1. Telas `/painel/perguntas` e `/painel/perguntas/importar` (item 1).
-2. Campanha, trilha e eventos (item 2).
+1. Leitura de PDF no importador (TIME_07 §5), fechando o item 1.
+2. Campanha, trilha e eventos — item 2 (TIME_04 §4 e §8, TIME_08).
+
+## Não verificado
+
+As telas do painel **não foram vistas renderizadas**: o guard exige sessão, que
+vive no `localStorage`, e não há navegador nesta sessão. O que está provado é
+que compilam, que o guard redireciona as três rotas para `/painel/login`, e que
+o caminho de gravação que o formulário usa funciona (`test:fluxo`: admin cria
+pergunta 201, cipa recusada 403). Abrir `/painel/perguntas` logado é a
+verificação que falta.
 
 ## Bloqueado (precisa do usuário)
 
-- **Rotacionar `SUPABASE_ACCESS_TOKEN`** (está no `.env`, fora do git) e a
-  `sb_secret_` — as duas foram expostas no chat. O token segue válido.
-- **Trocar a senha provisória do admin** no primeiro acesso (está em `BOOTSTRAP_SENHA`, no `.env`).
-- **Desativar cadastro público** no Supabase Auth (TIME_03 §8).
-- **URL do repositório GitHub** para `git remote add origin`.
-- **Superpowers**: `/plugin install superpowers@claude-plugins-official`.
-- **Reiniciar a sessão** para o `.mcp.json` carregar o servidor `supabase`.
-- **Confirmar remoção de `drizzle-orm`** (órfão no devDependencies).
+- 🔴 **Rotacionar `SUPABASE_ACCESS_TOKEN`** (no `.env`, fora do git) e a chave
+  `sb_secret_`: as duas foram expostas no chat e seguem válidas.
+- **Trocar a senha provisória do admin** no primeiro acesso (`BOOTSTRAP_SENHA` no `.env`).
+- **Superpowers**: `/plugin install superpowers@claude-plugins-official` — é
+  plugin de origem remota e não entra por CLI.
+- **Reiniciar a sessão** para o `.mcp.json` carregar o servidor `supabase`
+  (opcional: os scripts `db:*` já cobrem o que o MCP faria).
+- **Confirmar remoção de `drizzle-orm`**, órfão no `devDependencies`.
+
+## Resolvido
+
+- GitHub: remoto `projetovozescem/time-seguro` conectado, `main` publicada
+  em 01/10/2026. `.env` e `.mcp.json` ficaram fora.
+- Cadastro público do Supabase Auth: desativado por `npm run db:configurar`.

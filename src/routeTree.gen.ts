@@ -18,6 +18,8 @@ import { Route as AppQuizRouteImport } from './routes/app.quiz'
 import { Route as AppTermoRouteImport } from './routes/app.termo'
 import { Route as PainelLoginRouteImport } from './routes/painel.login'
 import { Route as ProtegidoPainelIndexRouteImport } from './routes/_protegido.painel.index'
+import { Route as ProtegidoPainelPerguntasIndexRouteImport } from './routes/_protegido.painel.perguntas.index'
+import { Route as ProtegidoPainelPerguntasImportarRouteImport } from './routes/_protegido.painel.perguntas.importar'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -63,6 +65,18 @@ const ProtegidoPainelIndexRoute = ProtegidoPainelIndexRouteImport.update({
   path: '/painel/',
   getParentRoute: () => ProtegidoRoute,
 } as any)
+const ProtegidoPainelPerguntasIndexRoute =
+  ProtegidoPainelPerguntasIndexRouteImport.update({
+    id: '/painel/perguntas/',
+    path: '/painel/perguntas/',
+    getParentRoute: () => ProtegidoRoute,
+  } as any)
+const ProtegidoPainelPerguntasImportarRoute =
+  ProtegidoPainelPerguntasImportarRouteImport.update({
+    id: '/painel/perguntas/importar',
+    path: '/painel/perguntas/importar',
+    getParentRoute: () => ProtegidoRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -73,6 +87,8 @@ export interface FileRoutesByFullPath {
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
   '/painel/': typeof ProtegidoPainelIndexRoute
+  '/painel/perguntas/importar': typeof ProtegidoPainelPerguntasImportarRoute
+  '/painel/perguntas/': typeof ProtegidoPainelPerguntasIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,6 +99,8 @@ export interface FileRoutesByTo {
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
   '/painel': typeof ProtegidoPainelIndexRoute
+  '/painel/perguntas/importar': typeof ProtegidoPainelPerguntasImportarRoute
+  '/painel/perguntas': typeof ProtegidoPainelPerguntasIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,6 +113,8 @@ export interface FileRoutesById {
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
   '/_protegido/painel/': typeof ProtegidoPainelIndexRoute
+  '/_protegido/painel/perguntas/importar': typeof ProtegidoPainelPerguntasImportarRoute
+  '/_protegido/painel/perguntas/': typeof ProtegidoPainelPerguntasIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,6 +127,8 @@ export interface FileRouteTypes {
     | '/app/termo'
     | '/painel/login'
     | '/painel/'
+    | '/painel/perguntas/importar'
+    | '/painel/perguntas/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -117,6 +139,8 @@ export interface FileRouteTypes {
     | '/app/termo'
     | '/painel/login'
     | '/painel'
+    | '/painel/perguntas/importar'
+    | '/painel/perguntas'
   id:
     | '__root__'
     | '/'
@@ -128,6 +152,8 @@ export interface FileRouteTypes {
     | '/app/termo'
     | '/painel/login'
     | '/_protegido/painel/'
+    | '/_protegido/painel/perguntas/importar'
+    | '/_protegido/painel/perguntas/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -206,15 +232,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtegidoPainelIndexRouteImport
       parentRoute: typeof ProtegidoRoute
     }
+    '/_protegido/painel/perguntas/': {
+      id: '/_protegido/painel/perguntas/'
+      path: '/painel/perguntas'
+      fullPath: '/painel/perguntas/'
+      preLoaderRoute: typeof ProtegidoPainelPerguntasIndexRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
+    '/_protegido/painel/perguntas/importar': {
+      id: '/_protegido/painel/perguntas/importar'
+      path: '/painel/perguntas/importar'
+      fullPath: '/painel/perguntas/importar'
+      preLoaderRoute: typeof ProtegidoPainelPerguntasImportarRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
   }
 }
 
 interface ProtegidoRouteChildren {
   ProtegidoPainelIndexRoute: typeof ProtegidoPainelIndexRoute
+  ProtegidoPainelPerguntasImportarRoute: typeof ProtegidoPainelPerguntasImportarRoute
+  ProtegidoPainelPerguntasIndexRoute: typeof ProtegidoPainelPerguntasIndexRoute
 }
 
 const ProtegidoRouteChildren: ProtegidoRouteChildren = {
   ProtegidoPainelIndexRoute: ProtegidoPainelIndexRoute,
+  ProtegidoPainelPerguntasImportarRoute: ProtegidoPainelPerguntasImportarRoute,
+  ProtegidoPainelPerguntasIndexRoute: ProtegidoPainelPerguntasIndexRoute,
 }
 
 const ProtegidoRouteWithChildren = ProtegidoRoute._addFileChildren(

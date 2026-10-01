@@ -120,3 +120,16 @@ tabela). Os grants ficam inertes porque o RLS está ligado e a única policy é 
 SELECT para `authenticated`. Por isso o gate afirma sobre as POLICIES: nenhuma
 aberta a `anon`/`public`, nenhuma de INSERT (upload só pela Edge Function) e o
 bucket privado.
+
+## 2026-10-01 — Menu mostra o produto inteiro, com item desabilitado
+
+O menu do TIME_04 §2 tem 15 itens e só 2 telas existem. Em vez de listar apenas
+o que está pronto, o `PainelLayout` mostra todos e desabilita os sem rota, com
+"em breve". O técnico vê o mapa do produto e não encontra link quebrado — e com
+o router tipado do TanStack, link para rota inexistente nem compilaria.
+
+## 2026-10-01 — Importador recusa PDF em vez de falhar silenciosamente
+
+`pdfjs-dist` entra depois (TIME_07 §5, import dinâmico). Até lá a tela diz
+"Leitura de PDF ainda não está pronta. Use TXT ou CSV, ou cole o texto." É pior
+aceitar o arquivo e devolver zero pergunta sem explicar.

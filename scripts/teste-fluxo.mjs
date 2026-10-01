@@ -448,6 +448,93 @@ const [{ pontos_de_denuncia }] = await consultar(`
 checar(pontos_de_denuncia === 0, "nenhum ponto lançado por denúncia");
 
 // =====================================================================
+console.log("\n--- CRUD de perguntas: o caminho que a tela do painel usa ---");
+{
+  const tabela = (jwt) => ({
+    apikey: ANON,
+    Authorization: `Bearer ${jwt}`,
+    "Content-Type": "application/json",
+    Prefer: "return=representation",
+  });
+
+  const [tema] = await consultar(
+    "select id from public.temas where empresa_id is null order by slug limit 1",
+  );
+  const enunciado = `Pergunta de teste automático ${selo} — pode apagar`;
+  const corpo = JSON.stringify({
+    empresa_id: empresa.id,
+    tema_id: tema.id,
+    enunciado,
+    alternativas: ["Alternativa de teste A", "Alternativa de teste B"],
+    correta: 1,
+    explicacao: "Criada por scripts/teste-fluxo.mjs.",
+    dificuldade: 2,
+    origem: "manual",
+  });
+
+  // Técnico/admin pode criar (policy perguntas_escrever).
+  const criar = await fetch(`${URL}/rest/v1/perguntas`, {
+    method: "POST",
+    headers: tabela(jwtAdmin),
+    body: corpo,
+  });
+  const criada = await criar.json();
+  checar(
+    criar.status === 201,
+    `admin cria pergunta (http ${criar.status})`,
+    JSON.stringify(criada).slice(0, 120),
+  );
+  const id = Array.isArray(criada) ? criada[0]?.id : undefined;
+
+  // CIPA é somente leitura (docs/TIME_01 §3).
+  const cipaCria = await fetch(`${URL}/rest/v1/perguntas`, {
+    method: "POST",
+    headers: tabela(jwtCipa),
+    body: JSON.stringify({
+      empresa_id: empresa.id,
+      tema_id: tema.id,
+      enunciado: `CIPA nao deveria conseguir ${selo}`,
+      alternativas: ["a", "b"],
+      correta: 0,
+      dificuldade: 2,
+      origem: "manual",
+    }),
+  });
+  checar(
+    cipaCria.status === 401 || cipaCria.status === 403,
+    `cipa recusada ao criar pergunta (http ${cipaCria.status})`,
+  );
+
+  // Pergunta global é só leitura: ninguém edita pelo cliente.
+  const [global] = await consultar(
+    "select id from public.perguntas where empresa_id is null limit 1",
+  );
+  if (global) {
+    const editarGlobal = await fetch(`${URL}/rest/v1/perguntas?id=eq.${global.id}`, {
+      method: "PATCH",
+      headers: tabela(jwtAdmin),
+      body: JSON.stringify({ enunciado: "tentativa de alterar pergunta global" }),
+    });
+    const alteradas = await editarGlobal.json();
+    checar(
+      Array.isArray(alteradas) && alteradas.length === 0,
+      "pergunta global não é editável pelo painel",
+    );
+  } else {
+    console.log("  --   sem pergunta global para testar (seed do TIME_02 §5.6 traz só temas)");
+  }
+
+  // Limpa o que o teste criou.
+  if (id) {
+    const apagar = await fetch(`${URL}/rest/v1/perguntas?id=eq.${id}`, {
+      method: "DELETE",
+      headers: tabela(jwtAdmin),
+    });
+    checar(apagar.ok, `admin apaga a pergunta de teste (http ${apagar.status})`);
+  }
+}
+
+// =====================================================================
 console.log(
   falhas === 0
     ? `\nFluxo: ${total} verificações passaram.`
