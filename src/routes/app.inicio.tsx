@@ -107,7 +107,7 @@ function Inicio() {
     );
   }
 
-  const { campanha, pontos, licoes, quiz_hoje } = resumo;
+  const { campanha, pontos, licoes, quiz_hoje, relatos } = resumo;
   // Base das barras: o maior pilar, para a comparação entre eles ser legível.
   const maior = Math.max(pontos.conhecimento, pontos.relatos, pontos.engajamento, 1);
   const quizCompleto = quiz_hoje.total > 0 && quiz_hoje.respondidas >= quiz_hoje.total;
@@ -194,10 +194,18 @@ function Inicio() {
             </span>
           </Link>
 
-          <p className="mt-2.5 flex min-h-14 items-center gap-3 rounded-2xl border border-borda px-4 py-3 text-texto-suave">
-            <Megaphone className="size-6 shrink-0" aria-hidden />
-            Viu um risco? O envio de relatos entra na próxima etapa.
-          </p>
+          <Link
+            to="/app/relatar"
+            className="mt-2.5 flex min-h-14 items-center gap-3 rounded-2xl border border-borda px-4 py-3 text-texto"
+          >
+            <Megaphone className="size-6 shrink-0 text-laranja" aria-hidden />
+            <span className="flex-1 font-display font-bold">Viu um risco? Relate</span>
+            {relatos.em_andamento > 0 && (
+              <span className="font-semibold tabular-nums text-texto-suave">
+                {relatos.em_andamento} em andamento
+              </span>
+            )}
+          </Link>
         </div>
 
         {campanha.premiacao && (

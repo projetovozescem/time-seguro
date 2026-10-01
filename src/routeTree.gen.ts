@@ -16,10 +16,14 @@ import { Route as AppInicioRouteImport } from './routes/app.inicio'
 import { Route as AppNovoPinRouteImport } from './routes/app.novo-pin'
 import { Route as AppPerfilRouteImport } from './routes/app.perfil'
 import { Route as AppQuizRouteImport } from './routes/app.quiz'
+import { Route as AppRelatarRouteImport } from './routes/app.relatar'
+import { Route as AppRelatosRouteImport } from './routes/app.relatos'
 import { Route as AppTermoRouteImport } from './routes/app.termo'
 import { Route as PainelLoginRouteImport } from './routes/painel.login'
 import { Route as ProtegidoPainelIndexRouteImport } from './routes/_protegido.painel.index'
 import { Route as ProtegidoPainelEventosRouteImport } from './routes/_protegido.painel.eventos'
+import { Route as ProtegidoPainelRelatosRouteImport } from './routes/_protegido.painel.relatos'
+import { Route as AppLocalLocalIdRouteImport } from './routes/app.local.$localId'
 import { Route as AppTrilhaIndexRouteImport } from './routes/app.trilha.index'
 import { Route as AppTrilhaLicaoIdRouteImport } from './routes/app.trilha.$licaoId'
 import { Route as ProtegidoPainelCampanhasIndexRouteImport } from './routes/_protegido.painel.campanhas.index'
@@ -61,6 +65,16 @@ const AppQuizRoute = AppQuizRouteImport.update({
   path: '/app/quiz',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppRelatarRoute = AppRelatarRouteImport.update({
+  id: '/app/relatar',
+  path: '/app/relatar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRelatosRoute = AppRelatosRouteImport.update({
+  id: '/app/relatos',
+  path: '/app/relatos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppTermoRoute = AppTermoRouteImport.update({
   id: '/app/termo',
   path: '/app/termo',
@@ -80,6 +94,16 @@ const ProtegidoPainelEventosRoute = ProtegidoPainelEventosRouteImport.update({
   id: '/painel/eventos',
   path: '/painel/eventos',
   getParentRoute: () => ProtegidoRoute,
+} as any)
+const ProtegidoPainelRelatosRoute = ProtegidoPainelRelatosRouteImport.update({
+  id: '/painel/relatos',
+  path: '/painel/relatos',
+  getParentRoute: () => ProtegidoRoute,
+} as any)
+const AppLocalLocalIdRoute = AppLocalLocalIdRouteImport.update({
+  id: '/app/local/$localId',
+  path: '/app/local/$localId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppTrilhaIndexRoute = AppTrilhaIndexRouteImport.update({
   id: '/app/trilha/',
@@ -123,9 +147,13 @@ export interface FileRoutesByFullPath {
   '/app/novo-pin': typeof AppNovoPinRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/quiz': typeof AppQuizRoute
+  '/app/relatar': typeof AppRelatarRoute
+  '/app/relatos': typeof AppRelatosRoute
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
   '/painel/eventos': typeof ProtegidoPainelEventosRoute
+  '/painel/relatos': typeof ProtegidoPainelRelatosRoute
+  '/app/local/$localId': typeof AppLocalLocalIdRoute
   '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
   '/painel/': typeof ProtegidoPainelIndexRoute
   '/app/trilha/': typeof AppTrilhaIndexRoute
@@ -141,9 +169,13 @@ export interface FileRoutesByTo {
   '/app/novo-pin': typeof AppNovoPinRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/quiz': typeof AppQuizRoute
+  '/app/relatar': typeof AppRelatarRoute
+  '/app/relatos': typeof AppRelatosRoute
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
   '/painel/eventos': typeof ProtegidoPainelEventosRoute
+  '/painel/relatos': typeof ProtegidoPainelRelatosRoute
+  '/app/local/$localId': typeof AppLocalLocalIdRoute
   '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
   '/painel': typeof ProtegidoPainelIndexRoute
   '/app/trilha': typeof AppTrilhaIndexRoute
@@ -161,9 +193,13 @@ export interface FileRoutesById {
   '/app/novo-pin': typeof AppNovoPinRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/quiz': typeof AppQuizRoute
+  '/app/relatar': typeof AppRelatarRoute
+  '/app/relatos': typeof AppRelatosRoute
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
   '/_protegido/painel/eventos': typeof ProtegidoPainelEventosRoute
+  '/_protegido/painel/relatos': typeof ProtegidoPainelRelatosRoute
+  '/app/local/$localId': typeof AppLocalLocalIdRoute
   '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
   '/_protegido/painel/': typeof ProtegidoPainelIndexRoute
   '/app/trilha/': typeof AppTrilhaIndexRoute
@@ -181,9 +217,13 @@ export interface FileRouteTypes {
     | '/app/novo-pin'
     | '/app/perfil'
     | '/app/quiz'
+    | '/app/relatar'
+    | '/app/relatos'
     | '/app/termo'
     | '/painel/login'
     | '/painel/eventos'
+    | '/painel/relatos'
+    | '/app/local/$localId'
     | '/app/trilha/$licaoId'
     | '/painel/'
     | '/app/trilha/'
@@ -199,9 +239,13 @@ export interface FileRouteTypes {
     | '/app/novo-pin'
     | '/app/perfil'
     | '/app/quiz'
+    | '/app/relatar'
+    | '/app/relatos'
     | '/app/termo'
     | '/painel/login'
     | '/painel/eventos'
+    | '/painel/relatos'
+    | '/app/local/$localId'
     | '/app/trilha/$licaoId'
     | '/painel'
     | '/app/trilha'
@@ -218,9 +262,13 @@ export interface FileRouteTypes {
     | '/app/novo-pin'
     | '/app/perfil'
     | '/app/quiz'
+    | '/app/relatar'
+    | '/app/relatos'
     | '/app/termo'
     | '/painel/login'
     | '/_protegido/painel/eventos'
+    | '/_protegido/painel/relatos'
+    | '/app/local/$localId'
     | '/app/trilha/$licaoId'
     | '/_protegido/painel/'
     | '/app/trilha/'
@@ -238,8 +286,11 @@ export interface RootRouteChildren {
   AppNovoPinRoute: typeof AppNovoPinRoute
   AppPerfilRoute: typeof AppPerfilRoute
   AppQuizRoute: typeof AppQuizRoute
+  AppRelatarRoute: typeof AppRelatarRoute
+  AppRelatosRoute: typeof AppRelatosRoute
   AppTermoRoute: typeof AppTermoRoute
   PainelLoginRoute: typeof PainelLoginRoute
+  AppLocalLocalIdRoute: typeof AppLocalLocalIdRoute
   AppTrilhaLicaoIdRoute: typeof AppTrilhaLicaoIdRoute
   AppTrilhaIndexRoute: typeof AppTrilhaIndexRoute
 }
@@ -295,6 +346,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppQuizRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/relatar': {
+      id: '/app/relatar'
+      path: '/app/relatar'
+      fullPath: '/app/relatar'
+      preLoaderRoute: typeof AppRelatarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/relatos': {
+      id: '/app/relatos'
+      path: '/app/relatos'
+      fullPath: '/app/relatos'
+      preLoaderRoute: typeof AppRelatosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/termo': {
       id: '/app/termo'
       path: '/app/termo'
@@ -322,6 +387,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/painel/eventos'
       preLoaderRoute: typeof ProtegidoPainelEventosRouteImport
       parentRoute: typeof ProtegidoRoute
+    }
+    '/_protegido/painel/relatos': {
+      id: '/_protegido/painel/relatos'
+      path: '/painel/relatos'
+      fullPath: '/painel/relatos'
+      preLoaderRoute: typeof ProtegidoPainelRelatosRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
+    '/app/local/$localId': {
+      id: '/app/local/$localId'
+      path: '/app/local/$localId'
+      fullPath: '/app/local/$localId'
+      preLoaderRoute: typeof AppLocalLocalIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/trilha/': {
       id: '/app/trilha/'
@@ -370,6 +449,7 @@ declare module '@tanstack/react-router' {
 
 interface ProtegidoRouteChildren {
   ProtegidoPainelEventosRoute: typeof ProtegidoPainelEventosRoute
+  ProtegidoPainelRelatosRoute: typeof ProtegidoPainelRelatosRoute
   ProtegidoPainelIndexRoute: typeof ProtegidoPainelIndexRoute
   ProtegidoPainelCampanhasIdRoute: typeof ProtegidoPainelCampanhasIdRoute
   ProtegidoPainelPerguntasImportarRoute: typeof ProtegidoPainelPerguntasImportarRoute
@@ -379,6 +459,7 @@ interface ProtegidoRouteChildren {
 
 const ProtegidoRouteChildren: ProtegidoRouteChildren = {
   ProtegidoPainelEventosRoute: ProtegidoPainelEventosRoute,
+  ProtegidoPainelRelatosRoute: ProtegidoPainelRelatosRoute,
   ProtegidoPainelIndexRoute: ProtegidoPainelIndexRoute,
   ProtegidoPainelCampanhasIdRoute: ProtegidoPainelCampanhasIdRoute,
   ProtegidoPainelPerguntasImportarRoute: ProtegidoPainelPerguntasImportarRoute,
@@ -398,8 +479,11 @@ const rootRouteChildren: RootRouteChildren = {
   AppNovoPinRoute: AppNovoPinRoute,
   AppPerfilRoute: AppPerfilRoute,
   AppQuizRoute: AppQuizRoute,
+  AppRelatarRoute: AppRelatarRoute,
+  AppRelatosRoute: AppRelatosRoute,
   AppTermoRoute: AppTermoRoute,
   PainelLoginRoute: PainelLoginRoute,
+  AppLocalLocalIdRoute: AppLocalLocalIdRoute,
   AppTrilhaLicaoIdRoute: AppTrilhaLicaoIdRoute,
   AppTrilhaIndexRoute: AppTrilhaIndexRoute,
 }

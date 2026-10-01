@@ -14,3 +14,6 @@ src/lib/database.types.ts
 # Legado do Max Games guardado como referencia (docs/TIME_11 §0.4).
 docs/legado-maxgames
 .specify
+
+# Edge Functions rodam em Deno, com import por URL: fora do tsconfig do app.
+supabase/functions

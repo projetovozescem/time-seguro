@@ -979,6 +979,194 @@ console.log("\n--- item 4: perfil, selos e extrato ---");
   );
 }
 // =====================================================================
+console.log("\n--- item 5: ciclo de relatos ---");
+{
+  // O token do fluxo foi revogado no item 4; entra de novo para relatar.
+  const relogin = await rpc("colaborador_login", {
+    p_empresa_codigo: empresa.codigo,
+    p_matricula: fluxo.matricula,
+    p_pin: novoPin,
+  });
+  checar(relogin.corpo?.ok === true, "login de novo depois do logout");
+  const tk = relogin.corpo?.token;
+
+  // 1. Descricao curta e recusada pelo banco, nao so pela tela.
+  const curta = await rpc("colaborador_criar_relato", {
+    p_token: tk,
+    p_categoria: "condicao_insegura",
+    p_descricao: "curto",
+  });
+  checar(
+    curta.corpo?.motivo === "descricao_curta",
+    `descricao curta recusada (veio ${curta.corpo?.motivo})`,
+  );
+
+  // 2. Categoria invalida tambem.
+  const categoria = await rpc("colaborador_criar_relato", {
+    p_token: tk,
+    p_categoria: "categoria_que_nao_existe",
+    p_descricao: "piso molhado no corredor da expedicao",
+  });
+  checar(
+    categoria.corpo?.motivo === "categoria_invalida",
+    `categoria invalida recusada (veio ${categoria.corpo?.motivo})`,
+  );
+
+  // 3. Relato valido: nasce aberto e NAO pontua ainda.
+  const pontosAntes = (
+    await consultar(
+      `select coalesce(sum(pontos), 0)::int as p from public.pontos_lancamentos
+        where colaborador_id = ${lit(fluxo.id)} and pilar = 'relatos'`,
+    )
+  )[0].p;
+
+  const criado = await rpc("colaborador_criar_relato", {
+    p_token: tk,
+    p_categoria: "condicao_insegura",
+    p_descricao: `Piso molhado no corredor da expedicao ${selo}`,
+  });
+  checar(criado.corpo?.ok === true, "relato criado", JSON.stringify(criado.corpo).slice(0, 120));
+  const relatoId = criado.corpo?.relato_id;
+
+  const [estadoInicial] = await consultar(
+    `select status, validado from public.relatos where id = ${lit(relatoId)}`,
+  );
+  checar(estadoInicial.status === "aberto", `nasce aberto (veio ${estadoInicial.status})`);
+  checar(estadoInicial.validado === false, "nasce nao validado");
+
+  const pontosDepoisDeCriar = (
+    await consultar(
+      `select coalesce(sum(pontos), 0)::int as p from public.pontos_lancamentos
+        where colaborador_id = ${lit(fluxo.id)} and pilar = 'relatos'`,
+    )
+  )[0].p;
+  checar(pontosDepoisDeCriar === pontosAntes, "criar relato NAO pontua — so depois de validado");
+
+  // 4. O colaborador ve o proprio relato.
+  const meus = await rpc("colaborador_meus_relatos", { p_token: tk });
+  checar(meus.corpo?.ok === true, "colaborador_meus_relatos responde");
+  const naLista = (meus.corpo?.relatos ?? []).find((r) => r.id === relatoId);
+  checar(Boolean(naLista), "o relato aparece em meus relatos");
+  checar(naLista?.tem_foto === false, "sem foto, tem_foto e false");
+
+  // 5. CIPA nao pode validar (so leitura).
+  const cipaValida = await rpc(
+    "tecnico_validar_relato",
+    { p_relato: relatoId, p_decisao: "validar", p_gravidade: "media" },
+    jwtCipa,
+  );
+  checar(
+    cipaValida.status >= 400 ||
+      cipaValida.corpo?.ok === false ||
+      String(cipaValida.corpo?.message ?? "").includes("acesso_negado"),
+    `cipa recusada ao validar relato (http ${cipaValida.status})`,
+  );
+
+  // 6. Tecnico valida com gravidade alta: pontua.
+  const validado = await rpc(
+    "tecnico_validar_relato",
+    {
+      p_relato: relatoId,
+      p_decisao: "validar",
+      p_gravidade: "alta",
+      p_comentario: "Validado pelo teste automatico.",
+    },
+    jwtAdmin,
+  );
+  checar(
+    validado.corpo?.ok === true,
+    "tecnico valida o relato",
+    JSON.stringify(validado.corpo).slice(0, 140),
+  );
+  checar(
+    (validado.corpo?.pontos ?? 0) > 0,
+    `validar com gravidade alta pontua (${validado.corpo?.pontos})`,
+  );
+
+  const [depoisDeValidar] = await consultar(
+    `select status, validado, gravidade from public.relatos where id = ${lit(relatoId)}`,
+  );
+  checar(depoisDeValidar.validado === true, "relato fica validado");
+  checar(
+    depoisDeValidar.gravidade === "alta",
+    `gravidade gravada (veio ${depoisDeValidar.gravidade})`,
+  );
+
+  const origensDoRelato = await consultar(
+    `select origem from public.pontos_lancamentos where origem_id = ${lit(relatoId)}`,
+  );
+  checar(
+    origensDoRelato.some((o) => o.origem === "relato_validado"),
+    `lancou relato_validado (${origensDoRelato.map((o) => o.origem).join()})`,
+  );
+
+  // 7. Validar duas vezes e recusado.
+  const deNovo = await rpc(
+    "tecnico_validar_relato",
+    { p_relato: relatoId, p_decisao: "validar", p_gravidade: "baixa" },
+    jwtAdmin,
+  );
+  checar(
+    deNovo.corpo?.motivo === "ja_decidido",
+    `segunda decisao recusada com ja_decidido (veio ${deNovo.corpo?.motivo})`,
+  );
+
+  // 8. Andamento ate resolvido: bonus.
+  const emCorrecao = await rpc(
+    "tecnico_atualizar_relato",
+    { p_relato: relatoId, p_status: "em_correcao", p_comentario: "Em correcao." },
+    jwtAdmin,
+  );
+  checar(emCorrecao.corpo?.ok === true, "andamento para em_correcao aceito");
+
+  const resolvido = await rpc(
+    "tecnico_atualizar_relato",
+    { p_relato: relatoId, p_status: "resolvido", p_comentario: "Risco corrigido." },
+    jwtAdmin,
+  );
+  checar(resolvido.corpo?.ok === true, "andamento para resolvido aceito");
+  checar(
+    (resolvido.corpo?.pontos ?? 0) > 0,
+    `resolver da bonus ao colaborador (${resolvido.corpo?.pontos})`,
+  );
+
+  const comBonus = await consultar(
+    `select origem from public.pontos_lancamentos where origem_id = ${lit(relatoId)}`,
+  );
+  checar(
+    comBonus.some((o) => o.origem === "relato_resolvido"),
+    "lancou relato_resolvido",
+  );
+
+  // 9. Status invalido e recusado.
+  const invalido = await rpc(
+    "tecnico_atualizar_relato",
+    { p_relato: relatoId, p_status: "inventado" },
+    jwtAdmin,
+  );
+  checar(
+    invalido.corpo?.motivo === "status_invalido",
+    `status invalido recusado (veio ${invalido.corpo?.motivo})`,
+  );
+
+  // 10. O historico ficou visivel para o colaborador.
+  const depois = await rpc("colaborador_meus_relatos", { p_token: tk });
+  const atualizado = (depois.corpo?.relatos ?? []).find((r) => r.id === relatoId);
+  checar(
+    atualizado?.status === "resolvido",
+    `o colaborador ve resolvido (veio ${atualizado?.status})`,
+  );
+  checar((atualizado?.historico ?? []).length > 0, "o historico chega ao colaborador");
+
+  // 11. Limpa.
+  await consultar(`delete from public.pontos_lancamentos where origem_id = ${lit(relatoId)}`);
+  await consultar(`delete from public.relato_historico where relato_id = ${lit(relatoId)}`);
+  const removido = await consultar(
+    `delete from public.relatos where id = ${lit(relatoId)} returning id`,
+  );
+  checar(removido.length === 1, "o relato de teste foi removido no fim");
+}
+// =====================================================================
 console.log(
   falhas === 0
     ? `\nFluxo: ${total} verificações passaram.`
