@@ -326,7 +326,7 @@ function Detalhe() {
           </h2>
           <p className="mt-2 text-sm text-texto-suave">
             {aba === "ranking"
-              ? "O ranking individual e por setor entra junto com a tela de Ranking do menu."
+              ? "O ranking individual e por setor fica em Ranking, no menu lateral, com seletor de campanha."
               : campanha.status === "encerrada"
                 ? "O ranking congelado, os selos e os certificados emitidos entram com a tela de Certificados."
                 : "Os resultados aparecem depois de encerrar a campanha."}

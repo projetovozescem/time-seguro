@@ -1521,6 +1521,199 @@ console.log("\n--- item 7: check-in e Modo TV ---");
   }
 }
 // =====================================================================
+console.log("\n--- item 8: ranking e encerramento ---");
+{
+  // O ranking e o encerramento sao exercitados numa campanha PROPRIA do teste,
+  // para nao encerrar a campanha de demonstracao que o seed deixou ativa.
+  const [setor] = await consultar(
+    `select id from public.setores where empresa_id = ${lit(empresa.id)} limit 1`,
+  );
+  const [tema] = await consultar(
+    "select id from public.temas where empresa_id is null order by slug limit 1",
+  );
+
+  // 1. As views de ranking respondem para a campanha ativa.
+  const [ativa] = await consultar(
+    `select id from public.campanhas
+      where empresa_id = ${lit(empresa.id)} and status = 'ativa' limit 1`,
+  );
+
+  if (ativa) {
+    const ind = await fetch(
+      `${URL}/rest/v1/v_ranking_individual?select=colaborador_id,total,conhecimento,relatos,engajamento&campanha_id=eq.${ativa.id}`,
+      { headers: { apikey: ANON, Authorization: `Bearer ${jwtAdmin}` } },
+    );
+    const linhasInd = await ind.json();
+    checar(
+      ind.status === 200 && Array.isArray(linhasInd),
+      `v_ranking_individual responde ao painel (http ${ind.status})`,
+    );
+    checar(
+      linhasInd.every((l) => l.total === l.conhecimento + l.relatos + l.engajamento),
+      "o total do ranking e a soma dos tres pilares",
+    );
+
+    const set = await fetch(
+      `${URL}/rest/v1/v_ranking_setor?select=setor_id,total,pontos_individuais,pontos_quiz_tv&campanha_id=eq.${ativa.id}`,
+      { headers: { apikey: ANON, Authorization: `Bearer ${jwtAdmin}` } },
+    );
+    checar(set.status === 200, `v_ranking_setor responde ao painel (http ${set.status})`);
+
+    // anon nao le as views (sao security_invoker sobre tabelas sem grant).
+    const anonView = await fetch(`${URL}/rest/v1/v_ranking_individual?select=total&limit=1`, {
+      headers: { apikey: ANON, Authorization: `Bearer ${ANON}` },
+    });
+    checar(
+      anonView.status === 401 || anonView.status === 403,
+      `anon nao le v_ranking_individual (http ${anonView.status})`,
+    );
+  }
+
+  // 2. Campanha propria, encerrada de verdade.
+  //    Encerra a de demonstracao primeiro seria destrutivo, entao o teste cria
+  //    a sua, encerra a ativa, testa, e devolve o estado no fim.
+  const [daDemo] = await consultar(
+    `select id, status from public.campanhas
+      where empresa_id = ${lit(empresa.id)} and status = 'ativa' limit 1`,
+  );
+
+  if (!daDemo) {
+    console.log("  --   sem campanha ativa; encerramento nao exercitado");
+  } else {
+    // Suspende a de demonstracao para poder ativar a de teste.
+    await consultar(`update public.campanhas set status = 'rascunho' where id = ${lit(daDemo.id)}`);
+
+    const [teste] = await consultar(`
+      insert into public.campanhas
+        (empresa_id, nome, inicio, fim, status, perguntas_por_dia, ranking_visivel)
+      values (${lit(empresa.id)}, ${lit(`Campanha de encerramento ${selo}`)},
+              current_date - 1, current_date + 1, 'rascunho', 5, true)
+      returning id
+    `);
+    await consultar(`
+      insert into public.campanha_temas (campanha_id, tema_id, empresa_id)
+      values (${lit(teste.id)}, ${lit(tema.id)}, ${lit(empresa.id)})
+    `);
+
+    const ativou = await rpc("tecnico_ativar_campanha", { p_campanha: teste.id }, jwtAdmin);
+    checar(
+      ativou.corpo?.ok === true,
+      "campanha de teste ativada",
+      JSON.stringify(ativou.corpo).slice(0, 140),
+    );
+
+    // Da pontos a um colaborador, para o ranking ter conteudo.
+    await consultar(`
+      insert into public.pontos_lancamentos
+        (empresa_id, campanha_id, colaborador_id, setor_id, pilar, origem, origem_id, pontos, dia)
+      values (${lit(empresa.id)}, ${lit(teste.id)}, ${lit(fluxo.id)}, ${lit(setor.id)},
+              'conhecimento', 'quiz_diario', gen_random_uuid(), 40, current_date)
+    `);
+
+    // 3. CIPA nao encerra.
+    const cipaEncerra = await rpc(
+      "tecnico_encerrar_campanha",
+      { p_campanha: teste.id, p_top_n: 3 },
+      jwtCipa,
+    );
+    checar(
+      cipaEncerra.status >= 400 ||
+        cipaEncerra.corpo?.ok === false ||
+        String(cipaEncerra.corpo?.message ?? "").includes("acesso_negado"),
+      `cipa recusada ao encerrar campanha (http ${cipaEncerra.status})`,
+    );
+
+    // 4. Encerrar: congela ranking, concede selos, emite certificados.
+    const encerrou = await rpc(
+      "tecnico_encerrar_campanha",
+      { p_campanha: teste.id, p_top_n: 3 },
+      jwtAdmin,
+    );
+    checar(
+      encerrou.corpo?.ok === true,
+      "campanha encerrada",
+      JSON.stringify(encerrou.corpo).slice(0, 140),
+    );
+
+    const [depois] = await consultar(
+      `select status, encerrada_em from public.campanhas where id = ${lit(teste.id)}`,
+    );
+    checar(depois.status === "encerrada", `status vira encerrada (veio ${depois.status})`);
+    checar(Boolean(depois.encerrada_em), "encerrada_em foi gravado");
+
+    const congelados = await consultar(
+      `select tipo, posicao, pontos from public.campanha_resultados
+        where campanha_id = ${lit(teste.id)} order by posicao`,
+    );
+    checar(
+      congelados.length > 0,
+      `o ranking foi congelado em campanha_resultados (${congelados.length} linha(s))`,
+    );
+
+    const selosFinais = await consultar(
+      `select s.slug from public.selos_conquistados sc
+         join public.selos s on s.id = sc.selo_id
+        where sc.campanha_id = ${lit(teste.id)}`,
+    );
+    checar(
+      selosFinais.length > 0,
+      `selos finais concedidos (${selosFinais.map((x) => x.slug).join()})`,
+    );
+
+    const certificados = await consultar(
+      `select tipo, codigo from public.certificados where campanha_id = ${lit(teste.id)}`,
+    );
+    checar(certificados.length > 0, `certificados emitidos (${certificados.length})`);
+    checar(
+      certificados.every((c) => /^TIME-/.test(c.codigo)),
+      `codigo no formato TIME-XXXXXXXXXX (${certificados.map((c) => c.codigo).join()})`,
+    );
+
+    // 5. Encerrar duas vezes e recusado.
+    const deNovo = await rpc(
+      "tecnico_encerrar_campanha",
+      { p_campanha: teste.id, p_top_n: 3 },
+      jwtAdmin,
+    );
+    checar(
+      deNovo.corpo?.ok === false,
+      `segundo encerramento recusado (veio ${deNovo.corpo?.motivo})`,
+    );
+
+    // 6. O certificado e verificavel publicamente, sem login.
+    if (certificados[0]) {
+      const verifica = await rpc("verificar_certificado", {
+        p_codigo: certificados[0].codigo,
+      });
+      checar(
+        verifica.corpo?.ok === true,
+        "certificado verificavel sem login",
+        JSON.stringify(verifica.corpo).slice(0, 140),
+      );
+
+      const inventado = await rpc("verificar_certificado", { p_codigo: "TIME-NAOEXISTE" });
+      checar(
+        inventado.corpo?.motivo === "certificado_nao_encontrado",
+        `codigo inventado recusado (veio ${inventado.corpo?.motivo})`,
+      );
+    }
+
+    // 7. Limpa e devolve a campanha de demonstracao ao ar.
+    await consultar(`delete from public.certificados where campanha_id = ${lit(teste.id)}`);
+    await consultar(`delete from public.selos_conquistados where campanha_id = ${lit(teste.id)}`);
+    await consultar(`delete from public.campanha_resultados where campanha_id = ${lit(teste.id)}`);
+    await consultar(`delete from public.pontos_lancamentos where campanha_id = ${lit(teste.id)}`);
+    await consultar(`delete from public.campanha_temas where campanha_id = ${lit(teste.id)}`);
+    await consultar(`delete from public.campanhas where id = ${lit(teste.id)}`);
+    await consultar(`update public.campanhas set status = 'ativa' where id = ${lit(daDemo.id)}`);
+
+    const [voltou] = await consultar(
+      `select status from public.campanhas where id = ${lit(daDemo.id)}`,
+    );
+    checar(voltou.status === "ativa", "a campanha de demonstracao voltou a ativa no fim");
+  }
+}
+// =====================================================================
 console.log(
   falhas === 0
     ? `\nFluxo: ${total} verificações passaram.`

@@ -24,6 +24,7 @@ import { Route as PainelLoginRouteImport } from './routes/painel.login'
 import { Route as RespeitoCodigoRouteImport } from './routes/respeito.$codigo'
 import { Route as ProtegidoPainelIndexRouteImport } from './routes/_protegido.painel.index'
 import { Route as ProtegidoPainelEventosRouteImport } from './routes/_protegido.painel.eventos'
+import { Route as ProtegidoPainelRankingRouteImport } from './routes/_protegido.painel.ranking'
 import { Route as ProtegidoPainelRelatosRouteImport } from './routes/_protegido.painel.relatos'
 import { Route as ProtegidoPainelRespeitoRouteImport } from './routes/_protegido.painel.respeito'
 import { Route as ProtegidoTvIndexRouteImport } from './routes/_protegido.tv.index'
@@ -111,6 +112,11 @@ const ProtegidoPainelEventosRoute = ProtegidoPainelEventosRouteImport.update({
   path: '/painel/eventos',
   getParentRoute: () => ProtegidoRoute,
 } as any)
+const ProtegidoPainelRankingRoute = ProtegidoPainelRankingRouteImport.update({
+  id: '/painel/ranking',
+  path: '/painel/ranking',
+  getParentRoute: () => ProtegidoRoute,
+} as any)
 const ProtegidoPainelRelatosRoute = ProtegidoPainelRelatosRouteImport.update({
   id: '/painel/relatos',
   path: '/painel/relatos',
@@ -191,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/painel/login': typeof PainelLoginRoute
   '/respeito/$codigo': typeof RespeitoCodigoRoute
   '/painel/eventos': typeof ProtegidoPainelEventosRoute
+  '/painel/ranking': typeof ProtegidoPainelRankingRoute
   '/painel/relatos': typeof ProtegidoPainelRelatosRoute
   '/painel/respeito': typeof ProtegidoPainelRespeitoRoute
   '/tv/jogo': typeof ProtegidoTvJogoRoute
@@ -219,6 +226,7 @@ export interface FileRoutesByTo {
   '/painel/login': typeof PainelLoginRoute
   '/respeito/$codigo': typeof RespeitoCodigoRoute
   '/painel/eventos': typeof ProtegidoPainelEventosRoute
+  '/painel/ranking': typeof ProtegidoPainelRankingRoute
   '/painel/relatos': typeof ProtegidoPainelRelatosRoute
   '/painel/respeito': typeof ProtegidoPainelRespeitoRoute
   '/tv/jogo': typeof ProtegidoTvJogoRoute
@@ -249,6 +257,7 @@ export interface FileRoutesById {
   '/painel/login': typeof PainelLoginRoute
   '/respeito/$codigo': typeof RespeitoCodigoRoute
   '/_protegido/painel/eventos': typeof ProtegidoPainelEventosRoute
+  '/_protegido/painel/ranking': typeof ProtegidoPainelRankingRoute
   '/_protegido/painel/relatos': typeof ProtegidoPainelRelatosRoute
   '/_protegido/painel/respeito': typeof ProtegidoPainelRespeitoRoute
   '/_protegido/tv/jogo': typeof ProtegidoTvJogoRoute
@@ -279,6 +288,7 @@ export interface FileRouteTypes {
     | '/painel/login'
     | '/respeito/$codigo'
     | '/painel/eventos'
+    | '/painel/ranking'
     | '/painel/relatos'
     | '/painel/respeito'
     | '/tv/jogo'
@@ -307,6 +317,7 @@ export interface FileRouteTypes {
     | '/painel/login'
     | '/respeito/$codigo'
     | '/painel/eventos'
+    | '/painel/ranking'
     | '/painel/relatos'
     | '/painel/respeito'
     | '/tv/jogo'
@@ -336,6 +347,7 @@ export interface FileRouteTypes {
     | '/painel/login'
     | '/respeito/$codigo'
     | '/_protegido/painel/eventos'
+    | '/_protegido/painel/ranking'
     | '/_protegido/painel/relatos'
     | '/_protegido/painel/respeito'
     | '/_protegido/tv/jogo'
@@ -477,6 +489,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtegidoPainelEventosRouteImport
       parentRoute: typeof ProtegidoRoute
     }
+    '/_protegido/painel/ranking': {
+      id: '/_protegido/painel/ranking'
+      path: '/painel/ranking'
+      fullPath: '/painel/ranking'
+      preLoaderRoute: typeof ProtegidoPainelRankingRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
     '/_protegido/painel/relatos': {
       id: '/_protegido/painel/relatos'
       path: '/painel/relatos'
@@ -566,6 +585,7 @@ declare module '@tanstack/react-router' {
 
 interface ProtegidoRouteChildren {
   ProtegidoPainelEventosRoute: typeof ProtegidoPainelEventosRoute
+  ProtegidoPainelRankingRoute: typeof ProtegidoPainelRankingRoute
   ProtegidoPainelRelatosRoute: typeof ProtegidoPainelRelatosRoute
   ProtegidoPainelRespeitoRoute: typeof ProtegidoPainelRespeitoRoute
   ProtegidoTvJogoRoute: typeof ProtegidoTvJogoRoute
@@ -580,6 +600,7 @@ interface ProtegidoRouteChildren {
 
 const ProtegidoRouteChildren: ProtegidoRouteChildren = {
   ProtegidoPainelEventosRoute: ProtegidoPainelEventosRoute,
+  ProtegidoPainelRankingRoute: ProtegidoPainelRankingRoute,
   ProtegidoPainelRelatosRoute: ProtegidoPainelRelatosRoute,
   ProtegidoPainelRespeitoRoute: ProtegidoPainelRespeitoRoute,
   ProtegidoTvJogoRoute: ProtegidoTvJogoRoute,
