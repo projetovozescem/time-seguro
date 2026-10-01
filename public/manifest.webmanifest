@@ -1,0 +1,33 @@
+{
+  "name": "V.O.Z.E.S. — Campanha contra a Violência",
+  "short_name": "V.O.Z.E.S.",
+  "description": "Participe da campanha V.O.Z.E.S. pela sua turma: responda as perguntas do dia e ganhe pontos.",
+  "lang": "pt-BR",
+  "start_url": "/aluno",
+  "scope": "/aluno",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#7030A0",
+  "background_color": "#F9F4FD",
+  "categories": ["education", "social"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

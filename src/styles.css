@@ -1,0 +1,250 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system T.I.M.E. Seguro (docs/TIME_10_IDENTIDADE_VISUAL.md).
+ * Marinho industrial + amarelo segurança. Nunca usar cores fixas nos
+ * componentes — sempre os tokens semânticos definidos aqui.
+ * O roxo --respeito é EXCLUSIVO do Canal de Respeito e do tema assédio.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-dark: var(--primary-dark);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-sucesso: var(--sucesso);
+  --color-erro: var(--erro);
+  --color-dourado: var(--dourado);
+  --color-info: var(--info);
+  --color-laranja: var(--laranja);
+  --color-tv-de: var(--tv-de);
+  --color-tv-ate: var(--tv-ate);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-grafico-acerto: var(--grafico-acerto);
+  --color-grafico-erro: var(--grafico-erro);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* Tokens nomeados do T.I.M.E. (docs/TIME_10 §4) — utilitarios diretos como
+   bg-marinho, text-amarelo, border-borda. Os tokens semanticos do shadcn
+   acima apontam para estes mesmos valores. */
+@theme {
+  --color-marinho: #0b3c5d;
+  --color-marinho-escuro: #072a42;
+  --color-amarelo: #ffc400;
+  --color-laranja: #f57c00;
+  --color-verde: #2e7d32;
+  --color-vermelho: #c62828;
+  --color-respeito: #6a1b9a;
+  --color-fundo: #f4f6f9;
+  --color-superficie: #ffffff;
+  --color-texto: #1a2330;
+  --color-texto-suave: #5b6878;
+  --color-borda: #dde3ea;
+  --font-titulo: "Outfit", system-ui, sans-serif;
+  --font-texto: "Figtree", system-ui, sans-serif;
+}
+
+/* Faixa zebrada amarelo/preto: so detalhe decorativo (topo do app, cantos do
+   certificado). Texto sobre amarelo sempre em #1A2330, nunca branco. */
+.faixa-seguranca {
+  background: repeating-linear-gradient(45deg, #ffc400 0 12px, #1a2330 12px 24px);
+  height: 6px;
+}
+
+:root {
+  --radius: 0.75rem;
+
+  --background: #f4f6f9;
+  --foreground: #1a2330;
+  --card: #ffffff;
+  --card-foreground: #1a2330;
+  --popover: #ffffff;
+  --popover-foreground: #1a2330;
+  --primary: #0b3c5d;
+  --primary-foreground: #ffffff;
+  --primary-dark: #072a42;
+  --secondary: #e4ebf2;
+  --secondary-foreground: #072a42;
+  --muted: #eef2f6;
+  --muted-foreground: #5b6878;
+  --accent: #f57c00;
+  --accent-foreground: #ffffff;
+  --destructive: #c62828;
+  --destructive-foreground: #ffffff;
+  --border: #dde3ea;
+  --input: #dde3ea;
+  --ring: #0b3c5d;
+
+  --sucesso: #2e7d32;
+  --erro: #c62828;
+  --dourado: #ffc400;
+  --info: #2e86c1;
+  --laranja: #f57c00;
+  --tv-de: #0a1929;
+  --tv-ate: #13294b;
+
+  /*
+   * Paleta dos gráficos, validada para daltonismo contra o fundo claro dos cards
+   * (checagens de banda de luminosidade, croma, separação CVD e contraste).
+   * Ordem definida em docs/TIME_10 §2 ("Paleta de gráficos"). No mapa de
+   * lacunas a cor vem SEMPRE acompanhada do número.
+   * A aplicação é somente tema claro — nada aplica a classe .dark.
+   */
+  --chart-1: #0b3c5d; /* marinho — série categórica 1 e série única */
+  --chart-2: #f5a300; /* âmbar — série categórica 2 (sempre com rótulo direto) */
+  --chart-3: #2e86c1; /* azul — série categórica 3 */
+  --chart-4: #c0392b;
+  --chart-5: #7f8c8d;
+  --chart-6: #16a085;
+  --chart-7: #8e44ad;
+
+  --grafico-acerto: #2e7d32;
+  --grafico-erro: #c0392b; /* vermelho escurecido: separa do verde em deuteranopia */
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1a2330;
+  --sidebar-primary: #0b3c5d;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eef2f6;
+  --sidebar-accent-foreground: #072a42;
+  --sidebar-border: #dde3ea;
+  --sidebar-ring: #0b3c5d;
+}
+
+.dark {
+  --background: #0a1929;
+  --foreground: #eef2f6;
+  --card: #13294b;
+  --card-foreground: #eef2f6;
+  --popover: #13294b;
+  --popover-foreground: #eef2f6;
+  --primary: #ffc400;
+  --primary-foreground: #1a2330;
+  --primary-dark: #f5a300;
+  --secondary: #1d3a5f;
+  --secondary-foreground: #eef2f6;
+  --muted: #1d3a5f;
+  --muted-foreground: #a8b6c4;
+  --accent: #f57c00;
+  --accent-foreground: #ffffff;
+  --destructive: #c62828;
+  --destructive-foreground: #ffffff;
+  --border: #ffffff1a;
+  --input: #ffffff26;
+  --ring: #ffc400;
+
+  --sidebar: #13294b;
+  --sidebar-foreground: #eef2f6;
+  --sidebar-primary: #ffc400;
+  --sidebar-primary-foreground: #1a2330;
+  --sidebar-accent: #1d3a5f;
+  --sidebar-accent-foreground: #eef2f6;
+  --sidebar-border: #ffffff1a;
+  --sidebar-ring: #ffc400;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+  }
+}
+
+/* Abertura do app do colaborador (ver components/aluno/AberturaAnimada.tsx). */
+@keyframes abertura-escudo {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  75% {
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes abertura-subir {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility fundo-tv {
+  background-image: linear-gradient(135deg, var(--tv-de) 0%, var(--tv-ate) 100%);
+}
+
+@utility fundo-campanha {
+  background-image:
+    radial-gradient(circle at 12% 18%, #0b3c5d1f 0 22%, transparent 22.5%),
+    radial-gradient(circle at 88% 12%, #ffc4002e 0 18%, transparent 18.5%),
+    radial-gradient(circle at 78% 88%, #0b3c5d14 0 24%, transparent 24.5%),
+    linear-gradient(160deg, #f4f6f9 0%, #e9eef4 100%);
+}

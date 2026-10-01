@@ -1,0 +1,52 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+.output
+.vinxi
+.tanstack/
+.nitro
+*.local
+
+# Wrangler / Cloudflare
+.wrangler/
+.dev.vars
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Cópia do SQL para colar no painel do Supabase — a versão oficial fica em
+# supabase/migrations/. Fora do git para as duas não divergirem.
+SQL.sql
+LIMPAR_DADOS_TESTE.sql
+
+# Segredos: o .env real nunca vai para o git. Use .env.example como modelo.
+.env
+.env.*
+!.env.example
+
+# Lovable (projeto migrado para repositorio proprio)
+.lovable/
+
+# Estado local do CLI do Supabase
+supabase/.temp/
+
+# MCP: o .mcp.json real carrega o ref do projeto DEV de cada pessoa.
+# O modelo versionado e o .mcp.json.example.
+.mcp.json

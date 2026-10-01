@@ -1,0 +1,11 @@
+# O projeto usa LF (padrão do Prettier e do Lovable). Sem isto, o git no Windows
+# faz checkout com CRLF e o lint passa a acusar erro em arquivo intocado.
+* text=auto eol=lf
+
+# Binários não devem sofrer conversão de fim de linha.
+*.png binary
+*.ico binary
+*.jpg binary
+*.webp binary
+*.woff binary
+*.woff2 binary
