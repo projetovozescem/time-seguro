@@ -103,3 +103,20 @@ a referência que o TIME_11 pede para as fases 4 e 10 sem deixar código morto e
 `scripts/seed-dev.mjs` lê o TIME_12 com o mesmo `lerTxt` das telas, em vez de
 duplicar a lógica. O Node faz type-stripping de `.ts` mas não resolve import sem
 extensão, e `vite-node` travava; o bundle passa pelo esbuild, que já vem com o Vite.
+
+## 2026-10-01 — Configuração de projeto virou script, não passo manual
+
+`docs/TIME_02` §4 e `docs/TIME_03` §8 descrevem SQL e cliques no painel do
+Supabase (bucket, policy, desativar cadastro público, redirect URLs). Virou
+`npm run db:configurar`: sem argumento mostra o estado, com `--aplicar` aplica.
+Assim a configuração é auditável e reproduzível num projeto novo, em vez de
+depender de alguém lembrar de clicar.
+
+## 2026-10-01 — No Storage, a proteção são as policies, não os grants
+
+`anon` tem INSERT/SELECT/UPDATE/DELETE em `storage.objects` por padrão do
+Supabase, e isso não dá para revogar (a role da Management API não é owner da
+tabela). Os grants ficam inertes porque o RLS está ligado e a única policy é de
+SELECT para `authenticated`. Por isso o gate afirma sobre as POLICIES: nenhuma
+aberta a `anon`/`public`, nenhuma de INSERT (upload só pela Edge Function) e o
+bucket privado.

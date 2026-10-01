@@ -128,6 +128,14 @@ exportar TXT pela interface.
   movida para `docs/legado-vozes/`; será portada nas fases 4 e 10.
 - Parser de importação TXT + CSV (item 1) com os 7 casos do TIME_07 §7.
 
+## Configuração do projeto (01/10/2026)
+
+`npm run db:configurar` cobre o que não cabe em migration: bucket privado
+`relatos-fotos` + policy de leitura pelo técnico (TIME_02 §4), cadastro público
+desativado e redirect de `/painel/nova-senha` liberado (TIME_03 §8). Verificado
+por comportamento: `signup` devolve 422 `signup_disabled` e o login do admin
+segue 200. O gate de RLS subiu para 242 verificações, agora cobrindo Storage.
+
 ## Próximo
 
 1. Telas `/painel/perguntas` e `/painel/perguntas/importar` (item 1).

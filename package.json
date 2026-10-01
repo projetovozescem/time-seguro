@@ -18,7 +18,8 @@
     "db:aplicar": "node scripts/db-aplicar.mjs",
     "db:bootstrap": "node scripts/bootstrap-dev.mjs",
     "db:seed": "node scripts/seed-dev.mjs",
-    "test:fluxo": "node scripts/teste-fluxo.mjs"
+    "test:fluxo": "node scripts/teste-fluxo.mjs",
+    "db:configurar": "node scripts/db-configurar.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"

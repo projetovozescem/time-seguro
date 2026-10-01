@@ -318,7 +318,59 @@ try {
   );
 
   // ------------------------------------------------------------------
-  // 7. Views aplicam o RLS
+  // 7. Storage das fotos de relato (docs/TIME_02 §4, docs/TIME_03 §5)
+  //    O bucket é privado e a proteção real é o RLS de storage.objects: os
+  //    grants de tabela que o Supabase dá a `anon` só ficam inertes enquanto
+  //    não existir policy para ele. Por isso a asserção é sobre as POLICIES.
+  // ------------------------------------------------------------------
+  const storage = await consultar(`
+    select c.relname as objeto, c.relrowsecurity as rls
+      from pg_class c join pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'storage' and c.relname in ('objects','buckets')
+  `);
+  const rlsStorage = new Map(storage.map((r) => [r.objeto, r.rls]));
+  for (const objeto of ["objects", "buckets"]) {
+    afirmar(rlsStorage.get(objeto) === true, `storage.${objeto} está sem RLS`);
+  }
+
+  const policiesStorage = await consultar(`
+    select policyname, cmd, roles::text as papeis
+      from pg_policies where schemaname = 'storage' and tablename = 'objects'
+  `);
+  /** Papéis de uma policy, como lista. `roles::text` vem no formato {a,b}. */
+  const papeisDe = (texto) =>
+    texto
+      .replace(/[{}]/g, "")
+      .split(",")
+      .map((p) => p.trim())
+      .filter(Boolean);
+
+  const abertas = policiesStorage.filter((p) =>
+    papeisDe(p.papeis).some((papel) => papel === "anon" || papel === "public"),
+  );
+  afirmar(
+    abertas.length === 0,
+    `policy de storage.objects aberta a anon/public: ${abertas
+      .map((p) => `${p.policyname}(${p.cmd})`)
+      .join(", ")}`,
+  );
+  afirmar(
+    policiesStorage.some((p) => p.cmd === "SELECT" && /authenticated/.test(p.papeis)),
+    "falta a policy de leitura das fotos pelo técnico",
+  );
+  afirmar(
+    !policiesStorage.some((p) => p.cmd === "INSERT"),
+    "existe policy de INSERT em storage.objects — o upload só pode vir da Edge Function",
+  );
+
+  const bucket = await consultar(
+    "select id, public from storage.buckets where id = 'relatos-fotos'",
+  );
+  afirmar(bucket.length === 1, "bucket relatos-fotos não existe");
+  afirmar(bucket[0]?.public === false, "bucket relatos-fotos está público");
+
+  // ------------------------------------------------------------------
+  // 8. Views aplicam o RLS
   // ------------------------------------------------------------------
   const views = await consultar(`
     select c.relname as nome, coalesce(array_to_string(c.reloptions, ','), '') as opcoes

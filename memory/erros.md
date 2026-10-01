@@ -38,3 +38,12 @@ No teste de fluxo: (a) esperei zero pontos ao errar o quiz, mas
 filtrar por `origem = 'quiz_diario'`; (b) usei `assedio_moral` como categoria de
 denúncia, e o schema aceita `moral`/`sexual`/`discriminacao`/`outro`; (c) chutei
 nomes de parâmetro das RPCs em vez de ler `pg_get_function_arguments`.
+
+## 2026-10-01 — `\b` virou byte de backspace dentro do arquivo
+
+Ao gerar código por heredoc + script Node, `/\banon\b/` chegou ao arquivo com
+backspaces literais (0x08) em vez da âncora de palavra. A asserção existia, mas
+nunca casava: o teste negativo passou verde com uma policy aberta a `anon`.
+Troquei a regex por uma checagem explícita da lista de papéis. Lição: regex com
+escape não sobrevive a camadas de quoting — e sem o teste negativo isso teria
+ficado escondido.
