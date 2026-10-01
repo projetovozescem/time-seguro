@@ -223,3 +223,20 @@ receber uma partida de Clássico, e `/tv/jogo` virou só um despachante.
 `src/lib/jogos/cores.ts` decide texto claro ou escuro pela luminância WCAG. Um
 setor cadastrado em amarelo teria texto branco sobre amarelo — ilegível a 5
 metros, que é a exigência do TIME_06 §6.
+
+## A leitura de PDF mora em três camadas
+
+`pdf-extrair.ts` (conhece o pdf.js) → `pdf-linhas.ts` (puro, monta as linhas) →
+`pdf.ts` (puro, reconhece as perguntas). A separação do meio não é estética: o
+`?url` que resolve o worker **só existe dentro do Vite**, então qualquer módulo
+que o contenha fica impossível de empacotar num script Node — e era isso que
+impedia a prova de ponta a ponta. Com `pdf-linhas.ts` de fora, dá para gerar um
+PDF, extrair e conferir o resultado sem navegador.
+
+## Banco de produção = banco de desenvolvimento (decisão do usuário, 01/10/2026)
+
+Eu havia recomendado separar. A decisão foi usar o mesmo projeto
+(`niazcsjnxvoeeolwrcqx`) para chegar na inscrição de 05/10. O risco está escrito
+em `docs/DEPLOY.md` §2: `test:fluxo` e `seed-demo.mjs` mexem nesse banco, e o
+seed **apaga e recria** a empresa `demo`. Não rodar nenhum dos dois perto de uma
+apresentação.

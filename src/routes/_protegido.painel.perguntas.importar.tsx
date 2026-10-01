@@ -42,6 +42,7 @@ function Importar() {
   const [temaGlobal, setTemaGlobal] = useState("");
   const [itens, setItens] = useState<ItemRevisao[] | null>(null);
   const [salvando, setSalvando] = useState(false);
+  const [lendoPdf, setLendoPdf] = useState(false);
 
   const globais = useMemo(() => perguntas.filter((p) => p.empresa_id === null), [perguntas]);
   const resumo = itens ? resumir(itens) : null;
@@ -71,13 +72,38 @@ function Importar() {
       return;
     }
     const nome = arquivo.name.toLowerCase();
+
     if (nome.endsWith(".pdf")) {
-      // O reconhecimento das perguntas em PDF esta pronto e testado em
-      // `src/lib/importacao/pdf.ts`; falta a biblioteca que extrai o texto do
-      // arquivo (`pdfjs-dist`), que depende de autorizacao para instalar.
-      toast.error("Leitura de PDF ainda nao esta ligada. Use TXT ou CSV, ou cole o texto.");
+      // O `pdfjs-dist` entra só agora, por import dinâmico (docs/TIME_07 §1):
+      // um PDF de treinamento é coisa do painel, e o app do colaborador não
+      // deve carregar essa biblioteca.
+      setLendoPdf(true);
+      try {
+        const { extrairLinhas, MAXIMO_DE_PAGINAS } = await import("@/lib/importacao/pdf-extrair");
+        const { lerPdf } = await import("@/lib/importacao/pdf");
+        const { linhas, paginas } = await extrairLinhas(arquivo);
+
+        if (linhas.length === 0) {
+          toast.error(
+            "Esse PDF não tem texto para ler — provavelmente é a imagem de um documento " +
+              "escaneado. Digite as perguntas ou use um PDF com texto.",
+          );
+          return;
+        }
+        if (paginas >= MAXIMO_DE_PAGINAS) {
+          toast.warning(`Li só as primeiras ${MAXIMO_DE_PAGINAS} páginas.`);
+        }
+
+        const slugPadrao = temas.find((t) => t.id === temaPadrao)?.slug ?? null;
+        revisar(lerPdf(linhas, paginas, slugPadrao));
+      } catch {
+        toast.error("Não consegui ler esse PDF. Tente exportar de novo, ou cole o texto.");
+      } finally {
+        setLendoPdf(false);
+      }
       return;
     }
+
     const conteudo = await arquivo.text();
     revisar(nome.endsWith(".csv") ? lerCsv(conteudo) : lerTxt(conteudo));
   }
@@ -452,8 +478,10 @@ function Importar() {
             Baixar modelo CSV
           </button>
           <p className="mt-2 text-xs text-texto-suave">
-            PDF ainda não é lido nesta versão: cole o texto na outra aba.
+            No PDF, o tema escolhido acima vale para todas as perguntas do arquivo: um PDF de
+            treinamento quase nunca diz o tema de cada pergunta.
           </p>
+          {lendoPdf && <p className="mt-2 text-sm text-marinho">Lendo o PDF…</p>}
         </div>
       )}
 

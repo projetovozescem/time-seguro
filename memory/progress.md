@@ -154,8 +154,8 @@ segue 200. O gate de RLS subiu para 242 verificações, agora cobrindo Storage.
 3. Item 9: analytics e MAPA DE LACUNAS (TIME_09 §1.2).
 4. Itens 10 a 12: relatório de evidência, certificados e `/verificar`,
    materiais e deploy.
-5. Pendências: ligar a leitura de PDF (falta autorizar `pdfjs-dist`) e o
-   **deploy**, que precisa da sua decisão de hospedagem.
+5. Pendência única: o **deploy**. Decidido em 01/10/2026 "só preparar": o
+   roteiro está em `docs/DEPLOY.md` e nada foi publicado.
 
 ## Telas do painel: nenhuma falta (01/10/2026)
 
@@ -252,7 +252,7 @@ Conferido também no build: `.output/public` tem a chave publishable (é públic
 por natureza) e **não** tem o `SUPABASE_ACCESS_TOKEN`, a chave `sb_secret_` nem
 a senha do admin.
 
-## Leitura de PDF: parser pronto, extração pendente
+## Leitura de PDF: ligada (01/10/2026)
 
 `src/lib/importacao/pdf.ts` é o `pdfQuestions.js` do Max Games portado e tipado,
 com 28 testes (os do legado mais os do T.I.M.E.): reconhece "Questão N", "1.",
@@ -260,6 +260,23 @@ com 28 testes (os do legado mais os do T.I.M.E.): reconhece "Questão N", "1.",
 negrito por fonte minoritária e marcadores `**`, `(correta)`, `✔`. Remove
 cabeçalho e rodapé repetidos.
 
-Falta só a camada que extrai o texto do arquivo, que precisa do `pdfjs-dist` —
-**dependência grande, e o `AGENTS.md` exige confirmação antes de instalar**. A
-tela diz que PDF ainda não é lido nesta versão.
+`pdfjs-dist` 6.3.289 instalado com sua autorização, em três camadas:
+
+- `pdf-extrair.ts` — a única que conhece o pdf.js. Import dinâmico, e o worker
+  vem do próprio pacote por `?url`. O build confirma a separação: a entrada
+  principal tem 197 kB e **não** traz o pdfjs; os 431 kB da biblioteca e os
+  1,26 MB do worker ficam em pedaços carregados sob demanda.
+- `pdf-linhas.ts` — monta as linhas a partir dos pedaços de texto (pura, 10
+  testes). Nasceu separada porque `?url` só existe dentro do Vite: com ela no
+  mesmo arquivo, nenhum script Node consegue empacotar a lógica para testar.
+- `pdf.ts` — reconhece as perguntas (28 testes).
+
+Prova de ponta a ponta (não há navegador nesta sessão): um PDF gerado com jspdf
+contendo duas questões e gabarito no fim foi lido pelo pdfjs (build legacy, que
+roda no Node) e passou pelo parser — 14 linhas extraídas, 2 perguntas
+reconhecidas, respostas B e A vindas do gabarito, tema do lote aplicado e a
+seção "Gabarito" não virou pergunta. O script está no scratchpad da sessão.
+
+Limite: 60 páginas por arquivo, e PDF escaneado (imagem, sem texto) é recusado
+com uma mensagem que explica o motivo em vez de devolver zero perguntas em
+silêncio.
