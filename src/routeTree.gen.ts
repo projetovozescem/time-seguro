@@ -22,7 +22,9 @@ import { Route as AppRelatosRouteImport } from './routes/app.relatos'
 import { Route as AppTermoRouteImport } from './routes/app.termo'
 import { Route as PainelLoginRouteImport } from './routes/painel.login'
 import { Route as RespeitoCodigoRouteImport } from './routes/respeito.$codigo'
+import { Route as VerificarCodigoRouteImport } from './routes/verificar.$codigo'
 import { Route as ProtegidoPainelIndexRouteImport } from './routes/_protegido.painel.index'
+import { Route as ProtegidoPainelCertificadosRouteImport } from './routes/_protegido.painel.certificados'
 import { Route as ProtegidoPainelEventosRouteImport } from './routes/_protegido.painel.eventos'
 import { Route as ProtegidoPainelRankingRouteImport } from './routes/_protegido.painel.ranking'
 import { Route as ProtegidoPainelRelatosRouteImport } from './routes/_protegido.painel.relatos'
@@ -102,11 +104,22 @@ const RespeitoCodigoRoute = RespeitoCodigoRouteImport.update({
   path: '/respeito/$codigo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VerificarCodigoRoute = VerificarCodigoRouteImport.update({
+  id: '/verificar/$codigo',
+  path: '/verificar/$codigo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProtegidoPainelIndexRoute = ProtegidoPainelIndexRouteImport.update({
   id: '/painel/',
   path: '/painel/',
   getParentRoute: () => ProtegidoRoute,
 } as any)
+const ProtegidoPainelCertificadosRoute =
+  ProtegidoPainelCertificadosRouteImport.update({
+    id: '/painel/certificados',
+    path: '/painel/certificados',
+    getParentRoute: () => ProtegidoRoute,
+  } as any)
 const ProtegidoPainelEventosRoute = ProtegidoPainelEventosRouteImport.update({
   id: '/painel/eventos',
   path: '/painel/eventos',
@@ -196,6 +209,8 @@ export interface FileRoutesByFullPath {
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
   '/respeito/$codigo': typeof RespeitoCodigoRoute
+  '/verificar/$codigo': typeof VerificarCodigoRoute
+  '/painel/certificados': typeof ProtegidoPainelCertificadosRoute
   '/painel/eventos': typeof ProtegidoPainelEventosRoute
   '/painel/ranking': typeof ProtegidoPainelRankingRoute
   '/painel/relatos': typeof ProtegidoPainelRelatosRoute
@@ -225,6 +240,8 @@ export interface FileRoutesByTo {
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
   '/respeito/$codigo': typeof RespeitoCodigoRoute
+  '/verificar/$codigo': typeof VerificarCodigoRoute
+  '/painel/certificados': typeof ProtegidoPainelCertificadosRoute
   '/painel/eventos': typeof ProtegidoPainelEventosRoute
   '/painel/ranking': typeof ProtegidoPainelRankingRoute
   '/painel/relatos': typeof ProtegidoPainelRelatosRoute
@@ -256,6 +273,8 @@ export interface FileRoutesById {
   '/app/termo': typeof AppTermoRoute
   '/painel/login': typeof PainelLoginRoute
   '/respeito/$codigo': typeof RespeitoCodigoRoute
+  '/verificar/$codigo': typeof VerificarCodigoRoute
+  '/_protegido/painel/certificados': typeof ProtegidoPainelCertificadosRoute
   '/_protegido/painel/eventos': typeof ProtegidoPainelEventosRoute
   '/_protegido/painel/ranking': typeof ProtegidoPainelRankingRoute
   '/_protegido/painel/relatos': typeof ProtegidoPainelRelatosRoute
@@ -287,6 +306,8 @@ export interface FileRouteTypes {
     | '/app/termo'
     | '/painel/login'
     | '/respeito/$codigo'
+    | '/verificar/$codigo'
+    | '/painel/certificados'
     | '/painel/eventos'
     | '/painel/ranking'
     | '/painel/relatos'
@@ -316,6 +337,8 @@ export interface FileRouteTypes {
     | '/app/termo'
     | '/painel/login'
     | '/respeito/$codigo'
+    | '/verificar/$codigo'
+    | '/painel/certificados'
     | '/painel/eventos'
     | '/painel/ranking'
     | '/painel/relatos'
@@ -346,6 +369,8 @@ export interface FileRouteTypes {
     | '/app/termo'
     | '/painel/login'
     | '/respeito/$codigo'
+    | '/verificar/$codigo'
+    | '/_protegido/painel/certificados'
     | '/_protegido/painel/eventos'
     | '/_protegido/painel/ranking'
     | '/_protegido/painel/relatos'
@@ -377,6 +402,7 @@ export interface RootRouteChildren {
   AppTermoRoute: typeof AppTermoRoute
   PainelLoginRoute: typeof PainelLoginRoute
   RespeitoCodigoRoute: typeof RespeitoCodigoRoute
+  VerificarCodigoRoute: typeof VerificarCodigoRoute
   AppLocalLocalIdRoute: typeof AppLocalLocalIdRoute
   AppTrilhaLicaoIdRoute: typeof AppTrilhaLicaoIdRoute
   AppTrilhaIndexRoute: typeof AppTrilhaIndexRoute
@@ -475,11 +501,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RespeitoCodigoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/verificar/$codigo': {
+      id: '/verificar/$codigo'
+      path: '/verificar/$codigo'
+      fullPath: '/verificar/$codigo'
+      preLoaderRoute: typeof VerificarCodigoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_protegido/painel/': {
       id: '/_protegido/painel/'
       path: '/painel'
       fullPath: '/painel/'
       preLoaderRoute: typeof ProtegidoPainelIndexRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
+    '/_protegido/painel/certificados': {
+      id: '/_protegido/painel/certificados'
+      path: '/painel/certificados'
+      fullPath: '/painel/certificados'
+      preLoaderRoute: typeof ProtegidoPainelCertificadosRouteImport
       parentRoute: typeof ProtegidoRoute
     }
     '/_protegido/painel/eventos': {
@@ -584,6 +624,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface ProtegidoRouteChildren {
+  ProtegidoPainelCertificadosRoute: typeof ProtegidoPainelCertificadosRoute
   ProtegidoPainelEventosRoute: typeof ProtegidoPainelEventosRoute
   ProtegidoPainelRankingRoute: typeof ProtegidoPainelRankingRoute
   ProtegidoPainelRelatosRoute: typeof ProtegidoPainelRelatosRoute
@@ -599,6 +640,7 @@ interface ProtegidoRouteChildren {
 }
 
 const ProtegidoRouteChildren: ProtegidoRouteChildren = {
+  ProtegidoPainelCertificadosRoute: ProtegidoPainelCertificadosRoute,
   ProtegidoPainelEventosRoute: ProtegidoPainelEventosRoute,
   ProtegidoPainelRankingRoute: ProtegidoPainelRankingRoute,
   ProtegidoPainelRelatosRoute: ProtegidoPainelRelatosRoute,
@@ -631,6 +673,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppTermoRoute: AppTermoRoute,
   PainelLoginRoute: PainelLoginRoute,
   RespeitoCodigoRoute: RespeitoCodigoRoute,
+  VerificarCodigoRoute: VerificarCodigoRoute,
   AppLocalLocalIdRoute: AppLocalLocalIdRoute,
   AppTrilhaLicaoIdRoute: AppTrilhaLicaoIdRoute,
   AppTrilhaIndexRoute: AppTrilhaIndexRoute,

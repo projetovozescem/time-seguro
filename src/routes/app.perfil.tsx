@@ -226,7 +226,12 @@ function PerfilColaborador() {
                     {c.campanha} · {formatarData(c.emitido_em)}
                     {c.carga_minutos ? ` · ${c.carga_minutos} min` : ""}
                   </p>
-                  <p className="mt-1 font-mono text-xs text-marinho">{c.codigo}</p>
+                  <a
+                    href={`/verificar/${c.codigo}`}
+                    className="mt-1 block font-mono text-xs text-marinho underline-offset-4 hover:underline"
+                  >
+                    {c.codigo}
+                  </a>
                 </li>
               ))}
             </ul>
