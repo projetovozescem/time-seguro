@@ -205,3 +205,21 @@ nos cartazes. Bucket público é servido sem policy para `anon`, então a asser�
 "anon sem policy em `storage.objects`" continua valendo. Para a policy nova não
 afrouxar o bucket das fotos, o `test:rls` exige que toda policy de escrita em
 `storage.objects` traga `bucket_id = 'logos'` no `with check`.
+
+## Os três modos de TV compartilham um só botão de salvar
+
+`src/components/tv/SalvarPontuacao.tsx` é o único lugar que chama
+`tecnico_salvar_quiz_tv`. Sem isso, a mensagem de `evento_ja_tem_sessao` e a
+regra "sem evento é treino" estariam escritas três vezes.
+
+## `Partida` é união discriminada pelo modo
+
+Cada modo precisa de dados diferentes (um setor x várias equipes; uma lista de
+perguntas x cinco por equipe). Com a união, a tela do Duelo não compila se
+receber uma partida de Clássico, e `/tv/jogo` virou só um despachante.
+
+## Contraste da cor do setor é calculado, não escolhido
+
+`src/lib/jogos/cores.ts` decide texto claro ou escuro pela luminância WCAG. Um
+setor cadastrado em amarelo teria texto branco sobre amarelo — ilegível a 5
+metros, que é a exigência do TIME_06 §6.

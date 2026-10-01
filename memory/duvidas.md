@@ -79,3 +79,21 @@ um estado atual, sem histórico.
 **Suposição:** usar o efetivo de hoje como denominador em todas as campanhas e
 dizer isso na tela, embaixo da tabela. Guardar o histórico seria uma coluna nova
 em `campanhas` preenchida no encerramento — migration nova, decidir depois.
+
+## 10. "Pular" na Eliminação mantém o acumulado
+
+O TIME_06 §4 lista a ajuda ⏩ Pular sem dizer o que acontece com o acumulado da
+rodada nem com o valor da pergunta pulada.
+**Suposição:** pular passa para a próxima pergunta **mantendo** o acumulado, sem
+contar acerto nem erro e sem somar o valor da pergunta pulada — é o que faz a
+ajuda valer a pena sem virar ponto de graça. Pular na última pergunta encerra o
+turno com o que a equipe já tinha. Está fixado em `eliminacao.test.ts`.
+
+## 11. Duelo e Eliminação: o servidor confia nos pontos da tela, com teto
+
+`tecnico_salvar_quiz_tv` recalcula os pontos só no modo `classico`
+(`acertos × 10`). Nos outros dois ele usa o `pontos` que a tela mandou, limitado
+a `respostas × 10 + 100`. Isso é do SQL de `docs/TIME_02`, que não pode ser
+editado — a regra de 1º/2º/3º lugar e a escada de 2 a 40 vivem no cliente.
+**Suposição:** aceitar como está e cobrir com teste de fluxo (o teto reprova
+999999 → 140). Mover a regra para o SQL seria migration nova.

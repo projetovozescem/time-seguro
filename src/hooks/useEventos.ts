@@ -15,14 +15,15 @@ export type Evento = {
   status: StatusEvento;
 };
 
-export type Setor = { id: string; nome: string };
+/** `cor` serve ao Modo TV e aos gráficos (docs/TIME_06 §6). */
+export type Setor = { id: string; nome: string; cor: string | null };
 
 export function useSetores() {
   return useQuery({
     queryKey: ["setores"],
     staleTime: 5 * 60 * 1000,
     queryFn: async (): Promise<Setor[]> => {
-      const { data, error } = await supabase.from("setores").select("id, nome").order("nome");
+      const { data, error } = await supabase.from("setores").select("id, nome, cor").order("nome");
       if (error) throw error;
       return data ?? [];
     },

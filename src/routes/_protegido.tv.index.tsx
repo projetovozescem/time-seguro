@@ -9,15 +9,36 @@ import { useCampanhaAtiva } from "@/hooks/usePerfil";
 import { useSetores } from "@/hooks/useEventos";
 import { usePerguntas, useTemas } from "@/hooks/usePerguntas";
 import { sortearPerguntas, type PerguntaTv } from "@/lib/jogos/classico";
-import { definirPartida } from "@/lib/jogos/partida";
+import { PERGUNTAS_POR_RODADA } from "@/lib/jogos/eliminacao";
+import { definirPartida, type Modo } from "@/lib/jogos/partida";
+import { corDoTexto } from "@/lib/jogos/cores";
 import { formatarHora, hojeISO } from "@/lib/datas";
 
 const QUANTIDADES = [5, 10] as const;
 
-/**
- * Seleção do Modo TV (docs/TIME_06 §3). Só o Clássico nesta etapa — Duelo de
- * Setores e Eliminação são o item 13 da ordem (TIME_11 marca como ⏳).
- */
+/** Os três modos (docs/TIME_06 §4). */
+const MODOS: { modo: Modo; emoji: string; rotulo: string; ajuda: string }[] = [
+  {
+    modo: "classico",
+    emoji: "🎯",
+    rotulo: "Clássico",
+    ajuda: "A turma discute, você toca a resposta. Um setor por partida.",
+  },
+  {
+    modo: "duelo",
+    emoji: "⚡",
+    rotulo: "Duelo de Setores",
+    ajuda: "Dois ou mais setores disputam no buzzer. 30 s por pergunta.",
+  },
+  {
+    modo: "eliminacao",
+    emoji: "🧩",
+    rotulo: "Eliminação",
+    ajuda: `Uma equipe por vez, ${PERGUNTAS_POR_RODADA} perguntas de 2 a 40 pontos. Errar zera a rodada.`,
+  },
+];
+
+/** Seleção do Modo TV (docs/TIME_06 §3). */
 function SelecaoTv() {
   const navigate = useNavigate();
   const { evento: eventoDaUrl } = Route.useSearch();
@@ -27,7 +48,9 @@ function SelecaoTv() {
   const { data: perguntas = [] } = usePerguntas();
 
   const [eventoId, setEventoId] = useState<string | null>(eventoDaUrl ?? null);
+  const [modo, setModo] = useState<Modo>("classico");
   const [setorId, setSetorId] = useState<string | null>(null);
+  const [equipes, setEquipes] = useState<string[]>([]);
   const [temasEscolhidos, setTemasEscolhidos] = useState<string[]>([]);
   const [quantidade, setQuantidade] = useState<number>(5);
   const [focarLacunas, setFocarLacunas] = useState(false);
@@ -84,20 +107,77 @@ function SelecaoTv() {
 
   const faltamPerguntas = disponiveis.length < quantidade;
 
-  function iniciar() {
-    const sorteadas = sortearPerguntas(disponiveis, quantidade, focarLacunas ? lacunas : []);
-    if (sorteadas.length === 0) return;
+  /** Equipes do Duelo e da Eliminação, na ordem em que foram marcadas. */
+  const equipesEscolhidas = useMemo(
+    () =>
+      equipes
+        .map((id) => setores.find((s) => s.id === id))
+        .filter((s): s is (typeof setores)[number] => s !== undefined)
+        .map((s) => ({ setorId: s.id, nome: s.nome, cor: s.cor ?? "#0b3c5d" })),
+    [equipes, setores],
+  );
 
-    definirPartida({
+  function iniciar() {
+    const base = {
       eventoId,
       eventoTitulo: eventoEscolhido?.titulo ?? null,
-      setorId,
-      setorNome: setorId ? (setores.find((s) => s.id === setorId)?.nome ?? "Setor") : "Todos",
-      perguntas: sorteadas,
       iniciadaEm: Date.now(),
-    });
+    };
+    const sorteio = (quantas: number) =>
+      sortearPerguntas(disponiveis, quantas, focarLacunas ? lacunas : []);
+
+    if (modo === "classico") {
+      const sorteadas = sorteio(quantidade);
+      if (sorteadas.length === 0) return;
+      definirPartida({
+        ...base,
+        modo: "classico",
+        setorId,
+        setorNome: setorId ? (setores.find((s) => s.id === setorId)?.nome ?? "Setor") : "Todos",
+        perguntas: sorteadas,
+      });
+    } else if (modo === "duelo") {
+      const sorteadas = sorteio(quantidade);
+      if (sorteadas.length === 0 || equipesEscolhidas.length < 2) return;
+      definirPartida({ ...base, modo: "duelo", equipes: equipesEscolhidas, perguntas: sorteadas });
+    } else {
+      // Eliminação: 5 perguntas POR equipe, sorteadas de uma vez e repartidas,
+      // para duas equipes não receberem a mesma pergunta.
+      const total = PERGUNTAS_POR_RODADA * equipesEscolhidas.length;
+      const sorteadas = sorteio(total);
+      if (sorteadas.length < total || equipesEscolhidas.length < 1) return;
+      const porEquipe = equipesEscolhidas.map((_, i) =>
+        sorteadas.slice(i * PERGUNTAS_POR_RODADA, (i + 1) * PERGUNTAS_POR_RODADA),
+      );
+      definirPartida({
+        ...base,
+        modo: "eliminacao",
+        equipes: equipesEscolhidas,
+        perguntasPorEquipe: porEquipe,
+      });
+    }
+
     void navigate({ to: "/tv/jogo" });
   }
+
+  const alternarEquipe = (id: string) =>
+    setEquipes((atual) => (atual.includes(id) ? atual.filter((e) => e !== id) : [...atual, id]));
+
+  /** Quantas perguntas o modo escolhido precisa no pool. */
+  const perguntasNecessarias =
+    modo === "eliminacao"
+      ? PERGUNTAS_POR_RODADA * Math.max(1, equipesEscolhidas.length)
+      : quantidade;
+
+  /** O que ainda falta para poder iniciar. `null` quando está tudo pronto. */
+  const impedimento =
+    disponiveis.length < perguntasNecessarias
+      ? `Faltam perguntas: o pool tem ${disponiveis.length} e este modo precisa de ${perguntasNecessarias}.`
+      : modo === "duelo" && equipesEscolhidas.length < 2
+        ? "O Duelo precisa de pelo menos duas equipes."
+        : modo === "eliminacao" && equipesEscolhidas.length < 1
+          ? "Marque as equipes que vão jogar."
+          : null;
 
   const alternarTema = (id: string) =>
     setTemasEscolhidos((atual) =>
@@ -155,64 +235,114 @@ function SelecaoTv() {
         <section>
           <h2 className="font-display text-2xl font-bold text-amarelo">2. Modo</h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="min-h-14 rounded-2xl border-2 border-amarelo bg-amarelo/20 px-5 py-3 text-lg">
-              🎯 Clássico
-            </span>
-            <span className="min-h-14 rounded-2xl border-2 border-white/10 px-5 py-3 text-lg text-white/40">
-              ⚡ Duelo de Setores — em breve
-            </span>
-            <span className="min-h-14 rounded-2xl border-2 border-white/10 px-5 py-3 text-lg text-white/40">
-              🧩 Eliminação — em breve
-            </span>
-          </div>
-        </section>
-
-        <section>
-          <h2 className="font-display text-2xl font-bold text-amarelo">3. Setor</h2>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setSetorId(null)}
-              aria-pressed={setorId === null}
-              className={`min-h-14 rounded-2xl border-2 px-5 py-3 text-lg ${
-                setorId === null ? "border-amarelo bg-amarelo/20" : "border-white/20"
-              }`}
-            >
-              Todos
-            </button>
-            {setores.map((s) => (
+            {MODOS.map((m) => (
               <button
-                key={s.id}
+                key={m.modo}
                 type="button"
-                onClick={() => setSetorId(s.id)}
-                aria-pressed={setorId === s.id}
-                className={`min-h-14 rounded-2xl border-2 px-5 py-3 text-lg ${
-                  setorId === s.id ? "border-amarelo bg-amarelo/20" : "border-white/20"
+                onClick={() => setModo(m.modo)}
+                aria-pressed={modo === m.modo}
+                className={`min-h-14 max-w-72 rounded-2xl border-2 px-5 py-3 text-left text-lg ${
+                  modo === m.modo ? "border-amarelo bg-amarelo/20" : "border-white/20"
                 }`}
               >
-                {s.nome}
+                {m.emoji} {m.rotulo}
+                <span className="block text-base text-white/60">{m.ajuda}</span>
               </button>
             ))}
           </div>
         </section>
+
+        {modo === "classico" ? (
+          <section>
+            <h2 className="font-display text-2xl font-bold text-amarelo">3. Setor</h2>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setSetorId(null)}
+                aria-pressed={setorId === null}
+                className={`min-h-14 rounded-2xl border-2 px-5 py-3 text-lg ${
+                  setorId === null ? "border-amarelo bg-amarelo/20" : "border-white/20"
+                }`}
+              >
+                Todos
+              </button>
+              {setores.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setSetorId(s.id)}
+                  aria-pressed={setorId === s.id}
+                  className={`min-h-14 rounded-2xl border-2 px-5 py-3 text-lg ${
+                    setorId === s.id ? "border-amarelo bg-amarelo/20" : "border-white/20"
+                  }`}
+                >
+                  {s.nome}
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : (
+          <section>
+            <h2 className="font-display text-2xl font-bold text-amarelo">3. Equipes</h2>
+            <p className="mt-1 text-lg text-white/60">
+              {modo === "duelo"
+                ? "Toque nos setores que estão na sala. Cada um ganha um buzzer na sua cor."
+                : "Toque nos setores na ordem em que vão jogar. Cada equipe faz a sua rodada."}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {setores.map((s) => {
+                const posicao = equipes.indexOf(s.id);
+                const marcada = posicao >= 0;
+                const cor = s.cor ?? "#0b3c5d";
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => alternarEquipe(s.id)}
+                    aria-pressed={marcada}
+                    style={marcada ? { backgroundColor: cor } : undefined}
+                    className={`min-h-14 rounded-2xl border-2 px-5 py-3 text-lg ${
+                      marcada ? `border-white/60 ${corDoTexto(cor)}` : "border-white/20"
+                    }`}
+                  >
+                    {modo === "eliminacao" && marcada && `${posicao + 1}º · `}
+                    {s.nome}
+                  </button>
+                );
+              })}
+            </div>
+            {setores.length === 0 && (
+              <p className="mt-2 text-lg text-white/60">
+                Nenhum setor cadastrado. Cadastre em Setores e Locais, no painel.
+              </p>
+            )}
+          </section>
+        )}
 
         <section>
           <h2 className="font-display text-2xl font-bold text-amarelo">4. Perguntas</h2>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {QUANTIDADES.map((q) => (
-              <button
-                key={q}
-                type="button"
-                onClick={() => setQuantidade(q)}
-                aria-pressed={quantidade === q}
-                className={`min-h-14 rounded-2xl border-2 px-6 py-3 text-lg ${
-                  quantidade === q ? "border-amarelo bg-amarelo/20" : "border-white/20"
-                }`}
-              >
-                {q}
-              </button>
-            ))}
-          </div>
+          {modo === "eliminacao" ? (
+            <p className="mt-2 text-lg text-white/60">
+              A Eliminação usa {PERGUNTAS_POR_RODADA} perguntas por equipe — {perguntasNecessarias}{" "}
+              no total, sem repetir entre as equipes.
+            </p>
+          ) : (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {QUANTIDADES.map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => setQuantidade(q)}
+                  aria-pressed={quantidade === q}
+                  className={`min-h-14 rounded-2xl border-2 px-6 py-3 text-lg ${
+                    quantidade === q ? "border-amarelo bg-amarelo/20" : "border-white/20"
+                  }`}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="mt-3 flex flex-wrap gap-2">
             {temas.map((t) => (
@@ -251,16 +381,11 @@ function SelecaoTv() {
           </button>
         </section>
 
-        {faltamPerguntas && (
-          <p className="rounded-2xl bg-laranja/20 p-5 text-xl">
-            Só {disponiveis.length} pergunta(s) no pool. Escolha menos perguntas, marque mais temas
-            ou importe mais perguntas no painel.
-          </p>
-        )}
+        {impedimento && <p className="rounded-2xl bg-laranja/20 p-5 text-xl">{impedimento}</p>}
 
         <Button
           onClick={iniciar}
-          disabled={disponiveis.length === 0}
+          disabled={impedimento !== null}
           className="min-h-20 bg-amarelo text-3xl font-extrabold text-texto hover:bg-amarelo/90"
         >
           <Play className="size-8" aria-hidden />

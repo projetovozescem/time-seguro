@@ -1714,6 +1714,149 @@ console.log("\n--- item 8: ranking e encerramento ---");
   }
 }
 // =====================================================================
+console.log("\n--- item 13: Modo TV Duelo e Eliminacao ---");
+{
+  // Dois setores: o Duelo e a Eliminacao pontuam POR EQUIPE, e o servidor
+  // recalcula acertos/erros pelo gabarito, nunca pelo que a tela mandou.
+  // O piloto pode ter um unico setor: cria um descartavel para o Duelo ter
+  // com quem disputar, e apaga no fim.
+  const NOME_DO_SETOR_DE_TESTE = `Setor de teste TIME ${Date.now()}`;
+  const [setorDescartavel] = await consultar(
+    `insert into public.setores (empresa_id, nome, cor)
+     values (${lit(empresa.id)}, ${lit(NOME_DO_SETOR_DE_TESTE)}, '#2E86C1')
+     returning id`,
+  );
+  const setores = await consultar(
+    `select id, nome from public.setores where empresa_id = ${lit(empresa.id)}
+      order by (id = ${lit(setorDescartavel.id)}), nome limit 2`,
+  );
+  const perguntas = await consultar(
+    `select id, correta from public.perguntas
+      where (empresa_id = ${lit(empresa.id)} or empresa_id is null) and status = 'ativa' limit 4`,
+  );
+  const [ativa] = await consultar(
+    `select id from public.campanhas where empresa_id = ${lit(empresa.id)} and status = 'ativa'`,
+  );
+
+  if (setores.length < 2 || perguntas.length < 4) {
+    checar(
+      false,
+      `faltou base para o teste (setores ${setores.length}, perguntas ${perguntas.length})`,
+    );
+  } else {
+    for (const modo of ["duelo", "eliminacao"]) {
+      const [evento] = await consultar(
+        `insert into public.eventos (empresa_id, campanha_id, tipo, titulo, inicio, fim, pontos)
+         values (${lit(empresa.id)}, ${lit(ativa?.id ?? null)}, 'dds', ${lit(`Teste ${modo}`)},
+                 now(), now() + interval '1 hour', 5)
+         returning id`,
+      );
+
+      // Setor A acerta as duas primeiras; setor B erra as duas ultimas.
+      const respostas = [
+        ...perguntas.slice(0, 2).map((p, i) => ({
+          setor_id: setores[0].id,
+          pergunta_id: p.id,
+          alternativa: p.correta,
+          tempo_ms: 4000,
+          ordem: i + 1,
+        })),
+        ...perguntas.slice(2, 4).map((p, i) => ({
+          setor_id: setores[1].id,
+          pergunta_id: p.id,
+          alternativa: (p.correta + 1) % 2,
+          tempo_ms: 6000,
+          ordem: i + 3,
+        })),
+      ];
+
+      const salvou = await rpc(
+        "tecnico_salvar_quiz_tv",
+        {
+          p_evento: evento.id,
+          p_modo: modo,
+          p_duracao_ms: 240000,
+          p_equipes: [
+            { setor_id: setores[0].id, pontos: 15 },
+            // Valor absurdo de proposito: o servidor tem um teto.
+            { setor_id: setores[1].id, pontos: 999999 },
+          ],
+          p_respostas: respostas,
+        },
+        jwtAdmin,
+      );
+      checar(
+        salvou.corpo?.ok === true,
+        `sessao de ${modo} salva`,
+        JSON.stringify(salvou.corpo).slice(0, 140),
+      );
+
+      const [sessao] = await consultar(
+        `select id, modo from public.quiz_tv_sessoes where evento_id = ${lit(evento.id)}`,
+      );
+      checar(sessao?.modo === modo, `a sessao guardou o modo ${modo} (veio ${sessao?.modo})`);
+
+      const equipes = await consultar(
+        `select setor_id, pontos, acertos, erros from public.quiz_tv_equipes
+          where sessao_id = ${lit(sessao.id)} order by setor_id`,
+      );
+      checar(equipes.length === 2, `${modo}: duas equipes gravadas (foram ${equipes.length})`);
+
+      const a = equipes.find((e) => e.setor_id === setores[0].id);
+      const b = equipes.find((e) => e.setor_id === setores[1].id);
+      checar(
+        a?.acertos === 2 && a?.erros === 0,
+        `${modo}: acertos recalculados pelo gabarito (${a?.acertos}/${a?.erros})`,
+      );
+      checar(
+        b?.acertos === 0 && b?.erros === 2,
+        `${modo}: erros recalculados pelo gabarito (${b?.acertos}/${b?.erros})`,
+      );
+      checar(
+        a?.pontos === 15,
+        `${modo}: os pontos da equipe vieram da partida (veio ${a?.pontos})`,
+      );
+
+      // Teto do servidor: respostas * 10 + 100 (aqui 4 * 10 + 100 = 140).
+      const teto = respostas.length * 10 + 100;
+      checar(
+        b?.pontos === teto,
+        `${modo}: pontuacao absurda limitada ao teto ${teto} (veio ${b?.pontos})`,
+      );
+
+      if (ativa) {
+        const lancamentos = await consultar(
+          `select setor_id, pontos, colaborador_id from public.pontos_lancamentos
+            where origem_id = ${lit(sessao.id)} and origem = 'quiz_tv'`,
+        );
+        checar(
+          lancamentos.length === 2,
+          `${modo}: dois lancamentos de quiz_tv (foram ${lancamentos.length})`,
+        );
+        checar(
+          lancamentos.every((l) => l.colaborador_id === null),
+          `${modo}: ponto de quiz_tv e do SETOR, nunca de uma pessoa`,
+        );
+      }
+
+      // Limpa em ordem de dependencia.
+      await consultar(`delete from public.pontos_lancamentos where origem_id = ${lit(sessao.id)}`);
+      await consultar(`delete from public.quiz_tv_respostas where sessao_id = ${lit(sessao.id)}`);
+      await consultar(`delete from public.quiz_tv_equipes where sessao_id = ${lit(sessao.id)}`);
+      await consultar(`delete from public.quiz_tv_sessoes where id = ${lit(sessao.id)}`);
+      const removido = await consultar(
+        `delete from public.eventos where id = ${lit(evento.id)} returning id`,
+      );
+      checar(removido.length === 1, `${modo}: o evento de teste foi removido no fim`);
+    }
+  }
+
+  const setorRemovido = await consultar(
+    `delete from public.setores where id = ${lit(setorDescartavel.id)} returning id`,
+  );
+  checar(setorRemovido.length === 1, "o setor de teste foi removido no fim");
+}
+// =====================================================================
 console.log(
   falhas === 0
     ? `\nFluxo: ${total} verificações passaram.`
