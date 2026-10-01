@@ -7,21 +7,21 @@
 
 Definida pelas fases do `docs/TIME_11` §1. Prazo da inscrição: **05/10/2026**.
 
-| Fase | Entrega                                     | Estado                                                             |
-| ---- | ------------------------------------------- | ------------------------------------------------------------------ |
-| —    | Instalação e configuração (`TIME_13` §1–§2) | **feita** (falta só o Superpowers)                                 |
-| 0    | Setup e limpeza do V.O.Z.E.S.               | **feita**                                                          |
-| 1    | Banco completo (6 migrations do `TIME_02`)  | **feita e aplicada** (+ a 0007 de correção)                        |
-| 2    | Auth do painel + colaboradores + PINs       | login e guard feitos; telas de colaborador não                     |
-| 3    | Perguntas + importador                      | telas feitas; falta só a leitura de PDF                            |
-| 4    | Campanha + trilha + eventos                 | **feita** (ranking e resultados ficam nas fases 9 e 10)            |
-| 5    | App do colaborador                          | entrar/PIN/termo/início/quiz feitos e exercitados por `test:fluxo` |
-| 6    | Relatos com foto + validação                | bucket e policy prontos; resto não                                 |
-| 7    | Canal de Respeito                           | RPC do banco funciona; telas não                                   |
-| 8    | Modo TV (Clássico + check-in)               | não iniciada                                                       |
-| 9    | Ranking, selos, encerramento, certificados  | não iniciada                                                       |
-| 10   | Analytics, mapa de lacunas, relatório       | não iniciada                                                       |
-| 11   | Materiais, dados de demonstração, deploy    | seed de demonstração feito; resto não                              |
+| Fase | Entrega                                     | Estado                                                                        |
+| ---- | ------------------------------------------- | ----------------------------------------------------------------------------- |
+| —    | Instalação e configuração (`TIME_13` §1–§2) | **feita** (falta só o Superpowers)                                            |
+| 0    | Setup e limpeza do V.O.Z.E.S.               | **feita**                                                                     |
+| 1    | Banco completo (6 migrations do `TIME_02`)  | **feita e aplicada** (+ a 0007 de correção)                                   |
+| 2    | Auth do painel + colaboradores + PINs       | login, guard e menu por papel; falta a tela de colaboradores                  |
+| 3    | Perguntas + importador                      | telas feitas; falta só a leitura de PDF                                       |
+| 4    | Campanha + trilha + eventos                 | **feita** (ranking e resultados ficam nas fases 9 e 10)                       |
+| 5    | App do colaborador                          | **feito**: entrar, PIN, termo, início, quiz, trilha, relatar, relatos, perfil |
+| 6    | Relatos com foto + validação                | **feita**, com Edge Function e kanban                                         |
+| 7    | Canal de Respeito                           | **feito**, com o anonimato travado por teste                                  |
+| 8    | Modo TV (Clássico + check-in)               | não iniciada                                                                  |
+| 9    | Ranking, selos, encerramento, certificados  | não iniciada                                                                  |
+| 10   | Analytics, mapa de lacunas, relatório       | não iniciada                                                                  |
+| 11   | Materiais, dados de demonstração, deploy    | seed de demonstração feito; resto não                                         |
 
 ## Feito
 
@@ -104,75 +104,40 @@ gate de RLS, de teste ou de interface pode ser cumprido.
 
 ## Em andamento
 
-Nada. Próximo é o item 3 da ordem (app do colaborador: trilha e avaliação).
+Item 7 da ordem: Modo TV Clássico e check-in (docs/TIME_06).
 
-## Feito em 01/10/2026 — item 2 (campanha, trilha e eventos)
+## Feito em 01/10/2026 — itens 3 a 6
 
-- `src/lib/campanha.ts`: catálogo das 15 chaves de `campanhas.config` com rótulo,
-  pilar e ajuda. **Um teste compara cada chave e cada padrão com o `_cfg(...)` das
-  migrations** — se alguém mudar o SQL, o teste reprova em vez de a tela mentir.
-- `src/lib/datas.ts`: formatação pt-BR sem passar data pura por `new Date(iso)`
-  (que no Brasil devolve o dia anterior), mais `diaOperacionalISO()` espelhando a
-  virada das 05h do banco.
-- `src/lib/eventos.ts`: tipos com cor e pontos padrão (DDS 5, SIPAT e Treinamento
-  15), validação que antecipa os CHECK do banco, e `montarCsv` com `;` e BOM,
-  como o TIME_09 exige.
-- `/painel/campanhas`: lista em cartões com status, período e premiação;
-  formulário com multi-seleção de temas, perguntas por dia mostrando o teto
-  diário, e o acordeão "pontos avançados" que grava só o que difere do padrão.
-- `/painel/campanhas/$id`: cinco abas. Visão geral com números, temas, pontos em
-  vigor (destacando o que foi ajustado) e os botões Ativar e Encerrar — o
-  encerramento com a confirmação e o top N do TIME_04 §4. Trilha com lições
-  ordenáveis, editor Markdown com pré-visualização, vídeo do YouTube e seleção
-  das perguntas da avaliação. Eventos, Ranking e Resultados apontam para onde o
-  assunto será construído.
-- `/painel/eventos`: lista agrupada por dia, filtro por tipo, formulário com
-  setor, pontos e campanha, e a lista de presença com exportação CSV.
-- `react-markdown` 10.1.0 instalado (75 KB): exigido pelo TIME_04 §4 e pelo
-  TIME_05 §6. Serve também à trilha do app.
-- `test:fluxo` subiu para 52 verificações, cobrindo criar campanha, recusa de
-  segunda campanha ativa, vincular tema, lição com pergunta de avaliação, evento,
-  recusa de evento com fim antes do início, e CIPA recusada em campanha e evento.
+**Item 3 — trilha e avaliação.** `/app/trilha` em caminho vertical e
+`/app/trilha/$licaoId` com Markdown, vídeo do YouTube, "Terminei de estudar" e
+avaliação corrigida pelo servidor. Navegação inferior de 5 itens.
 
-## Feito em 01/10/2026 — item 1 (telas de perguntas)
+**Item 4 — perfil, selos e extrato.** `/app/perfil` com a grade dos 10 selos, o
+extrato agrupado por dia com origem traduzida (`src/lib/pontuacao.ts`) e os
+certificados.
 
-- `usePerfil()` com papel, flag do comitê e empresa; `podeAcessar()` aplica a
-  hierarquia admin > tecnico > cipa do TIME_04 §1.
-- `PainelLayout` com o menu de 15 itens do TIME_04 §2, filtrado por papel e pela
-  flag do comitê, mais o cabeçalho com empresa, técnico e chip da campanha ativa.
-  Item cuja tela ainda não existe aparece desabilitado, não como link quebrado.
-- `/painel/perguntas`: filtros (tema, status, origem, dificuldade, busca), cartão
-  expansível com a correta destacada e a taxa de acerto de
-  `v_desempenho_pergunta`, exportar TXT no mesmo formato da importação, e
-  "Copiar para minha empresa" nas perguntas globais.
-- `PerguntaForm`: 2 a 5 alternativas, correta marcada clicando, dificuldade,
-  tema, status e explicação com aviso quando vazia.
-- `/painel/perguntas/importar`: três abas (arquivo, colar texto, banco global),
-  tema padrão do lote, revisão card a card com os avisos 🔴/🟡 do TIME_07 §6,
-  barra fixa com os contadores e insert em blocos de 100.
-- `validacao.ts`: avisos bloqueantes x de atenção, resolução de tema por slug ou
-  nome, duplicada no lote descartada e duplicada no banco desmarcada.
+**Item 5 — relatos.** `/app/relatar` com foto comprimida para JPEG 1280px via
+Edge Function, `/app/relatos`, `/app/local/$localId`, e `/painel/relatos` em
+kanban com validação, gravidade, andamento e CSV. Edge Function
+`relato-upload-url` extraída do TIME_03 §5, idêntica ao documento.
 
-## Feito em 01/10/2026 — item 0 concluído
+**Item 6 — Canal de Respeito.** `/respeito/$codigo` pública e anônima,
+`/painel/respeito` só para o comitê. O anonimato está travado por teste de
+código e por teste de fluxo.
 
-- Projeto DEV `niazcsjnxvoeeolwrcqx` ("TIME", sa-east-1) configurado. É o único
-  projeto da conta: a produção do V.O.Z.E.S. não é alcançável por este token.
-- **7 migrations aplicadas** (as 6 do TIME_02 + uma nova que fecha brecha de
-  sequence), registradas em `supabase_migrations.schema_migrations` para o CLI
-  continuar funcionando. Renomeadas para prefixo de timestamp (TIME_02 §1.3).
-- Conferência do TIME_02 §7: 7 temas globais, 10 selos, 18 funções
-  `colaborador_*`, 30 tabelas, nenhuma sem RLS.
-- `src/lib/database.types.ts` gerado (2.282 linhas). `types.ts` do V.O.Z.E.S.
-  apagado, imports repontados, contorno de tipagem do `rpc.ts` removido —
-  `rpcApp` agora só aceita nome de RPC que existe no banco.
-- Gate de RLS reescrito: 235 verificações em 11s (eram 382 em minutos) e agora
-  pega grant por coluna e por sequence, que a versão anterior não via.
-- Gate de fluxo novo (`npm run test:fluxo`): 38 verificações por HTTP real,
-  cobrindo as 6 famílias do TIME_13 §3f.
-- Bootstrap e seed de demonstração reproduzíveis por script.
-- Subárvore órfã do V.O.Z.E.S. (analytics, calendário, materiais, vozes.ts)
-  movida para `docs/legado-vozes/`; será portada nas fases 4 e 10.
-- Parser de importação TXT + CSV (item 1) com os 7 casos do TIME_07 §7.
+### Guardas de contrato que nasceram aqui
+
+- `src/lib/contratos.test.ts`: extrai as chaves do `jsonb_build_object` de cada
+  RPC nas migrations e confere com o que as telas leem. Nasceu de um bug real.
+- `src/lib/pontuacao.test.ts`: toda origem de `_lancar_pontos` tem texto.
+- `src/lib/relatos.test.ts` e `respeito.test.ts`: categorias, status e
+  gravidades conferidos contra os CHECK do schema.
+- `src/lib/respeito.test.ts`: a página pública não pode conter `rpcApp`,
+  `p_token`, `localStorage` nem analytics.
+
+### Gates ao fim do bloco
+
+lint 0 erros, tsc 0, **206 testes**, RLS 242, fluxo **137**. `verify` exit 0.
 
 ## Configuração do projeto (01/10/2026)
 
@@ -184,9 +149,13 @@ segue 200. O gate de RLS subiu para 242 verificações, agora cobrindo Storage.
 
 ## Próximo
 
-1. Item 3: app do colaborador — trilha e avaliação (TIME_05 §6).
-2. Item 4: pontuação e selos no perfil do app (TIME_08).
-3. Pendência do item 1: leitura de PDF no importador (TIME_07 §5).
+1. Item 7: Modo TV Clássico + check-in (TIME_06).
+2. Item 8: ranking e encerramento (TIME_08 §6).
+3. Item 9: analytics e MAPA DE LACUNAS (TIME_09 §1.2).
+4. Itens 10 a 12: relatório de evidência, certificados e `/verificar`,
+   materiais e deploy.
+5. Pendências menores: leitura de PDF no importador, tela de colaboradores
+   e cartões de acesso (TIME_04 §6), setores e locais (TIME_04 §7).
 
 ## Não verificado
 

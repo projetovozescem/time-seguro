@@ -40,7 +40,7 @@ const MENU = [
   { emoji: "📄", rotulo: "Relatórios", rota: null, minimo: "cipa" as const },
   { emoji: "🎓", rotulo: "Certificados", rota: null, minimo: "cipa" as const },
   { emoji: "🖼️", rotulo: "Materiais", rota: null, minimo: "tecnico" as const },
-  { emoji: "📺", rotulo: "Modo TV", rota: null, minimo: "tecnico" as const },
+  { emoji: "📺", rotulo: "Modo TV", rota: "/tv" as const, minimo: "tecnico" as const },
   { emoji: "⚙️", rotulo: "Configurações", rota: null, minimo: "admin" as const },
 ];
 

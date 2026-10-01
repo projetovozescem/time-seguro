@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, Download, Loader2, Monitor, Pencil, Plus, Tv, Users } from "lucide-react";
@@ -433,23 +433,17 @@ function Eventos() {
                     </Button>
                     {podeEditar && (
                       <>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          disabled
-                          title="A tela do Modo TV entra na próxima etapa."
-                        >
-                          <Tv className="size-4" aria-hidden />
-                          Check-in na TV
+                        <Button size="sm" variant="ghost" asChild>
+                          <Link to="/tv/checkin/$eventoId" params={{ eventoId: e.id }}>
+                            <Tv className="size-4" aria-hidden />
+                            Check-in na TV
+                          </Link>
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          disabled
-                          title="A tela do Modo TV entra na próxima etapa."
-                        >
-                          <Monitor className="size-4" aria-hidden />
-                          Quiz na TV
+                        <Button size="sm" variant="ghost" asChild>
+                          <Link to="/tv" search={{ evento: e.id }}>
+                            <Monitor className="size-4" aria-hidden />
+                            Quiz na TV
+                          </Link>
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => setEditando(e)}>
                           <Pencil className="size-4" aria-hidden />

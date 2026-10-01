@@ -1338,6 +1338,189 @@ console.log("\n--- item 6: Canal de Respeito (anonimato) ---");
   checar(removida.length === 1, "a denuncia de teste foi removida no fim");
 }
 // =====================================================================
+console.log("\n--- item 7: check-in e Modo TV ---");
+{
+  const [ativa] = await consultar(
+    `select id from public.campanhas
+      where empresa_id = ${lit(empresa.id)} and status = 'ativa' limit 1`,
+  );
+  const [setor] = await consultar(
+    `select id from public.setores where empresa_id = ${lit(empresa.id)} limit 1`,
+  );
+
+  if (!ativa) {
+    console.log("  --   sem campanha ativa; Modo TV nao exercitado");
+  } else {
+    // Evento de DDS acontecendo AGORA, para o check-in estar na janela.
+    const [evento] = await consultar(`
+      insert into public.eventos
+        (empresa_id, campanha_id, tipo, titulo, inicio, fim, pontos, setor_id)
+      values (${lit(empresa.id)}, ${lit(ativa.id)}, 'dds',
+              ${lit(`DDS de fluxo ${selo}`)},
+              now() - interval '5 minutes', now() + interval '25 minutes',
+              5, ${lit(setor.id)})
+      returning id
+    `);
+
+    // 1. Rotacionar codigo: so o tecnico.
+    const comoCipa = await rpc("tecnico_rotacionar_codigo", { p_evento: evento.id }, jwtCipa);
+    checar(
+      comoCipa.status >= 400 ||
+        comoCipa.corpo?.ok === false ||
+        String(comoCipa.corpo?.message ?? "").includes("acesso_negado"),
+      `cipa recusada ao rotacionar codigo (http ${comoCipa.status})`,
+    );
+
+    const girou = await rpc("tecnico_rotacionar_codigo", { p_evento: evento.id }, jwtAdmin);
+    checar(
+      girou.corpo?.ok === true,
+      "tecnico rotaciona o codigo",
+      JSON.stringify(girou.corpo).slice(0, 120),
+    );
+    const codigo = girou.corpo?.codigo;
+    checar(typeof codigo === "string" && codigo.length >= 4, `codigo gerado (${codigo})`);
+
+    // 2. Codigo errado e recusado.
+    const relogin = await rpc("colaborador_login", {
+      p_empresa_codigo: empresa.codigo,
+      p_matricula: fluxo.matricula,
+      p_pin: novoPin,
+    });
+    const tk2 = relogin.corpo?.token;
+
+    const errado = await rpc("colaborador_checkin", {
+      p_token: tk2,
+      p_evento: evento.id,
+      p_codigo: "ZZZZZZ",
+    });
+    checar(
+      errado.corpo?.motivo === "codigo_expirado",
+      `codigo errado recusado (veio ${errado.corpo?.motivo})`,
+    );
+
+    // 3. Check-in valido pontua o que o evento manda.
+    const fez = await rpc("colaborador_checkin", {
+      p_token: tk2,
+      p_evento: evento.id,
+      p_codigo: codigo,
+    });
+    checar(fez.corpo?.ok === true, "check-in aceito", JSON.stringify(fez.corpo).slice(0, 140));
+    checar(fez.corpo?.pontos === 5, `check-in de DDS vale 5 (veio ${fez.corpo?.pontos})`);
+
+    const origem = await consultar(
+      `select origem from public.pontos_lancamentos
+        where colaborador_id = ${lit(fluxo.id)} and origem_id = ${lit(evento.id)}`,
+    );
+    checar(
+      origem.some((o) => o.origem === "checkin"),
+      `lancou checkin (${origem.map((o) => o.origem).join()})`,
+    );
+
+    // 4. Check-in duas vezes no mesmo evento e recusado.
+    const deNovo = await rpc("colaborador_checkin", {
+      p_token: tk2,
+      p_evento: evento.id,
+      p_codigo: codigo,
+    });
+    checar(
+      deNovo.corpo?.motivo === "ja_fez_checkin",
+      `segundo check-in recusado (veio ${deNovo.corpo?.motivo})`,
+    );
+
+    const quantos = await consultar(
+      `select count(*)::int as n from public.checkins where evento_id = ${lit(evento.id)}`,
+    );
+    checar(quantos[0].n === 1, `so um check-in gravado (foram ${quantos[0].n})`);
+
+    // 5. Salvar a sessao do Modo TV: pontos vao para o SETOR.
+    const perguntas = await consultar(
+      `select id, correta from public.perguntas
+        where empresa_id = ${lit(empresa.id)} and status = 'ativa' limit 3`,
+    );
+
+    const salvou = await rpc(
+      "tecnico_salvar_quiz_tv",
+      {
+        p_evento: evento.id,
+        p_modo: "classico",
+        p_duracao_ms: 180000,
+        p_equipes: [{ setor_id: setor.id, pontos: 20 }],
+        p_respostas: perguntas.map((p, i) => ({
+          setor_id: setor.id,
+          pergunta_id: p.id,
+          alternativa: i === 0 ? p.correta : (p.correta + 1) % 2,
+          tempo_ms: 5000,
+          ordem: i + 1,
+        })),
+      },
+      jwtAdmin,
+    );
+    checar(
+      salvou.corpo?.ok === true,
+      "sessao do Modo TV salva",
+      JSON.stringify(salvou.corpo).slice(0, 140),
+    );
+
+    const [depoisDeSalvar] = await consultar(
+      `select status from public.eventos where id = ${lit(evento.id)}`,
+    );
+    checar(
+      depoisDeSalvar.status === "realizado",
+      `o evento vira realizado (veio ${depoisDeSalvar.status})`,
+    );
+
+    // 6. Modo invalido e recusado.
+    const modo = await rpc(
+      "tecnico_salvar_quiz_tv",
+      {
+        p_evento: evento.id,
+        p_modo: "inventado",
+        p_duracao_ms: 1000,
+        p_equipes: [],
+        p_respostas: [],
+      },
+      jwtAdmin,
+    );
+    checar(
+      modo.corpo?.motivo === "modo_invalido" || modo.corpo?.motivo === "evento_ja_tem_sessao",
+      `modo invalido recusado (veio ${modo.corpo?.motivo})`,
+    );
+
+    // 7. Dois quizzes no mesmo evento: recusado.
+    const segunda = await rpc(
+      "tecnico_salvar_quiz_tv",
+      {
+        p_evento: evento.id,
+        p_modo: "classico",
+        p_duracao_ms: 1000,
+        p_equipes: [{ setor_id: setor.id, pontos: 10 }],
+        p_respostas: [],
+      },
+      jwtAdmin,
+    );
+    checar(
+      segunda.corpo?.motivo === "evento_ja_tem_sessao",
+      `segunda sessao recusada (veio ${segunda.corpo?.motivo})`,
+    );
+
+    // 8. Limpa, em ordem de dependencia.
+    const [sessao] = await consultar(
+      `select id from public.quiz_tv_sessoes where evento_id = ${lit(evento.id)}`,
+    );
+    if (sessao) {
+      await consultar(`delete from public.quiz_tv_respostas where sessao_id = ${lit(sessao.id)}`);
+      await consultar(`delete from public.quiz_tv_equipes where sessao_id = ${lit(sessao.id)}`);
+      await consultar(`delete from public.quiz_tv_sessoes where id = ${lit(sessao.id)}`);
+    }
+    await consultar(`delete from public.pontos_lancamentos where origem_id = ${lit(evento.id)}`);
+    await consultar(`delete from public.checkins where evento_id = ${lit(evento.id)}`);
+    const removido = await consultar(
+      `delete from public.eventos where id = ${lit(evento.id)} returning id`,
+    );
+    checar(removido.length === 1, "o evento de teste foi removido no fim");
+  }
+}
+// =====================================================================
 console.log(
   falhas === 0
     ? `\nFluxo: ${total} verificações passaram.`

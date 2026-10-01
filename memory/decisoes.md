@@ -174,3 +174,17 @@ qualquer nome de campo, então não é contrato nenhum.
 `AlunoLayout`. As telas de entrada (login, novo PIN, termo) ficam sem ela: antes
 de resolver a pendência nada mais funciona, e oferecer atalho só levaria a erro.
 Item sem rota aparece desabilitado.
+
+## 2026-10-01 — Parâmetro opcional de RPC é OMITIDO, não `undefined`
+
+Com `exactOptionalPropertyTypes` no tsconfig, passar `p_comentario: undefined`
+não compila. O padrão do projeto passou a ser espalhar condicionalmente:
+`...(x ? { p_x: x } : {})`. As RPCs têm DEFAULT NULL, então omitir é o correto.
+
+## 2026-10-01 — O teste de anonimato olha o código sem comentários
+
+`respeito.test.ts` afirma que a página pública NÃO contém `rpcApp`, `p_token`,
+`localStorage`. Os comentários do arquivo descrevem exatamente isso, então a
+primeira versão reprovou pela própria documentação. O teste passou a remover
+comentários antes das asserções de ausência, e a usar a fonte completa nas
+asserções de presença.

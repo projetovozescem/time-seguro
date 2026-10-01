@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtegidoRouteImport } from './routes/_protegido'
+import { Route as AppCheckinRouteImport } from './routes/app.checkin'
 import { Route as AppEntrarRouteImport } from './routes/app.entrar'
 import { Route as AppInicioRouteImport } from './routes/app.inicio'
 import { Route as AppNovoPinRouteImport } from './routes/app.novo-pin'
@@ -25,6 +26,8 @@ import { Route as ProtegidoPainelIndexRouteImport } from './routes/_protegido.pa
 import { Route as ProtegidoPainelEventosRouteImport } from './routes/_protegido.painel.eventos'
 import { Route as ProtegidoPainelRelatosRouteImport } from './routes/_protegido.painel.relatos'
 import { Route as ProtegidoPainelRespeitoRouteImport } from './routes/_protegido.painel.respeito'
+import { Route as ProtegidoTvIndexRouteImport } from './routes/_protegido.tv.index'
+import { Route as ProtegidoTvJogoRouteImport } from './routes/_protegido.tv.jogo'
 import { Route as AppLocalLocalIdRouteImport } from './routes/app.local.$localId'
 import { Route as AppTrilhaIndexRouteImport } from './routes/app.trilha.index'
 import { Route as AppTrilhaLicaoIdRouteImport } from './routes/app.trilha.$licaoId'
@@ -32,6 +35,7 @@ import { Route as ProtegidoPainelCampanhasIndexRouteImport } from './routes/_pro
 import { Route as ProtegidoPainelCampanhasIdRouteImport } from './routes/_protegido.painel.campanhas.$id'
 import { Route as ProtegidoPainelPerguntasIndexRouteImport } from './routes/_protegido.painel.perguntas.index'
 import { Route as ProtegidoPainelPerguntasImportarRouteImport } from './routes/_protegido.painel.perguntas.importar'
+import { Route as ProtegidoTvCheckinEventoIdRouteImport } from './routes/_protegido.tv.checkin.$eventoId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +44,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const ProtegidoRoute = ProtegidoRouteImport.update({
   id: '/_protegido',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppCheckinRoute = AppCheckinRouteImport.update({
+  id: '/app/checkin',
+  path: '/app/checkin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppEntrarRoute = AppEntrarRouteImport.update({
@@ -112,6 +121,16 @@ const ProtegidoPainelRespeitoRoute = ProtegidoPainelRespeitoRouteImport.update({
   path: '/painel/respeito',
   getParentRoute: () => ProtegidoRoute,
 } as any)
+const ProtegidoTvIndexRoute = ProtegidoTvIndexRouteImport.update({
+  id: '/tv/',
+  path: '/tv/',
+  getParentRoute: () => ProtegidoRoute,
+} as any)
+const ProtegidoTvJogoRoute = ProtegidoTvJogoRouteImport.update({
+  id: '/tv/jogo',
+  path: '/tv/jogo',
+  getParentRoute: () => ProtegidoRoute,
+} as any)
 const AppLocalLocalIdRoute = AppLocalLocalIdRouteImport.update({
   id: '/app/local/$localId',
   path: '/app/local/$localId',
@@ -151,9 +170,16 @@ const ProtegidoPainelPerguntasImportarRoute =
     path: '/painel/perguntas/importar',
     getParentRoute: () => ProtegidoRoute,
   } as any)
+const ProtegidoTvCheckinEventoIdRoute =
+  ProtegidoTvCheckinEventoIdRouteImport.update({
+    id: '/tv/checkin/$eventoId',
+    path: '/tv/checkin/$eventoId',
+    getParentRoute: () => ProtegidoRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app/checkin': typeof AppCheckinRoute
   '/app/entrar': typeof AppEntrarRoute
   '/app/inicio': typeof AppInicioRoute
   '/app/novo-pin': typeof AppNovoPinRoute
@@ -167,17 +193,21 @@ export interface FileRoutesByFullPath {
   '/painel/eventos': typeof ProtegidoPainelEventosRoute
   '/painel/relatos': typeof ProtegidoPainelRelatosRoute
   '/painel/respeito': typeof ProtegidoPainelRespeitoRoute
+  '/tv/jogo': typeof ProtegidoTvJogoRoute
   '/app/local/$localId': typeof AppLocalLocalIdRoute
   '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
   '/painel/': typeof ProtegidoPainelIndexRoute
+  '/tv/': typeof ProtegidoTvIndexRoute
   '/app/trilha/': typeof AppTrilhaIndexRoute
   '/painel/campanhas/$id': typeof ProtegidoPainelCampanhasIdRoute
   '/painel/perguntas/importar': typeof ProtegidoPainelPerguntasImportarRoute
+  '/tv/checkin/$eventoId': typeof ProtegidoTvCheckinEventoIdRoute
   '/painel/campanhas/': typeof ProtegidoPainelCampanhasIndexRoute
   '/painel/perguntas/': typeof ProtegidoPainelPerguntasIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app/checkin': typeof AppCheckinRoute
   '/app/entrar': typeof AppEntrarRoute
   '/app/inicio': typeof AppInicioRoute
   '/app/novo-pin': typeof AppNovoPinRoute
@@ -191,12 +221,15 @@ export interface FileRoutesByTo {
   '/painel/eventos': typeof ProtegidoPainelEventosRoute
   '/painel/relatos': typeof ProtegidoPainelRelatosRoute
   '/painel/respeito': typeof ProtegidoPainelRespeitoRoute
+  '/tv/jogo': typeof ProtegidoTvJogoRoute
   '/app/local/$localId': typeof AppLocalLocalIdRoute
   '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
   '/painel': typeof ProtegidoPainelIndexRoute
+  '/tv': typeof ProtegidoTvIndexRoute
   '/app/trilha': typeof AppTrilhaIndexRoute
   '/painel/campanhas/$id': typeof ProtegidoPainelCampanhasIdRoute
   '/painel/perguntas/importar': typeof ProtegidoPainelPerguntasImportarRoute
+  '/tv/checkin/$eventoId': typeof ProtegidoTvCheckinEventoIdRoute
   '/painel/campanhas': typeof ProtegidoPainelCampanhasIndexRoute
   '/painel/perguntas': typeof ProtegidoPainelPerguntasIndexRoute
 }
@@ -204,6 +237,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_protegido': typeof ProtegidoRouteWithChildren
+  '/app/checkin': typeof AppCheckinRoute
   '/app/entrar': typeof AppEntrarRoute
   '/app/inicio': typeof AppInicioRoute
   '/app/novo-pin': typeof AppNovoPinRoute
@@ -217,12 +251,15 @@ export interface FileRoutesById {
   '/_protegido/painel/eventos': typeof ProtegidoPainelEventosRoute
   '/_protegido/painel/relatos': typeof ProtegidoPainelRelatosRoute
   '/_protegido/painel/respeito': typeof ProtegidoPainelRespeitoRoute
+  '/_protegido/tv/jogo': typeof ProtegidoTvJogoRoute
   '/app/local/$localId': typeof AppLocalLocalIdRoute
   '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
   '/_protegido/painel/': typeof ProtegidoPainelIndexRoute
+  '/_protegido/tv/': typeof ProtegidoTvIndexRoute
   '/app/trilha/': typeof AppTrilhaIndexRoute
   '/_protegido/painel/campanhas/$id': typeof ProtegidoPainelCampanhasIdRoute
   '/_protegido/painel/perguntas/importar': typeof ProtegidoPainelPerguntasImportarRoute
+  '/_protegido/tv/checkin/$eventoId': typeof ProtegidoTvCheckinEventoIdRoute
   '/_protegido/painel/campanhas/': typeof ProtegidoPainelCampanhasIndexRoute
   '/_protegido/painel/perguntas/': typeof ProtegidoPainelPerguntasIndexRoute
 }
@@ -230,6 +267,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/app/checkin'
     | '/app/entrar'
     | '/app/inicio'
     | '/app/novo-pin'
@@ -243,17 +281,21 @@ export interface FileRouteTypes {
     | '/painel/eventos'
     | '/painel/relatos'
     | '/painel/respeito'
+    | '/tv/jogo'
     | '/app/local/$localId'
     | '/app/trilha/$licaoId'
     | '/painel/'
+    | '/tv/'
     | '/app/trilha/'
     | '/painel/campanhas/$id'
     | '/painel/perguntas/importar'
+    | '/tv/checkin/$eventoId'
     | '/painel/campanhas/'
     | '/painel/perguntas/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/app/checkin'
     | '/app/entrar'
     | '/app/inicio'
     | '/app/novo-pin'
@@ -267,18 +309,22 @@ export interface FileRouteTypes {
     | '/painel/eventos'
     | '/painel/relatos'
     | '/painel/respeito'
+    | '/tv/jogo'
     | '/app/local/$localId'
     | '/app/trilha/$licaoId'
     | '/painel'
+    | '/tv'
     | '/app/trilha'
     | '/painel/campanhas/$id'
     | '/painel/perguntas/importar'
+    | '/tv/checkin/$eventoId'
     | '/painel/campanhas'
     | '/painel/perguntas'
   id:
     | '__root__'
     | '/'
     | '/_protegido'
+    | '/app/checkin'
     | '/app/entrar'
     | '/app/inicio'
     | '/app/novo-pin'
@@ -292,12 +338,15 @@ export interface FileRouteTypes {
     | '/_protegido/painel/eventos'
     | '/_protegido/painel/relatos'
     | '/_protegido/painel/respeito'
+    | '/_protegido/tv/jogo'
     | '/app/local/$localId'
     | '/app/trilha/$licaoId'
     | '/_protegido/painel/'
+    | '/_protegido/tv/'
     | '/app/trilha/'
     | '/_protegido/painel/campanhas/$id'
     | '/_protegido/painel/perguntas/importar'
+    | '/_protegido/tv/checkin/$eventoId'
     | '/_protegido/painel/campanhas/'
     | '/_protegido/painel/perguntas/'
   fileRoutesById: FileRoutesById
@@ -305,6 +354,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProtegidoRoute: typeof ProtegidoRouteWithChildren
+  AppCheckinRoute: typeof AppCheckinRoute
   AppEntrarRoute: typeof AppEntrarRoute
   AppInicioRoute: typeof AppInicioRoute
   AppNovoPinRoute: typeof AppNovoPinRoute
@@ -334,6 +384,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof ProtegidoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/checkin': {
+      id: '/app/checkin'
+      path: '/app/checkin'
+      fullPath: '/app/checkin'
+      preLoaderRoute: typeof AppCheckinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/entrar': {
@@ -434,6 +491,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtegidoPainelRespeitoRouteImport
       parentRoute: typeof ProtegidoRoute
     }
+    '/_protegido/tv/': {
+      id: '/_protegido/tv/'
+      path: '/tv'
+      fullPath: '/tv/'
+      preLoaderRoute: typeof ProtegidoTvIndexRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
+    '/_protegido/tv/jogo': {
+      id: '/_protegido/tv/jogo'
+      path: '/tv/jogo'
+      fullPath: '/tv/jogo'
+      preLoaderRoute: typeof ProtegidoTvJogoRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
     '/app/local/$localId': {
       id: '/app/local/$localId'
       path: '/app/local/$localId'
@@ -483,6 +554,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtegidoPainelPerguntasImportarRouteImport
       parentRoute: typeof ProtegidoRoute
     }
+    '/_protegido/tv/checkin/$eventoId': {
+      id: '/_protegido/tv/checkin/$eventoId'
+      path: '/tv/checkin/$eventoId'
+      fullPath: '/tv/checkin/$eventoId'
+      preLoaderRoute: typeof ProtegidoTvCheckinEventoIdRouteImport
+      parentRoute: typeof ProtegidoRoute
+    }
   }
 }
 
@@ -490,9 +568,12 @@ interface ProtegidoRouteChildren {
   ProtegidoPainelEventosRoute: typeof ProtegidoPainelEventosRoute
   ProtegidoPainelRelatosRoute: typeof ProtegidoPainelRelatosRoute
   ProtegidoPainelRespeitoRoute: typeof ProtegidoPainelRespeitoRoute
+  ProtegidoTvJogoRoute: typeof ProtegidoTvJogoRoute
   ProtegidoPainelIndexRoute: typeof ProtegidoPainelIndexRoute
+  ProtegidoTvIndexRoute: typeof ProtegidoTvIndexRoute
   ProtegidoPainelCampanhasIdRoute: typeof ProtegidoPainelCampanhasIdRoute
   ProtegidoPainelPerguntasImportarRoute: typeof ProtegidoPainelPerguntasImportarRoute
+  ProtegidoTvCheckinEventoIdRoute: typeof ProtegidoTvCheckinEventoIdRoute
   ProtegidoPainelCampanhasIndexRoute: typeof ProtegidoPainelCampanhasIndexRoute
   ProtegidoPainelPerguntasIndexRoute: typeof ProtegidoPainelPerguntasIndexRoute
 }
@@ -501,9 +582,12 @@ const ProtegidoRouteChildren: ProtegidoRouteChildren = {
   ProtegidoPainelEventosRoute: ProtegidoPainelEventosRoute,
   ProtegidoPainelRelatosRoute: ProtegidoPainelRelatosRoute,
   ProtegidoPainelRespeitoRoute: ProtegidoPainelRespeitoRoute,
+  ProtegidoTvJogoRoute: ProtegidoTvJogoRoute,
   ProtegidoPainelIndexRoute: ProtegidoPainelIndexRoute,
+  ProtegidoTvIndexRoute: ProtegidoTvIndexRoute,
   ProtegidoPainelCampanhasIdRoute: ProtegidoPainelCampanhasIdRoute,
   ProtegidoPainelPerguntasImportarRoute: ProtegidoPainelPerguntasImportarRoute,
+  ProtegidoTvCheckinEventoIdRoute: ProtegidoTvCheckinEventoIdRoute,
   ProtegidoPainelCampanhasIndexRoute: ProtegidoPainelCampanhasIndexRoute,
   ProtegidoPainelPerguntasIndexRoute: ProtegidoPainelPerguntasIndexRoute,
 }
@@ -515,6 +599,7 @@ const ProtegidoRouteWithChildren = ProtegidoRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtegidoRoute: ProtegidoRouteWithChildren,
+  AppCheckinRoute: AppCheckinRoute,
   AppEntrarRoute: AppEntrarRoute,
   AppInicioRoute: AppInicioRoute,
   AppNovoPinRoute: AppNovoPinRoute,
