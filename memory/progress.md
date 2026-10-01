@@ -154,7 +154,8 @@ segue 200. O gate de RLS subiu para 242 verificações, agora cobrindo Storage.
 3. Item 9: analytics e MAPA DE LACUNAS (TIME_09 §1.2).
 4. Itens 10 a 12: relatório de evidência, certificados e `/verificar`,
    materiais e deploy.
-5. Pendências menores: leitura de PDF no importador (`pdfjs-dist`).
+5. Pendências: ligar a leitura de PDF (falta autorizar `pdfjs-dist`) e o
+   **deploy**, que precisa da sua decisão de hospedagem.
 
 ## Telas do painel: nenhuma falta (01/10/2026)
 
@@ -212,3 +213,53 @@ verificação que falta.
 - GitHub: remoto `projetovozescem/time-seguro` conectado, `main` publicada
   em 01/10/2026. `.env` e `.mcp.json` ficaram fora.
 - Cadastro público do Supabase Auth: desativado por `npm run db:configurar`.
+
+
+## Dados de demonstração e checklist de segurança (01/10/2026)
+
+`node scripts/seed-demo.mjs` cria a **Empresa Demonstração** (código `demo`) do
+zero, em três partes: `seed-demo.sql` (4 setores, 8 locais, 30 colaboradores
+fictícios, campanha ativa de 3 semanas, lição publicada, 14 relatos, 5 eventos,
+95 check-ins, 2 denúncias), as 36 perguntas do `docs/TIME_12` pelo mesmo parser
+do app, e `seed-demo-respostas.sql` (810 respostas, 270 dias de atividade,
+~7.000 pontos). Rodar de novo apaga a empresa `demo` e recria — e não toca em
+nenhuma outra empresa (conferido: o piloto ficou intacto).
+
+O desenho é proposital: **Produção** acerta pouco em NR-12 (36–50%) e
+**Expedição** acerta bem (~74–83%), para o print do mapa de lacunas dizer
+alguma coisa. Pontuação só por `_lancar_pontos`, com o mesmo `origem_id` das
+RPCs reais — o índice `pl_unico_colab` não tem `dia`, então quiz usa o id da
+resposta e presença usa `md5(colaborador || dia)`.
+
+`scripts/_bundle.mjs` nasceu aqui: o `seed-dev.mjs` importava `esbuild`, que
+**não existe mais** no projeto (o Vite 7 traz `rolldown`). Os dois seeds agora
+passam pelo helper, que tenta rolldown e depois esbuild e, falhando os dois, diz
+o que instalar.
+
+Checklist do `docs/TIME_03` §8 revisado:
+
+| Item                                        | Prova                                        |
+| ------------------------------------------- | -------------------------------------------- |
+| Cadastro público desativado                 | `npm run db:configurar` (ok)                  |
+| `anon` sem `select` em tabela nenhuma       | `npm run test:rls` (249)                      |
+| Gabarito ausente antes de responder         | `contratos.test.ts` + `test:fluxo`            |
+| `/respeito` sem token                       | `respeito.test.ts`                            |
+| Bucket `relatos-fotos` privado              | `npm run db:configurar` (ok)                  |
+| Service role só no servidor                 | `seguranca.test.ts` (novo)                    |
+| Só `VITE_SUPABASE_URL` e `_ANON_KEY` no front | `seguranca.test.ts` (novo)                  |
+
+Conferido também no build: `.output/public` tem a chave publishable (é pública
+por natureza) e **não** tem o `SUPABASE_ACCESS_TOKEN`, a chave `sb_secret_` nem
+a senha do admin.
+
+## Leitura de PDF: parser pronto, extração pendente
+
+`src/lib/importacao/pdf.ts` é o `pdfQuestions.js` do Max Games portado e tipado,
+com 28 testes (os do legado mais os do T.I.M.E.): reconhece "Questão N", "1.",
+"Q12", alternativas A–E em várias pontuações, gabarito no fim do documento,
+negrito por fonte minoritária e marcadores `**`, `(correta)`, `✔`. Remove
+cabeçalho e rodapé repetidos.
+
+Falta só a camada que extrai o texto do arquivo, que precisa do `pdfjs-dist` —
+**dependência grande, e o `AGENTS.md` exige confirmação antes de instalar**. A
+tela diz que PDF ainda não é lido nesta versão.

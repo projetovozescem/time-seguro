@@ -72,7 +72,10 @@ function Importar() {
     }
     const nome = arquivo.name.toLowerCase();
     if (nome.endsWith(".pdf")) {
-      toast.error("Leitura de PDF ainda não está pronta. Use TXT ou CSV, ou cole o texto.");
+      // O reconhecimento das perguntas em PDF esta pronto e testado em
+      // `src/lib/importacao/pdf.ts`; falta a biblioteca que extrai o texto do
+      // arquivo (`pdfjs-dist`), que depende de autorizacao para instalar.
+      toast.error("Leitura de PDF ainda nao esta ligada. Use TXT ou CSV, ou cole o texto.");
       return;
     }
     const conteudo = await arquivo.text();
@@ -449,7 +452,7 @@ function Importar() {
             Baixar modelo CSV
           </button>
           <p className="mt-2 text-xs text-texto-suave">
-            PDF ainda não é lido: cole o texto na outra aba.
+            PDF ainda não é lido nesta versão: cole o texto na outra aba.
           </p>
         </div>
       )}

@@ -9,6 +9,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { consultar, raiz } from "./_db.mjs";
+import { importarTs } from "./_bundle.mjs";
 
 /** Quantas perguntas por tema entram no seed (docs/TIME_13 §3b: 2 por tema). */
 const POR_TEMA = Number(process.env.SEED_POR_TEMA ?? 2);
@@ -22,26 +23,8 @@ const arrayLit = (xs) => "array[" + xs.map(lit).join(", ") + "]::text[]";
 // ---------------------------------------------------------------------
 // 1. Lê o banco de perguntas do documento com o parser do projeto
 // ---------------------------------------------------------------------
-/**
- * Usa o MESMO parser do app, em vez de duplicar a lógica aqui. O Node faz o
- * type-stripping de .ts, mas não resolve import sem extensão — então o bundle
- * passa pelo esbuild (já vem com o Vite) para um arquivo temporário.
- */
-const { lerTxt } = await (async () => {
-  const { build } = await import("esbuild");
-  const { tmpdir } = await import("node:os");
-  const { mkdtempSync } = await import("node:fs");
-  const destino = resolve(mkdtempSync(resolve(tmpdir(), "time-seed-")), "txt.mjs");
-  await build({
-    entryPoints: [resolve(raiz, "src/lib/importacao/txt.ts")],
-    outfile: destino,
-    bundle: true,
-    format: "esm",
-    platform: "node",
-    logLevel: "silent",
-  });
-  return import(`file://${destino}`);
-})();
+// Usa o MESMO parser do app, em vez de duplicar a logica aqui.
+const { lerTxt } = await importarTs(resolve(raiz, "src/lib/importacao/txt.ts"));
 
 const doc = readFileSync(resolve(raiz, "docs/TIME_12_BANCO_DE_PERGUNTAS.md"), "utf8");
 const bloco = /```\n([\s\S]*?)\n```/.exec(doc)?.[1];
