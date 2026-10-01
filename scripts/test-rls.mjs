@@ -2,13 +2,19 @@
 //
 // Confere, no projeto de DESENVOLVIMENTO, que o modelo de acesso de
 // docs/TIME_03 §4/§8 e da migration 0005_time_rls_grants continua de pé:
-//   • anon não lê nem escreve tabela nenhuma — só executa as RPCs públicas;
+//   • anon não tem privilégio NENHUM em objeto de public — nem tabela, nem
+//     view, nem sequence, nem grant por coluna. Só EXECUTE nas RPCs;
 //   • o hash do PIN e a senha da denúncia são ilegíveis pelo painel;
 //   • toda função de escrita é SECURITY DEFINER com search_path fixo;
-//   • as views aplicam o RLS (security_invoker).
+//   • as views aplicam o RLS (security_invoker);
+//   • a pontuação é idempotente por índice único.
 //
-// Só leitura de catálogo: não escreve nem apaga nada.
-import { conectar } from "./_db.mjs";
+// Lê o catálogo do Postgres em 7 consultas e afirma em JavaScript. A versão
+// anterior fazia uma chamada HTTP por verificação (382 no total) e levava
+// minutos — um gate que ninguém espera rodar não protege nada.
+//
+// Só leitura: não escreve nem apaga nada.
+import { consultar } from "./_db.mjs";
 
 /** As 30 tabelas que a 0005 §1 obriga a ter RLS. */
 const TABELAS = [
@@ -86,6 +92,9 @@ const RPCS_SO_PAINEL = [
   "public.comite_responder_denuncia(uuid, text, text)",
 ];
 
+/** Só a Edge Function (service_role) autoriza upload de foto de relato. */
+const RPCS_SO_SERVICE_ROLE = ["public._relato_caminho_foto(text, uuid)"];
+
 /** Colunas que o painel pode ler em `colaboradores` (0005 §5). */
 const COLUNAS_COLABORADOR_LEGIVEIS = [
   "id",
@@ -104,7 +113,23 @@ const COLUNAS_COLABORADOR_LEGIVEIS = [
   "criado_em",
 ];
 
+/** Segredos que nem `anon` nem `authenticated` podem ler. */
+const COLUNAS_SECRETAS = [
+  ["colaboradores", "pin_hash"],
+  ["denuncias_assedio", "senha_hash"],
+];
+
 const VIEWS = ["v_ranking_individual", "v_ranking_setor", "v_lacunas", "v_desempenho_pergunta"];
+
+/** Funções de escrita: precisam ser SECURITY DEFINER com search_path fixo. */
+const PREFIXOS_DE_ESCRITA = ["colaborador\\_%", "tecnico\\_%", "comite\\_%"];
+const FUNCOES_DE_ESCRITA_EXTRA = [
+  "registrar_denuncia_assedio",
+  "consultar_denuncia",
+  "responder_denuncia_denunciante",
+  "_lancar_pontos",
+  "_relato_caminho_foto",
+];
 
 const falhas = [];
 let total = 0;
@@ -114,19 +139,26 @@ function afirmar(condicao, descricao) {
   if (!condicao) falhas.push(descricao);
 }
 
-const sql = await conectar();
+/** Literal SQL seguro para montar as consultas de catálogo. */
+function lit(v) {
+  return "'" + String(v).replace(/'/g, "''") + "'";
+}
+
+function lista(valores) {
+  return valores.map(lit).join(", ");
+}
 
 try {
   // ------------------------------------------------------------------
-  // 1. Todas as 30 tabelas existem e têm RLS habilitada
+  // 1. RLS ligada em todas as tabelas de public
   // ------------------------------------------------------------------
-  const rls = await sql`
-    SELECT c.relname AS tabela, c.relrowsecurity AS ligada
-      FROM pg_class c
-      JOIN pg_namespace n ON n.oid = c.relnamespace
-     WHERE n.nspname = 'public' AND c.relkind = 'r' AND c.relname = ANY(${TABELAS})
-  `;
+  const rls = await consultar(`
+    select c.relname as tabela, c.relrowsecurity as ligada
+      from pg_class c join pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relkind in ('r','p')
+  `);
   const porTabela = new Map(rls.map((r) => [r.tabela, r.ligada]));
+
   for (const t of TABELAS) {
     if (!porTabela.has(t)) {
       afirmar(false, `tabela public.${t} não existe`);
@@ -134,188 +166,178 @@ try {
     }
     afirmar(porTabela.get(t) === true, `RLS desligada em public.${t}`);
   }
-
-  // ------------------------------------------------------------------
-  // 2. anon não toca tabela nenhuma de public — nem as criadas depois
-  //    (docs/TIME_03 §4: "anon: zero acesso a tabelas")
-  // ------------------------------------------------------------------
-  const tabelasReais = (
-    await sql`
-      SELECT c.relname AS tabela
-        FROM pg_class c
-        JOIN pg_namespace n ON n.oid = c.relnamespace
-       WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p')
-    `
-  ).map((r) => r.tabela);
-
-  afirmar(tabelasReais.length > 0, "nenhuma tabela encontrada em public — schema aplicado?");
-
-  for (const t of tabelasReais) {
-    for (const acao of ["SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES"]) {
-      const [{ tem }] = await sql`
-        SELECT has_table_privilege('anon', ${"public." + t}, ${acao}) AS tem
-      `;
-      afirmar(tem === false, `anon tem ${acao} em public.${t}`);
-    }
-  }
-
-  // anon também não lê as views
-  for (const v of VIEWS) {
-    const [{ tem }] = await sql`
-      SELECT has_table_privilege('anon', ${"public." + v}, 'SELECT') AS tem
-    `;
-    afirmar(tem === false, `anon tem SELECT na view public.${v}`);
+  // Pega também tabela nova que esqueceu o `enable row level security`.
+  for (const [tabela, ligada] of porTabela) {
+    if (TABELAS.includes(tabela)) continue;
+    afirmar(ligada === true, `tabela public.${tabela} está sem RLS`);
   }
 
   // ------------------------------------------------------------------
-  // 3. As RPCs do app existem e anon pode executá-las
+  // 2. anon sem privilégio em objeto nenhum de public
+  //    Tabela, view, sequence E grant por coluna (docs/TIME_03 §4).
+  //    has_table_privilege não vê grant por coluna, por isso a varredura
+  //    é pelas ACLs do catálogo.
   // ------------------------------------------------------------------
-  for (const assinatura of RPCS_ANON) {
-    const [{ existe }] = await sql`SELECT to_regprocedure(${assinatura}) IS NOT NULL AS existe`;
-    if (!existe) {
-      afirmar(false, `função ${assinatura} não existe`);
-      continue;
-    }
-    for (const papel of ["anon", "authenticated"]) {
-      const [{ tem }] = await sql`
-        SELECT has_function_privilege(${papel}, ${assinatura}, 'EXECUTE') AS tem
-      `;
-      afirmar(tem === true, `${papel} não pode executar ${assinatura}`);
-    }
-  }
-
-  // ------------------------------------------------------------------
-  // 4. As RPCs do painel ficam fora do alcance de anon
-  // ------------------------------------------------------------------
-  for (const assinatura of RPCS_SO_PAINEL) {
-    const [{ existe }] = await sql`SELECT to_regprocedure(${assinatura}) IS NOT NULL AS existe`;
-    if (!existe) {
-      afirmar(false, `função ${assinatura} não existe`);
-      continue;
-    }
-    const [{ anonTem }] = await sql`
-      SELECT has_function_privilege('anon', ${assinatura}, 'EXECUTE') AS "anonTem"
-    `;
-    afirmar(anonTem === false, `anon pode executar ${assinatura} (deveria ser só do painel)`);
-
-    const [{ authTem }] = await sql`
-      SELECT has_function_privilege('authenticated', ${assinatura}, 'EXECUTE') AS "authTem"
-    `;
-    afirmar(authTem === true, `authenticated não pode executar ${assinatura}`);
-  }
-
-  // A autorização de upload de foto é exclusiva da Edge Function (service_role)
-  {
-    const assinatura = "public._relato_caminho_foto(text, uuid)";
-    const [{ existe }] = await sql`SELECT to_regprocedure(${assinatura}) IS NOT NULL AS existe`;
-    afirmar(existe === true, `função ${assinatura} não existe`);
-    if (existe) {
-      for (const papel of ["anon", "authenticated"]) {
-        const [{ tem }] = await sql`
-          SELECT has_function_privilege(${papel}, ${assinatura}, 'EXECUTE') AS tem
-        `;
-        afirmar(tem === false, `${papel} pode executar ${assinatura} (só service_role)`);
-      }
-    }
-  }
-
-  // ------------------------------------------------------------------
-  // 5. Segredos ilegíveis pelo painel (docs/TIME_03 §4)
-  // ------------------------------------------------------------------
-  for (const papel of ["anon", "authenticated"]) {
-    const [{ tem }] = await sql`
-      SELECT has_column_privilege(${papel}, 'public.colaboradores', 'pin_hash', 'SELECT') AS tem
-    `;
-    afirmar(tem === false, `${papel} consegue ler colaboradores.pin_hash`);
-
-    const [{ tem: senha }] = await sql`
-      SELECT has_column_privilege(${papel}, 'public.denuncias_assedio', 'senha_hash', 'SELECT') AS tem
-    `;
-    afirmar(senha === false, `${papel} consegue ler denuncias_assedio.senha_hash`);
-  }
-
-  // ...mas o painel continua lendo o que precisa
-  for (const coluna of COLUNAS_COLABORADOR_LEGIVEIS) {
-    const [{ tem }] = await sql`
-      SELECT has_column_privilege('authenticated', 'public.colaboradores', ${coluna}, 'SELECT') AS tem
-    `;
-    afirmar(tem === true, `authenticated perdeu SELECT em colaboradores.${coluna}`);
-  }
-
-  // ------------------------------------------------------------------
-  // 6. Toda função de escrita é SECURITY DEFINER com search_path fixo
-  // ------------------------------------------------------------------
-  const funcoes = await sql`
-    SELECT p.proname AS nome, p.prosecdef AS definer, p.proconfig AS config
-      FROM pg_proc p
-      JOIN pg_namespace n ON n.oid = p.pronamespace
-     WHERE n.nspname = 'public'
-       AND (p.proname LIKE 'colaborador\\_%' OR p.proname LIKE 'tecnico\\_%'
-            OR p.proname LIKE 'comite\\_%' OR p.proname IN
-            ('registrar_denuncia_assedio','consultar_denuncia','responder_denuncia_denunciante',
-             '_lancar_pontos','_relato_caminho_foto'))
-  `;
-  afirmar(funcoes.length > 0, "nenhuma RPC encontrada — migrations aplicadas?");
-  for (const f of funcoes) {
-    afirmar(f.definer === true, `public.${f.nome} não é SECURITY DEFINER`);
-    const temSearchPath = (f.config ?? []).some((c) => c.startsWith("search_path="));
-    afirmar(temSearchPath, `public.${f.nome} não fixa search_path`);
-  }
-
-  // Pontuação é idempotente por construção: _lancar_pontos é o único caminho
-  const [{ existe: temLancar }] = await sql`
-    SELECT count(*) > 0 AS existe FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-     WHERE n.nspname = 'public' AND p.proname = '_lancar_pontos'
-  `;
-  afirmar(temLancar === true, "função _lancar_pontos não existe");
-
-  const [{ temIndice }] = await sql`
-    SELECT count(*) > 0 AS "temIndice"
-      FROM pg_indexes
-     WHERE schemaname = 'public' AND tablename = 'pontos_lancamentos'
-       AND indexdef ILIKE '%UNIQUE%' AND indexdef ILIKE '%origem%'
-  `;
+  const grantsObjeto = await consultar(`
+    select c.relkind::text as tipo, c.relname as objeto, acl.privilege_type as priv
+      from pg_class c
+      join pg_namespace n on n.oid = c.relnamespace
+      cross join lateral aclexplode(c.relacl) acl
+     where n.nspname = 'public' and pg_get_userbyid(acl.grantee) = 'anon'
+  `);
   afirmar(
-    temIndice === true,
-    "pontos_lancamentos sem índice único por origem — pontuação deixaria de ser idempotente",
+    grantsObjeto.length === 0,
+    `anon tem privilégio em objeto de public: ${grantsObjeto
+      .map((g) => `${g.objeto}(${g.tipo}):${g.priv}`)
+      .join(", ")}`,
+  );
+
+  const grantsColuna = await consultar(`
+    select c.relname as objeto, a.attname as coluna, acl.privilege_type as priv
+      from pg_attribute a
+      join pg_class c on c.oid = a.attrelid
+      join pg_namespace n on n.oid = c.relnamespace
+      cross join lateral aclexplode(a.attacl) acl
+     where n.nspname = 'public' and pg_get_userbyid(acl.grantee) = 'anon'
+  `);
+  afirmar(
+    grantsColuna.length === 0,
+    `anon tem grant por coluna: ${grantsColuna
+      .map((g) => `${g.objeto}.${g.coluna}:${g.priv}`)
+      .join(", ")}`,
   );
 
   // ------------------------------------------------------------------
-  // 7. Views aplicam o RLS (security_invoker = on)
+  // 3. EXECUTE das funções, por papel
   // ------------------------------------------------------------------
-  for (const v of VIEWS) {
-    const [linha] = await sql`
-      SELECT c.reloptions AS opcoes
-        FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-       WHERE n.nspname = 'public' AND c.relname = ${v} AND c.relkind = 'v'
-    `;
-    if (!linha) {
-      afirmar(false, `view public.${v} não existe`);
-      continue;
-    }
-    const invoker = (linha.opcoes ?? []).some((o) => /^security_invoker=(on|true)$/i.test(o));
-    afirmar(invoker, `view public.${v} sem security_invoker=on — ignoraria o RLS`);
+  const todas = [...RPCS_ANON, ...RPCS_SO_PAINEL, ...RPCS_SO_SERVICE_ROLE];
+  const privFuncao = await consultar(`
+    with f(assinatura) as (values ${todas.map((a) => `(${lit(a)})`).join(", ")})
+    select f.assinatura,
+           to_regprocedure(f.assinatura) is not null as existe,
+           case when to_regprocedure(f.assinatura) is null then false
+                else has_function_privilege('anon', f.assinatura, 'EXECUTE') end as anon,
+           case when to_regprocedure(f.assinatura) is null then false
+                else has_function_privilege('authenticated', f.assinatura, 'EXECUTE') end as auth
+      from f
+  `);
+  const porFuncao = new Map(privFuncao.map((r) => [r.assinatura, r]));
+
+  for (const assinatura of todas) {
+    afirmar(porFuncao.get(assinatura)?.existe === true, `função ${assinatura} não existe`);
+  }
+  for (const assinatura of RPCS_ANON) {
+    const r = porFuncao.get(assinatura);
+    if (!r?.existe) continue;
+    afirmar(r.anon === true, `anon não pode executar ${assinatura}`);
+    afirmar(r.auth === true, `authenticated não pode executar ${assinatura}`);
+  }
+  for (const assinatura of RPCS_SO_PAINEL) {
+    const r = porFuncao.get(assinatura);
+    if (!r?.existe) continue;
+    afirmar(r.anon === false, `anon pode executar ${assinatura} — é só do painel`);
+    afirmar(r.auth === true, `authenticated não pode executar ${assinatura}`);
+  }
+  for (const assinatura of RPCS_SO_SERVICE_ROLE) {
+    const r = porFuncao.get(assinatura);
+    if (!r?.existe) continue;
+    afirmar(r.anon === false, `anon pode executar ${assinatura} — é só service_role`);
+    afirmar(r.auth === false, `authenticated pode executar ${assinatura} — é só service_role`);
   }
 
   // ------------------------------------------------------------------
-  // 8. Seed aplicado (conferência de docs/TIME_02 §7)
+  // 4. Segredos ilegíveis; colunas de trabalho legíveis
   // ------------------------------------------------------------------
-  const [{ temas }] =
-    await sql`SELECT count(*)::int AS temas FROM public.temas WHERE empresa_id IS NULL`;
-  afirmar(temas === 7, `esperava 7 temas globais, achei ${temas}`);
+  const privColuna = await consultar(`
+    with c(tabela, coluna) as (values
+      ${[
+        ...COLUNAS_SECRETAS.map(([t, col]) => `(${lit(t)}, ${lit(col)})`),
+        ...COLUNAS_COLABORADOR_LEGIVEIS.map((col) => `('colaboradores', ${lit(col)})`),
+      ].join(", ")})
+    select c.tabela, c.coluna,
+           has_column_privilege('anon', 'public.' || c.tabela, c.coluna, 'SELECT') as anon,
+           has_column_privilege('authenticated', 'public.' || c.tabela, c.coluna, 'SELECT') as auth
+      from c
+  `);
+  const porColuna = new Map(privColuna.map((r) => [`${r.tabela}.${r.coluna}`, r]));
 
-  const [{ selos }] = await sql`SELECT count(*)::int AS selos FROM public.selos`;
-  afirmar(selos === 10, `esperava 10 selos, achei ${selos}`);
+  for (const [tabela, coluna] of COLUNAS_SECRETAS) {
+    const r = porColuna.get(`${tabela}.${coluna}`);
+    afirmar(r !== undefined, `coluna ${tabela}.${coluna} não existe`);
+    if (!r) continue;
+    afirmar(r.anon === false, `anon consegue ler ${tabela}.${coluna}`);
+    afirmar(r.auth === false, `authenticated consegue ler ${tabela}.${coluna}`);
+  }
+  for (const coluna of COLUNAS_COLABORADOR_LEGIVEIS) {
+    const r = porColuna.get(`colaboradores.${coluna}`);
+    afirmar(r?.auth === true, `authenticated perdeu SELECT em colaboradores.${coluna}`);
+  }
 
-  const [{ rpcs }] = await sql`
-    SELECT count(*)::int AS rpcs FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-     WHERE n.nspname = 'public' AND p.proname LIKE 'colaborador\\_%'
-  `;
-  afirmar(rpcs === 18, `esperava 18 funções colaborador_*, achei ${rpcs}`);
+  // ------------------------------------------------------------------
+  // 5. Funções de escrita: SECURITY DEFINER com search_path fixo
+  // ------------------------------------------------------------------
+  const funcoes = await consultar(`
+    select p.proname as nome, p.prosecdef as definer,
+           coalesce(array_to_string(p.proconfig, ','), '') as config
+      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+     where n.nspname = 'public'
+       and (${PREFIXOS_DE_ESCRITA.map((p) => `p.proname like '${p}'`).join(" or ")}
+            or p.proname in (${lista(FUNCOES_DE_ESCRITA_EXTRA)}))
+  `);
+  afirmar(funcoes.length > 0, "nenhuma RPC encontrada — migrations aplicadas?");
+  for (const f of funcoes) {
+    afirmar(f.definer === true, `public.${f.nome} não é SECURITY DEFINER`);
+    afirmar(f.config.includes("search_path="), `public.${f.nome} não fixa search_path`);
+  }
+
+  // ------------------------------------------------------------------
+  // 6. Pontuação idempotente + conferência de docs/TIME_02 §7
+  // ------------------------------------------------------------------
+  const [e] = await consultar(`
+    select
+      (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and p.proname = '_lancar_pontos')::int as lancar_pontos,
+      (select count(*) from pg_indexes
+        where schemaname = 'public' and tablename = 'pontos_lancamentos'
+          and indexdef ilike '%UNIQUE%' and indexdef ilike '%origem%')::int as indice_origem,
+      (select count(*) from temas where empresa_id is null)::int as temas_globais,
+      (select count(*) from selos)::int as selos,
+      (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and p.proname like 'colaborador\\_%')::int as rpcs_colaborador
+  `);
+  afirmar(e.lancar_pontos === 1, "função _lancar_pontos não existe");
+  afirmar(
+    e.indice_origem > 0,
+    "pontos_lancamentos sem índice único por origem — pontuação deixaria de ser idempotente",
+  );
+  afirmar(e.temas_globais === 7, `esperava 7 temas globais, achei ${e.temas_globais}`);
+  afirmar(e.selos === 10, `esperava 10 selos, achei ${e.selos}`);
+  afirmar(
+    e.rpcs_colaborador === 18,
+    `esperava 18 funções colaborador_*, achei ${e.rpcs_colaborador}`,
+  );
+
+  // ------------------------------------------------------------------
+  // 7. Views aplicam o RLS
+  // ------------------------------------------------------------------
+  const views = await consultar(`
+    select c.relname as nome, coalesce(array_to_string(c.reloptions, ','), '') as opcoes
+      from pg_class c join pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relkind = 'v' and c.relname in (${lista(VIEWS)})
+  `);
+  const porView = new Map(views.map((v) => [v.nome, v.opcoes]));
+  for (const v of VIEWS) {
+    if (!porView.has(v)) {
+      afirmar(false, `view public.${v} não existe`);
+      continue;
+    }
+    afirmar(
+      /security_invoker=(on|true)/i.test(porView.get(v)),
+      `view public.${v} sem security_invoker=on — ignoraria o RLS`,
+    );
+  }
 } catch (erro) {
   falhas.push(`erro ao consultar o banco: ${erro.message}`);
-} finally {
-  await sql.end();
 }
 
 if (falhas.length > 0) {

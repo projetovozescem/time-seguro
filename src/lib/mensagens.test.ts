@@ -77,3 +77,64 @@ describe("pendências de login (docs/TIME_03 §3)", () => {
     expect(PENDENCIAS.aceitar_lgpd).toBe("/app/termo");
   });
 });
+
+describe("cobertura dos motivos que o banco realmente devolve", () => {
+  /**
+   * Levantado de supabase/migrations/ com
+   * `grep -ohE "'motivo', *'[a-z_]+'" supabase/migrations/*.sql`.
+   * Se uma migration nova introduzir um motivo, este teste reprova até o texto
+   * existir — é o que impede o código cru de aparecer na tela.
+   */
+  const MOTIVOS_DO_BANCO = [
+    "alternativa_invalida",
+    "bloqueado",
+    "campanha_invalida",
+    "campanha_sem_temas",
+    "categoria_invalida",
+    "certificado_nao_encontrado",
+    "codigo_expirado",
+    "conteudo_nao_concluido",
+    "credenciais_invalidas",
+    "decisao_invalida",
+    "denuncia_encerrada",
+    "denuncia_invalida",
+    "descricao_curta",
+    "empresa_nao_encontrada",
+    "evento_invalido",
+    "evento_ja_tem_sessao",
+    "fora_do_horario",
+    "gravidade_obrigatoria",
+    "ja_decidido",
+    "ja_existe_campanha_ativa",
+    "ja_fez_checkin",
+    "ja_respondida",
+    "licao_invalida",
+    "limite_diario",
+    "limite_tentativas",
+    "local_invalido",
+    "modo_invalido",
+    "outro_setor",
+    "pergunta_invalida",
+    "pin_atual_incorreto",
+    "pin_fraco",
+    "protocolo_ou_senha_invalidos",
+    "ranking_oculto",
+    "relato_invalido",
+    "sem_avaliacao",
+    "sem_campanha",
+    "status_invalido",
+    "valide_primeiro",
+  ];
+
+  it("traduz todos os 38 motivos das migrations", () => {
+    expect(MOTIVOS_DO_BANCO).toHaveLength(38);
+    const faltando = MOTIVOS_DO_BANCO.filter((m) => !(m in MENSAGENS));
+    expect(faltando).toEqual([]);
+  });
+
+  it("traduz as 3 exceções que as RPCs levantam", () => {
+    for (const e of ["acesso_negado", "sessao_invalida", "upload_nao_permitido"]) {
+      expect(MENSAGENS[e]).toBeTruthy();
+    }
+  });
+});

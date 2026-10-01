@@ -103,27 +103,42 @@ gate de RLS, de teste ou de interface pode ser cumprido.
 
 ## Em andamento
 
-Item 0. Projeto DEV `niazcsjnxvoeeolwrcqx` configurado e alcançável
-(auth 200, `public.empresas` ainda 404 — schema não aplicado).
-`.env` e `.mcp.json` preenchidos. Falta a connection string para aplicar as
-6 migrations com `npx supabase db push --db-url`.
+Item 1 (perguntas + importador): parser TXT e CSV prontos e testados. Faltam as
+telas `/painel/perguntas` e `/painel/perguntas/importar`, o parser de PDF e o
+exportar TXT pela interface.
+
+## Feito em 01/10/2026 — item 0 concluído
+
+- Projeto DEV `niazcsjnxvoeeolwrcqx` ("TIME", sa-east-1) configurado. É o único
+  projeto da conta: a produção do V.O.Z.E.S. não é alcançável por este token.
+- **7 migrations aplicadas** (as 6 do TIME_02 + uma nova que fecha brecha de
+  sequence), registradas em `supabase_migrations.schema_migrations` para o CLI
+  continuar funcionando. Renomeadas para prefixo de timestamp (TIME_02 §1.3).
+- Conferência do TIME_02 §7: 7 temas globais, 10 selos, 18 funções
+  `colaborador_*`, 30 tabelas, nenhuma sem RLS.
+- `src/lib/database.types.ts` gerado (2.282 linhas). `types.ts` do V.O.Z.E.S.
+  apagado, imports repontados, contorno de tipagem do `rpc.ts` removido —
+  `rpcApp` agora só aceita nome de RPC que existe no banco.
+- Gate de RLS reescrito: 235 verificações em 11s (eram 382 em minutos) e agora
+  pega grant por coluna e por sequence, que a versão anterior não via.
+- Gate de fluxo novo (`npm run test:fluxo`): 38 verificações por HTTP real,
+  cobrindo as 6 famílias do TIME_13 §3f.
+- Bootstrap e seed de demonstração reproduzíveis por script.
+- Subárvore órfã do V.O.Z.E.S. (analytics, calendário, materiais, vozes.ts)
+  movida para `docs/legado-vozes/`; será portada nas fases 4 e 10.
+- Parser de importação TXT + CSV (item 1) com os 7 casos do TIME_07 §7.
 
 ## Próximo
 
-1. `DATABASE_URL_DEV` no `.env` → `db push` → `gen types --db-url`.
-2. Remover o alias `chamar` de `src/lib/rpc.ts` e apagar
-   `src/integrations/supabase/types.ts`.
-3. `npm run test:rls` + teste negativo do gate.
-4. Bootstrap do TIME_02 §1.6 e bucket do §4; exercitar login e quiz.
-5. Seguir para o item 1 da ordem acima.
+1. Telas `/painel/perguntas` e `/painel/perguntas/importar` (item 1).
+2. Campanha, trilha e eventos (item 2).
 
 ## Bloqueado (precisa do usuário)
 
-- **Connection string do DEV** (Supabase > Project Settings > Database >
-  Connection string, modo pooler). **Colar direto no `.env`**, em
-  `DATABASE_URL_DEV=` — não no chat: duas chaves já foram expostas ali.
-- **Revogar a `sb_secret_...`** colada no chat e gerar outra. Ela não está em
-  arquivo nenhum do repositório (verificado).
+- **Rotacionar `SUPABASE_ACCESS_TOKEN`** (está no `.env`, fora do git) e a
+  `sb_secret_` — as duas foram expostas no chat. O token segue válido.
+- **Trocar a senha provisória do admin** no primeiro acesso (está em `BOOTSTRAP_SENHA`, no `.env`).
+- **Desativar cadastro público** no Supabase Auth (TIME_03 §8).
 - **URL do repositório GitHub** para `git remote add origin`.
 - **Superpowers**: `/plugin install superpowers@claude-plugins-official`.
 - **Reiniciar a sessão** para o `.mcp.json` carregar o servidor `supabase`.

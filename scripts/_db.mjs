@@ -21,6 +21,55 @@ export function carregarEnv() {
   }
 }
 
+/**
+ * Credenciais da Management API, lidas do `.env` (que está fora do git).
+ * Nenhum script deste repositório recebe token por linha de comando.
+ */
+export function credenciaisApi() {
+  carregarEnv();
+  const token = process.env.SUPABASE_ACCESS_TOKEN;
+  const ref = process.env.SUPABASE_PROJECT_REF;
+  if (!token || !ref) {
+    throw new Error(
+      "Falta SUPABASE_ACCESS_TOKEN ou SUPABASE_PROJECT_REF no .env.\n" +
+        "Pegue o token em Supabase > Account > Access Tokens e o ref do projeto\n" +
+        "de DESENVOLVIMENTO. Modelo em .env.example.",
+    );
+  }
+  if (ref === REF_PRODUCAO) {
+    throw new Error(
+      `SUPABASE_PROJECT_REF é a PRODUÇÃO do V.O.Z.E.S. (${REF_PRODUCAO}). Abortando.`,
+    );
+  }
+  return { token, ref };
+}
+
+/**
+ * Roda SQL no projeto de desenvolvimento pela Management API.
+ * Lança com a mensagem do Postgres quando a consulta falha — é o que permite
+ * mostrar, como evidência, as consultas que DEVEM falhar.
+ */
+export async function consultar(query) {
+  const { token, ref } = credenciaisApi();
+  const r = await fetch(`https://api.supabase.com/v1/projects/${ref}/database/query`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ query }),
+  });
+  const texto = await r.text();
+  if (!r.ok) {
+    let detalhe = texto;
+    try {
+      const j = JSON.parse(texto);
+      detalhe = j.message ?? j.error ?? texto;
+    } catch {
+      /* mantém o texto cru */
+    }
+    throw new Error(`http ${r.status}: ${detalhe}`);
+  }
+  return texto ? JSON.parse(texto) : [];
+}
+
 export function urlDev() {
   carregarEnv();
   const url = process.env.DATABASE_URL_DEV;

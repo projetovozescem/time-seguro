@@ -42,6 +42,7 @@ aparecem na lista de "manter" nem na de "remover" do `TIME_11` Fase 0.
 V.O.Z.E.S., e o T.I.M.E. tem outra regra de ciclo).
 
 ## 6. Código morto do preview do Lovable
+
 `src/integrations/supabase/{auth-middleware,auth-attacher,cron-auth}.ts` não são
 importados por ninguém, e `previewAuthStorage.ts` é usado só pelo `client.ts`
 para intermediar auth dentro do iframe do Lovable — coisa que um deploy próprio
@@ -52,6 +53,7 @@ só a variável de ambiente. Decidir na Fase 2, quando o login do painel for
 exercitado de verdade.
 
 ## 7. `src/integrations/supabase/types.ts` x `src/lib/database.types.ts`
+
 O arquivo antigo ainda descreve o schema do V.O.Z.E.S. (turmas, participantes).
 **Suposição:** gerar `src/lib/database.types.ts` com `gen types` contra o DEV e
 só então apagar o antigo e repontar os imports. Não escrevi o tipo à mão: seriam

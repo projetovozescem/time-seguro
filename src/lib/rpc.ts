@@ -1,19 +1,25 @@
 import { supabase } from "@/integrations/supabase/client";
 import { sessao } from "@/lib/sessao";
 import { ehPendencia, PENDENCIAS } from "@/lib/mensagens";
+import type { Database } from "@/lib/database.types";
+
+/** Nomes de RPC que realmente existem no banco, vindos dos tipos gerados. */
+type NomeRpc = keyof Database["public"]["Functions"];
+
+/** RPCs do app do colaborador: todas recebem `p_token`. */
+type RpcDoApp = Extract<NomeRpc, `colaborador_${string}`>;
 
 /**
- * PENDENTE: enquanto `src/lib/database.types.ts` não for gerado contra o projeto
- * de desenvolvimento (`npx supabase gen types typescript --linked`, docs/TIME_02
- * §1.5), o cliente ainda carrega o `Database` do V.O.Z.E.S. e não conhece os
- * nomes das RPCs `colaborador_*`. Este alias isola o ponto exato a remover:
- * quando os tipos forem gerados, troque `chamar` por `supabase.rpc` e o
- * TypeScript volta a validar nome e argumentos de cada função.
+ * RPCs chamáveis sem token (docs/TIME_02 §3). Lista explícita, não derivada:
+ * é o que impede uma chamada do Canal de Respeito de ir por `rpcApp` e levar
+ * o token por descuido (docs/TIME_03 §6).
  */
-const chamar = supabase.rpc as unknown as (
-  fn: string,
-  args?: Record<string, unknown>,
-) => Promise<{ data: unknown; error: { message?: string } | null }>;
+type RpcPublica =
+  | "empresa_publica"
+  | "registrar_denuncia_assedio"
+  | "consultar_denuncia"
+  | "responder_denuncia_denunciante"
+  | "verificar_certificado";
 
 /**
  * Chamada única para as RPCs do app do colaborador (docs/TIME_03 §3).
@@ -26,10 +32,10 @@ const chamar = supabase.rpc as unknown as (
  * - resposta `{ ok: false, motivo: 'trocar_pin' | 'aceitar_lgpd' }` → manda para
  *   a tela da pendência, porque sem resolvê-la nada mais funciona.
  */
-export async function rpcApp<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
+export async function rpcApp<T>(fn: RpcDoApp, args: Record<string, unknown> = {}): Promise<T> {
   const token = sessao.token();
 
-  const { data, error } = await chamar(fn, { p_token: token, ...args });
+  const { data, error } = await supabase.rpc(fn, { p_token: token, ...args } as never);
 
   if (error) {
     if (error.message?.includes("sessao_invalida")) {
@@ -66,8 +72,11 @@ function irPara(destino: string): void {
  * Nunca envia `p_token` — é o que garante o anonimato do Canal de Respeito
  * (docs/TIME_03 §6). Não trocar por `rpcApp`.
  */
-export async function rpcPublica<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
-  const { data, error } = await chamar(fn, args);
+export async function rpcPublica<T>(
+  fn: RpcPublica,
+  args: Record<string, unknown> = {},
+): Promise<T> {
+  const { data, error } = await supabase.rpc(fn, args as never);
   if (error) throw error;
   return data as T;
 }

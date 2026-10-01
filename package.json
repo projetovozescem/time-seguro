@@ -13,7 +13,12 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:rls": "node scripts/test-rls.mjs",
-    "verify": "npm run lint && npm run typecheck && npm run test && npm run test:rls"
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run test:rls && npm run test:fluxo",
+    "db:tipos": "node scripts/db-tipos.mjs",
+    "db:aplicar": "node scripts/db-aplicar.mjs",
+    "db:bootstrap": "node scripts/bootstrap-dev.mjs",
+    "db:seed": "node scripts/seed-dev.mjs",
+    "test:fluxo": "node scripts/teste-fluxo.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"

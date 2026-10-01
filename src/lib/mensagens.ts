@@ -34,6 +34,32 @@ export const MENSAGENS: Record<string, string> = {
   sessao_invalida: "Sua sessão expirou. Entre de novo.",
   acesso_negado: "Você não tem permissão para esta ação.",
 
+  // Motivos que as RPCs devolvem e que a tabela do TIME_05 §9 não cobre —
+  // ela documenta só o app do colaborador. Levantados das migrations com
+  // `grep "'motivo', '...'"`. Textos escritos aqui e pendentes de revisão:
+  // ver memory/duvidas.md item 8.
+  empresa_nao_encontrada: "Código da empresa não encontrado. Confira no seu cartão de acesso.",
+  alternativa_invalida: "Alternativa inválida.",
+  protocolo_ou_senha_invalidos: "Protocolo ou senha incorretos.",
+  denuncia_invalida: "Denúncia não encontrada.",
+  denuncia_encerrada: "Esta denúncia já foi encerrada.",
+  certificado_nao_encontrado: "Certificado não encontrado. Confira o código.",
+  sem_avaliacao: "Esta lição não tem avaliação.",
+
+  // Painel do técnico (leitor é a SST, não o chão de fábrica).
+  campanha_invalida: "Campanha não encontrada.",
+  campanha_sem_temas: "Vincule pelo menos um tema antes de ativar a campanha.",
+  ja_existe_campanha_ativa: "Já existe uma campanha ativa. Encerre a atual antes de ativar outra.",
+  relato_invalido: "Relato não encontrado.",
+  categoria_invalida: "Categoria de relato inválida.",
+  decisao_invalida: "Decisão inválida. Use validar, rejeitar ou duplicado.",
+  gravidade_obrigatoria: "Informe a gravidade para validar o relato.",
+  ja_decidido: "Este relato já foi decidido.",
+  valide_primeiro: "Valide o relato antes de mudar o andamento.",
+  status_invalido: "Status inválido para este relato.",
+  evento_ja_tem_sessao: "Este evento já tem uma sessão pontuada do Modo TV.",
+  modo_invalido: "Modo de jogo inválido.",
+
   // docs/TIME_03 §5 (Edge Function da foto do relato)
   upload_nao_permitido: "Não foi possível enviar a foto. O relato foi salvo sem ela.",
   dados_invalidos: "Faltou alguma informação. Confira os campos e tente de novo.",
