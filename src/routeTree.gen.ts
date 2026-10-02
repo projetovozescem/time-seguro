@@ -11,10 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtegidoRouteImport } from './routes/_protegido'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppCadastroRouteImport } from './routes/app.cadastro'
 import { Route as AppCheckinRouteImport } from './routes/app.checkin'
 import { Route as AppEntrarRouteImport } from './routes/app.entrar'
 import { Route as AppInicioRouteImport } from './routes/app.inicio'
-import { Route as AppNovoPinRouteImport } from './routes/app.novo-pin'
 import { Route as AppPerfilRouteImport } from './routes/app.perfil'
 import { Route as AppQuizRouteImport } from './routes/app.quiz'
 import { Route as AppRelatarRouteImport } from './routes/app.relatar'
@@ -55,6 +56,16 @@ const ProtegidoRoute = ProtegidoRouteImport.update({
   id: '/_protegido',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/app/',
+  path: '/app/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppCadastroRoute = AppCadastroRouteImport.update({
+  id: '/app/cadastro',
+  path: '/app/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppCheckinRoute = AppCheckinRouteImport.update({
   id: '/app/checkin',
   path: '/app/checkin',
@@ -68,11 +79,6 @@ const AppEntrarRoute = AppEntrarRouteImport.update({
 const AppInicioRoute = AppInicioRouteImport.update({
   id: '/app/inicio',
   path: '/app/inicio',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppNovoPinRoute = AppNovoPinRouteImport.update({
-  id: '/app/novo-pin',
-  path: '/app/novo-pin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppPerfilRoute = AppPerfilRouteImport.update({
@@ -240,10 +246,10 @@ const ProtegidoTvCheckinEventoIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app/cadastro': typeof AppCadastroRoute
   '/app/checkin': typeof AppCheckinRoute
   '/app/entrar': typeof AppEntrarRoute
   '/app/inicio': typeof AppInicioRoute
-  '/app/novo-pin': typeof AppNovoPinRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/quiz': typeof AppQuizRoute
   '/app/relatar': typeof AppRelatarRoute
@@ -252,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/painel/login': typeof PainelLoginRoute
   '/respeito/$codigo': typeof RespeitoCodigoRoute
   '/verificar/$codigo': typeof VerificarCodigoRoute
+  '/app/': typeof AppIndexRoute
   '/painel/analytics': typeof ProtegidoPainelAnalyticsRoute
   '/painel/certificados': typeof ProtegidoPainelCertificadosRoute
   '/painel/configuracoes': typeof ProtegidoPainelConfiguracoesRoute
@@ -277,10 +284,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app/cadastro': typeof AppCadastroRoute
   '/app/checkin': typeof AppCheckinRoute
   '/app/entrar': typeof AppEntrarRoute
   '/app/inicio': typeof AppInicioRoute
-  '/app/novo-pin': typeof AppNovoPinRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/quiz': typeof AppQuizRoute
   '/app/relatar': typeof AppRelatarRoute
@@ -289,6 +296,7 @@ export interface FileRoutesByTo {
   '/painel/login': typeof PainelLoginRoute
   '/respeito/$codigo': typeof RespeitoCodigoRoute
   '/verificar/$codigo': typeof VerificarCodigoRoute
+  '/app': typeof AppIndexRoute
   '/painel/analytics': typeof ProtegidoPainelAnalyticsRoute
   '/painel/certificados': typeof ProtegidoPainelCertificadosRoute
   '/painel/configuracoes': typeof ProtegidoPainelConfiguracoesRoute
@@ -316,10 +324,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_protegido': typeof ProtegidoRouteWithChildren
+  '/app/cadastro': typeof AppCadastroRoute
   '/app/checkin': typeof AppCheckinRoute
   '/app/entrar': typeof AppEntrarRoute
   '/app/inicio': typeof AppInicioRoute
-  '/app/novo-pin': typeof AppNovoPinRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/quiz': typeof AppQuizRoute
   '/app/relatar': typeof AppRelatarRoute
@@ -328,6 +336,7 @@ export interface FileRoutesById {
   '/painel/login': typeof PainelLoginRoute
   '/respeito/$codigo': typeof RespeitoCodigoRoute
   '/verificar/$codigo': typeof VerificarCodigoRoute
+  '/app/': typeof AppIndexRoute
   '/_protegido/painel/analytics': typeof ProtegidoPainelAnalyticsRoute
   '/_protegido/painel/certificados': typeof ProtegidoPainelCertificadosRoute
   '/_protegido/painel/configuracoes': typeof ProtegidoPainelConfiguracoesRoute
@@ -355,10 +364,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/app/cadastro'
     | '/app/checkin'
     | '/app/entrar'
     | '/app/inicio'
-    | '/app/novo-pin'
     | '/app/perfil'
     | '/app/quiz'
     | '/app/relatar'
@@ -367,6 +376,7 @@ export interface FileRouteTypes {
     | '/painel/login'
     | '/respeito/$codigo'
     | '/verificar/$codigo'
+    | '/app/'
     | '/painel/analytics'
     | '/painel/certificados'
     | '/painel/configuracoes'
@@ -392,10 +402,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/app/cadastro'
     | '/app/checkin'
     | '/app/entrar'
     | '/app/inicio'
-    | '/app/novo-pin'
     | '/app/perfil'
     | '/app/quiz'
     | '/app/relatar'
@@ -404,6 +414,7 @@ export interface FileRouteTypes {
     | '/painel/login'
     | '/respeito/$codigo'
     | '/verificar/$codigo'
+    | '/app'
     | '/painel/analytics'
     | '/painel/certificados'
     | '/painel/configuracoes'
@@ -430,10 +441,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_protegido'
+    | '/app/cadastro'
     | '/app/checkin'
     | '/app/entrar'
     | '/app/inicio'
-    | '/app/novo-pin'
     | '/app/perfil'
     | '/app/quiz'
     | '/app/relatar'
@@ -442,6 +453,7 @@ export interface FileRouteTypes {
     | '/painel/login'
     | '/respeito/$codigo'
     | '/verificar/$codigo'
+    | '/app/'
     | '/_protegido/painel/analytics'
     | '/_protegido/painel/certificados'
     | '/_protegido/painel/configuracoes'
@@ -469,10 +481,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProtegidoRoute: typeof ProtegidoRouteWithChildren
+  AppCadastroRoute: typeof AppCadastroRoute
   AppCheckinRoute: typeof AppCheckinRoute
   AppEntrarRoute: typeof AppEntrarRoute
   AppInicioRoute: typeof AppInicioRoute
-  AppNovoPinRoute: typeof AppNovoPinRoute
   AppPerfilRoute: typeof AppPerfilRoute
   AppQuizRoute: typeof AppQuizRoute
   AppRelatarRoute: typeof AppRelatarRoute
@@ -481,6 +493,7 @@ export interface RootRouteChildren {
   PainelLoginRoute: typeof PainelLoginRoute
   RespeitoCodigoRoute: typeof RespeitoCodigoRoute
   VerificarCodigoRoute: typeof VerificarCodigoRoute
+  AppIndexRoute: typeof AppIndexRoute
   AppLocalLocalIdRoute: typeof AppLocalLocalIdRoute
   AppTrilhaLicaoIdRoute: typeof AppTrilhaLicaoIdRoute
   AppTrilhaIndexRoute: typeof AppTrilhaIndexRoute
@@ -502,6 +515,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtegidoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/app'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/cadastro': {
+      id: '/app/cadastro'
+      path: '/app/cadastro'
+      fullPath: '/app/cadastro'
+      preLoaderRoute: typeof AppCadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/checkin': {
       id: '/app/checkin'
       path: '/app/checkin'
@@ -521,13 +548,6 @@ declare module '@tanstack/react-router' {
       path: '/app/inicio'
       fullPath: '/app/inicio'
       preLoaderRoute: typeof AppInicioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app/novo-pin': {
-      id: '/app/novo-pin'
-      path: '/app/novo-pin'
-      fullPath: '/app/novo-pin'
-      preLoaderRoute: typeof AppNovoPinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/perfil': {
@@ -796,10 +816,10 @@ const ProtegidoRouteWithChildren = ProtegidoRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtegidoRoute: ProtegidoRouteWithChildren,
+  AppCadastroRoute: AppCadastroRoute,
   AppCheckinRoute: AppCheckinRoute,
   AppEntrarRoute: AppEntrarRoute,
   AppInicioRoute: AppInicioRoute,
-  AppNovoPinRoute: AppNovoPinRoute,
   AppPerfilRoute: AppPerfilRoute,
   AppQuizRoute: AppQuizRoute,
   AppRelatarRoute: AppRelatarRoute,
@@ -808,6 +828,7 @@ const rootRouteChildren: RootRouteChildren = {
   PainelLoginRoute: PainelLoginRoute,
   RespeitoCodigoRoute: RespeitoCodigoRoute,
   VerificarCodigoRoute: VerificarCodigoRoute,
+  AppIndexRoute: AppIndexRoute,
   AppLocalLocalIdRoute: AppLocalLocalIdRoute,
   AppTrilhaLicaoIdRoute: AppTrilhaLicaoIdRoute,
   AppTrilhaIndexRoute: AppTrilhaIndexRoute,

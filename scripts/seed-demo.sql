@@ -22,7 +22,8 @@
 -- Regras respeitadas:
 --  • pontuação SÓ por `_lancar_pontos` (CLAUDE.md regra 1) — nenhum insert
 --    direto em `pontos_lancamentos`;
---  • PIN gravado como bcrypt por `crypt()`, nunca em texto;
+--  • o PIN de cada colaborador e dado pela trigger da 0008 (fixo e unico) —
+--    este seed nao escolhe PIN; para ve-los: node scripts/seed-demo.mjs lista os 5 primeiros;
 --  • Canal de Respeito recebe denúncias de demonstração SEM hora e SEM
 --    ligação com pessoa (CLAUDE.md regra 3).
 -- =====================================================================
@@ -87,12 +88,12 @@ begin
   end loop;
 
   -- ------------------------------------------------------------------
-  -- 2) Trinta colaboradores fictícios. PIN de demonstração 123456, em
-  --    bcrypt — e já marcado como provisório, como no fluxo real.
+  -- 2) Trinta colaboradores fictícios. O PIN fixo e único nasce na trigger
+  --    `colaboradores_define_pin` (0008); aqui não se grava PIN nenhum.
   -- ------------------------------------------------------------------
   for i in 1..30 loop
     insert into public.colaboradores (
-      empresa_id, setor_id, matricula, nome, turno, pin_hash, pin_provisorio,
+      empresa_id, setor_id, matricula, nome, turno,
       lgpd_aceite_versao, lgpd_aceite_em)
     values (
       v_emp,
@@ -100,8 +101,6 @@ begin
       'D' || lpad(i::text, 3, '0'),
       'Colaborador Demo ' || lpad(i::text, 2, '0'),
       v_turnos[1 + (i % 4)],
-      extensions.crypt('123456', extensions.gen_salt('bf', 8)),
-      true,
       1,
       now() - (i || ' days')::interval)
     returning id into v_colab;
@@ -263,5 +262,5 @@ begin
   raise notice '  eventos:       %', (select count(*) from public.eventos where empresa_id = v_emp);
   raise notice '  check-ins:     %', (select count(*) from public.checkins where empresa_id = v_emp);
   raise notice '  pontos:        %', (select coalesce(sum(pontos), 0) from public.pontos_lancamentos where empresa_id = v_emp);
-  raise notice 'PIN de demonstracao de todos: 123456 (provisorio). Senha das denuncias: demo123.';
+  raise notice 'Cada colaborador tem PIN fixo proprio (veja node scripts/seed-demo.mjs). Senha das denuncias: demo123.';
 end $$;

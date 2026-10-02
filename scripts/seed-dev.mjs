@@ -190,5 +190,5 @@ Seed de demonstração pronto.
   colaborador ...... matrícula ${MATRICULA}
 
 A campanha nasce em RASCUNHO: ative pelo painel ou por tecnico_ativar_campanha.
-Gere o PIN do colaborador com tecnico_gerar_pins.
+O PIN e fixo: veja em Colaboradores > PIN no painel, ou em tecnico_ver_pin.
 `);

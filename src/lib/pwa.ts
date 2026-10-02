@@ -1,46 +1,23 @@
 /**
- * Registro do service worker. Só é chamado nas rotas do aluno (`/aluno/*`) —
- * o painel do professor não instala nada.
+ * Registro do service worker do app do colaborador (docs/TIME_05 §10).
+ *
+ * O escopo é `/app`: o painel do técnico e o Canal de Respeito ficam fora do
+ * service worker. Isso importa no Canal, que não pode ter nada de cache nem de
+ * rastreio por trás (CLAUDE.md regra 3).
  */
-
-const CHAVE_TURMA = "vozes_turma";
-
 export function registrarServiceWorker(): void {
   if (typeof window === "undefined") return;
   if (!("serviceWorker" in navigator)) return;
   // Em desenvolvimento o SW só atrapalharia o hot reload.
   if (import.meta.env.DEV) return;
 
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {
+  const registrar = () => {
+    navigator.serviceWorker.register("/sw.js", { scope: "/app" }).catch(() => {
       /* sem service worker o app segue funcionando normalmente */
     });
-  });
-}
+  };
 
-/** Guarda a turma para o app instalado saber para onde abrir (`start_url` = /aluno). */
-export function lembrarTurma(turmaId: string): void {
-  try {
-    window.localStorage.setItem(CHAVE_TURMA, turmaId);
-  } catch {
-    /* armazenamento bloqueado — o aluno só precisa escanear o QR Code de novo */
-  }
-}
-
-export function turmaLembrada(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return window.localStorage.getItem(CHAVE_TURMA);
-  } catch {
-    return null;
-  }
-}
-
-/** Limpa a turma salva — usado pelo link "Trocar turma" na home do aluno. */
-export function esquecerTurma(): void {
-  try {
-    window.localStorage.removeItem(CHAVE_TURMA);
-  } catch {
-    /* nada a limpar */
-  }
+  // Se a página já terminou de carregar, o evento `load` não vem mais.
+  if (document.readyState === "complete") registrar();
+  else window.addEventListener("load", registrar, { once: true });
 }

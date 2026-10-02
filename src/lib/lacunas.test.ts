@@ -8,6 +8,7 @@ import {
   prioridadeDeTreinamento,
   temasPorPiorDesempenho,
   type LinhaLacuna,
+  contarPorFaixa,
 } from "./lacunas";
 
 describe("faixaDaCelula — as faixas de docs/TIME_09 §1.2", () => {
@@ -158,5 +159,37 @@ describe("temasPorPiorDesempenho", () => {
 
   it("devolve vazio para matriz sem dado", () => {
     expect(temasPorPiorDesempenho(montarMatriz([], ["s1"], ["t1"]))).toEqual([]);
+  });
+});
+
+describe("contarPorFaixa", () => {
+  it("conta as células de cada faixa, inclusive as vazias (insuficiente)", () => {
+    const matriz = montarMatriz(
+      [
+        { setor_id: "s1", tema_id: "t1", tentativas: 20, acertos: 18, taxa_acerto: 0.9 },
+        { setor_id: "s1", tema_id: "t2", tentativas: 20, acertos: 14, taxa_acerto: 0.7 },
+        { setor_id: "s2", tema_id: "t1", tentativas: 20, acertos: 6, taxa_acerto: 0.3 },
+        { setor_id: "s2", tema_id: "t2", tentativas: 3, acertos: 3, taxa_acerto: 1 },
+      ],
+      ["s1", "s2", "s3"],
+      ["t1", "t2"],
+    );
+    // s3 não respondeu nada: 2 células sem dado, somadas à de 3 respostas.
+    expect(contarPorFaixa(matriz)).toEqual({ domina: 1, atencao: 1, lacuna: 1, insuficiente: 3 });
+  });
+
+  it("a soma fecha com o tamanho da matriz", () => {
+    const matriz = montarMatriz([], ["s1", "s2"], ["t1", "t2", "t3"]);
+    const c = contarPorFaixa(matriz);
+    expect(c.domina + c.atencao + c.lacuna + c.insuficiente).toBe(matriz.size);
+  });
+
+  it("matriz vazia dá zero em tudo", () => {
+    expect(contarPorFaixa(new Map())).toEqual({
+      domina: 0,
+      atencao: 0,
+      lacuna: 0,
+      insuficiente: 0,
+    });
   });
 });

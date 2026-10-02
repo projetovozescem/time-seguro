@@ -261,3 +261,43 @@ Etiquetas de local (QR) continuam na aba "Setores e locais".
 Próximo passo sugerido (não feito): fundir Ranking+Certificados em Campanhas,
 Materiais em Configurações e Relatórios em Analytics; e decidir o login por
 e-mail depois de saber se os colaboradores têm e-mail.
+
+## PIN fixo, único e visível ao gestor (02/10/2026) — contradiz o TIME_03 §5
+
+Pedido do usuário: o PIN é um número fixo e único, o colaborador não o troca e o
+gestor o consulta para entregar. O `docs/TIME_03` §5 dizia o contrário ("o PIN
+não fica salvo em lugar nenhum"; troca obrigatória no 1º acesso). O documento
+**não foi alterado**; a decisão vale aqui.
+
+- `colaboradores.pin_fixo` (0008): único por empresa, **fora do GRANT** por
+  coluna (o painel não o lê por SELECT). Só RPC `SECURITY DEFINER` o devolve:
+  `tecnico_ver_pin` e `tecnico_gerar_pins` (admin e técnico; **CIPA não vê**) e
+  `tecnico_reemitir_pin` (**só admin**). Toda consulta e reemissão fica em
+  `acessos_pin`, que só o admin lê.
+- Todo colaborador novo nasce com PIN por trigger (`_colaborador_define_pin`):
+  cadastro manual, importação CSV e aprovação de autocadastro, sem ninguém
+  precisar lembrar de gerar. PIN trivial (111111, 123456...) nunca é sorteado:
+  como o colaborador não escolhe mais, a proteção que a troca dava vem daí.
+- O PIN vazado não expira sozinho, por isso o admin pode **reemitir**: gera
+  outro único, derruba as sessões e desbloqueia. O colaborador continua sem
+  poder trocar.
+- Honesto sobre o risco: o bcrypt de 6 dígitos já era quebrável offline em
+  segundos; o que protege de verdade é o bloqueio (5 erros = 15 min), a mensagem
+  de erro genérica e o RLS — e os três continuam. O que mudou é que um vazamento
+  do banco agora expõe os PINs em claro, e que quem lê `pin_fixo` vira qualquer
+  colaborador. Por isso admin/técnico apenas, com registro.
+- Efeito colateral aceito: **todos os PINs que existiam deixaram de valer**
+  (eram só hash, irrecuperáveis) e os cartões precisam ser reimpressos.
+- `colaborador_trocar_pin` perdeu o EXECUTE; a rota `/app/novo-pin`, a pendência
+  `trocar_pin`, `pinFraco` e o botão "Trocar meu PIN" saíram.
+
+## Autocadastro com aprovação (0009)
+
+Pedido público (`/app/cadastro`) → pendente → aprovado por admin, técnico **ou
+CIPA** → colaborador nasce com PIN. Sem envio de e-mail nesta etapa (precisa de
+conta num serviço como o Resend): o gestor entrega o PIN pelo botão "Copiar
+mensagem pronta". A RPC pública responde igual quando a matrícula ou o e-mail já
+existem (não revela quem trabalha na empresa), limita 30 pedidos/hora e 200
+pendentes, e só aceita o domínio de e-mail que o admin configurou em
+Configurações (sem domínio configurado, qualquer e-mail pode pedir — o aviso
+está na tela).

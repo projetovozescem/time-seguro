@@ -15,7 +15,7 @@ export function useDadosDoInicio(campanhaId: string | null) {
       const [colabs, atividade, relatos, evento] = await Promise.all([
         supabase
           .from("colaboradores")
-          .select("id, ativo, anonimizado, pin_provisorio, bloqueado_ate"),
+          .select("id, ativo, anonimizado, lgpd_aceite_em, bloqueado_ate"),
         campanhaId
           ? supabase
               .from("atividade_diaria")
@@ -40,7 +40,7 @@ export function useDadosDoInicio(campanhaId: string | null) {
           id: string;
           ativo: boolean;
           anonimizado: boolean;
-          pin_provisorio: boolean;
+          lgpd_aceite_em: string | null;
           bloqueado_ate: string | null;
         }[],
         atividade: (atividade.data ?? []) as { colaborador_id: string; dia: string }[],

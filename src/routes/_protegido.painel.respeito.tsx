@@ -5,6 +5,7 @@ import { Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { usePerfil } from "@/hooks/usePerfil";
@@ -146,125 +147,135 @@ function Respeito() {
         </p>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[22rem_1fr]">
-        <ul className="flex flex-col gap-2">
-          {denuncias.map((d) => (
-            <li key={d.id}>
-              <button
-                type="button"
-                onClick={() => setAberta(d.id)}
-                aria-pressed={aberta === d.id}
-                className={`w-full rounded-xl border bg-superficie p-3 text-left ${
-                  aberta === d.id ? "border-respeito" : "border-borda"
-                }`}
-              >
-                <span className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-sm font-bold text-texto">{d.protocolo}</span>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${corDoStatusDenuncia(d.status)}`}
-                  >
-                    {rotuloDoStatusDenuncia(d.status)}
-                  </span>
-                </span>
-                <span className="mt-1 block text-sm text-texto">
-                  {rotuloDaCategoriaDenuncia(d.categoria)}
-                </span>
-                <span className="mt-0.5 block text-xs text-texto-suave">
-                  Recebida em {formatarData(d.recebida_em)}
-                  {d.quer_retorno ? " · quer retorno" : " · sem retorno"}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        {selecionada && (
-          <section className="flex flex-col gap-4 rounded-2xl border border-borda bg-superficie p-5">
-            <div>
-              <p className="font-mono text-lg font-bold text-texto">{selecionada.protocolo}</p>
-              <p className="text-sm text-texto-suave">
-                {rotuloDaCategoriaDenuncia(selecionada.categoria)} · recebida em{" "}
-                {formatarData(selecionada.recebida_em)}
-              </p>
-            </div>
-
-            <p className="whitespace-pre-line rounded-xl bg-fundo p-4 text-sm text-texto">
-              {selecionada.descricao}
-            </p>
-
-            <dl className="grid gap-1 text-sm text-texto-suave">
-              <div className="flex gap-2">
-                <dt>Local:</dt>
-                <dd className="text-texto">{selecionada.local_aproximado ?? "não informado"}</dd>
-              </div>
-              <div className="flex gap-2">
-                <dt>Período:</dt>
-                <dd className="text-texto">{selecionada.periodo_aproximado ?? "não informado"}</dd>
-              </div>
-            </dl>
-
-            {mensagens.length > 0 && (
-              <ol className="flex flex-col gap-2">
-                {mensagens.map((m) => (
-                  <li
-                    key={m.id}
-                    className={`rounded-xl p-3 text-sm ${
-                      m.autor === "comite" ? "bg-respeito/10" : "bg-fundo"
-                    }`}
-                  >
-                    <p className="text-xs font-semibold text-texto-suave">
-                      {m.autor === "comite" ? "Comitê" : "Denunciante"} ·{" "}
-                      {formatarData(m.enviada_em)}
-                    </p>
-                    <p className="mt-1 text-texto">{m.mensagem}</p>
-                  </li>
-                ))}
-              </ol>
-            )}
-
-            {selecionada.quer_retorno ? (
-              <div className="flex flex-col gap-3 border-t border-borda pt-4">
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="resposta">Resposta ao denunciante</Label>
-                  <Textarea
-                    id="resposta"
-                    rows={3}
-                    value={resposta}
-                    onChange={(e) => setResposta(e.target.value)}
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="status-denuncia">Status</Label>
-                  <select
-                    id="status-denuncia"
-                    value={novoStatus}
-                    onChange={(e) => setNovoStatus(e.target.value as StatusDenuncia)}
-                    className="h-10 rounded-md border border-input bg-transparent px-3 text-sm"
-                  >
-                    {STATUS_DO_COMITE.map((s) => (
-                      <option key={s} value={s}>
-                        {rotuloDoStatusDenuncia(s)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <Button
-                  onClick={responder}
-                  disabled={!resposta.trim() || enviando}
-                  className="min-h-12 self-start bg-respeito hover:bg-respeito/90"
+      {/* Grade de cards (era uma lista estreita ao lado do detalhe). */}
+      <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {denuncias.map((d) => (
+          <li key={d.id}>
+            <button
+              type="button"
+              onClick={() => setAberta(d.id)}
+              className={`flex h-full w-full flex-col gap-2 rounded-2xl border border-t-4 border-borda bg-superficie p-4 text-left transition-shadow hover:shadow-md ${
+                d.status === "recebida" ? "border-t-respeito" : "border-t-borda"
+              }`}
+            >
+              <span className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-mono text-sm font-bold text-texto">{d.protocolo}</span>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${corDoStatusDenuncia(d.status)}`}
                 >
-                  {enviando && <Loader2 className="size-4 animate-spin" aria-hidden />}
-                  Enviar resposta
-                </Button>
+                  {rotuloDoStatusDenuncia(d.status)}
+                </span>
+              </span>
+              <span className="text-sm font-semibold text-respeito">
+                {rotuloDaCategoriaDenuncia(d.categoria)}
+              </span>
+              <span className="line-clamp-3 text-sm text-texto">{d.descricao}</span>
+              <span className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-2 text-xs text-texto-suave">
+                <span>Recebida em {formatarData(d.recebida_em)}</span>
+                <span className={d.quer_retorno ? "font-semibold text-respeito" : ""}>
+                  {d.quer_retorno ? "quer retorno" : "sem retorno"}
+                </span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <Dialog open={selecionada !== null} onOpenChange={(aberto) => !aberto && setAberta(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="sr-only">Denúncia {selecionada?.protocolo}</DialogTitle>
+          </DialogHeader>
+          {selecionada && (
+            <section className="flex flex-col gap-4">
+              <div>
+                <p className="font-mono text-lg font-bold text-texto">{selecionada.protocolo}</p>
+                <p className="text-sm text-texto-suave">
+                  {rotuloDaCategoriaDenuncia(selecionada.categoria)} · recebida em{" "}
+                  {formatarData(selecionada.recebida_em)}
+                </p>
               </div>
-            ) : (
-              <p className="border-t border-borda pt-4 text-sm text-texto-suave">
-                Esta pessoa não pediu retorno. Registre o andamento internamente.
+
+              <p className="whitespace-pre-line rounded-xl bg-fundo p-4 text-sm text-texto">
+                {selecionada.descricao}
               </p>
-            )}
-          </section>
-        )}
-      </div>
+
+              <dl className="grid gap-1 text-sm text-texto-suave">
+                <div className="flex gap-2">
+                  <dt>Local:</dt>
+                  <dd className="text-texto">{selecionada.local_aproximado ?? "não informado"}</dd>
+                </div>
+                <div className="flex gap-2">
+                  <dt>Período:</dt>
+                  <dd className="text-texto">
+                    {selecionada.periodo_aproximado ?? "não informado"}
+                  </dd>
+                </div>
+              </dl>
+
+              {mensagens.length > 0 && (
+                <ol className="flex flex-col gap-2">
+                  {mensagens.map((m) => (
+                    <li
+                      key={m.id}
+                      className={`rounded-xl p-3 text-sm ${
+                        m.autor === "comite" ? "bg-respeito/10" : "bg-fundo"
+                      }`}
+                    >
+                      <p className="text-xs font-semibold text-texto-suave">
+                        {m.autor === "comite" ? "Comitê" : "Denunciante"} ·{" "}
+                        {formatarData(m.enviada_em)}
+                      </p>
+                      <p className="mt-1 text-texto">{m.mensagem}</p>
+                    </li>
+                  ))}
+                </ol>
+              )}
+
+              {selecionada.quer_retorno ? (
+                <div className="flex flex-col gap-3 border-t border-borda pt-4">
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="resposta">Resposta ao denunciante</Label>
+                    <Textarea
+                      id="resposta"
+                      rows={3}
+                      value={resposta}
+                      onChange={(e) => setResposta(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="status-denuncia">Status</Label>
+                    <select
+                      id="status-denuncia"
+                      value={novoStatus}
+                      onChange={(e) => setNovoStatus(e.target.value as StatusDenuncia)}
+                      className="h-10 rounded-md border border-input bg-transparent px-3 text-sm"
+                    >
+                      {STATUS_DO_COMITE.map((s) => (
+                        <option key={s} value={s}>
+                          {rotuloDoStatusDenuncia(s)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <Button
+                    onClick={responder}
+                    disabled={!resposta.trim() || enviando}
+                    className="min-h-12 self-start bg-respeito hover:bg-respeito/90"
+                  >
+                    {enviando && <Loader2 className="size-4 animate-spin" aria-hidden />}
+                    Enviar resposta
+                  </Button>
+                </div>
+              ) : (
+                <p className="border-t border-borda pt-4 text-sm text-texto-suave">
+                  Esta pessoa não pediu retorno. Registre o andamento internamente.
+                </p>
+              )}
+            </section>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

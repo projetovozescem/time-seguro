@@ -114,3 +114,32 @@ parte do `verify` se houver Chrome na maquina.
 
 Dado sujo: `test:fluxo` deixa colaboradores "TesteFluxo..." na empresa `piloto`
 a cada execucao (68 ate agora). Nao apaga por falta de confirmacao do usuario.
+
+## O que a sessão de 02/10/2026 revelou (e que nenhum gate pegava)
+
+1. **O login do colaborador nunca funcionou pela interface.** `app.entrar.tsx`
+   chamava `colaborador_login` por `rpcApp` com `p_codigo`, e o `rpcApp`
+   acrescenta `p_token` a toda chamada; a função recebe `p_empresa_codigo` e não
+   tem token. `tsc`, vitest, RLS e fluxo passaram o tempo todo porque todos
+   chamavam a RPC direto, com os nomes certos, e `rpcApp`/`rpcPublica` recebem
+   `args` como `Record<string, unknown>` com `as never`. Conserto: login por
+   `rpcPublica` + `src/lib/rpc-contratos.test.ts`, que confere o nome de todo
+   parâmetro de toda chamada das telas contra `database.types.ts`. Rodado antes
+   do conserto, o teste reprovou exatamente nesse ponto e em nenhum outro.
+2. **Eu havia dito que o PWA "já funciona".** Não funcionava: manifest do
+   V.O.Z.E.S. (`/aluno`), ícones com o coração roxo, `BotaoInstalar` e
+   `registrarServiceWorker()` nunca chamados e nenhuma rota `/app`. Regra: antes
+   de afirmar que algo funciona, abrir e ver. Agora há `npm run test:pwa`.
+3. **Funções novas nascem executáveis por `anon`** quando criadas por esta
+   conexão (o `alter default privileges` da 0005 não a alcança). Pego pelo
+   `test:rls`; corrigido na 0010, que também fecha o padrão para as próximas.
+4. **Tabela nova nasce com GRANT amplo para anon/authenticated** no Supabase:
+   `revoke all` explícito em toda tabela nova (feito em `acessos_pin` e
+   `solicitacoes_cadastro`).
+5. **Defeito de leitura de PostgREST:** `.maybeSingle()` falha com 2 linhas;
+   `usePerfil` filtra por `user_id`. O cache do `QueryClient` não era limpo ao
+   sair: agora `queryClient.clear()` em `sair()`.
+6. Dois `useSetores` com a MESMA chave de cache e colunas diferentes; resta um.
+
+**Lição única:** `npm run test:e2e` (Chrome headless, pela interface) é o único
+teste que pegou 1, 2 e 5. Rodar sempre que mexer em tela ou em fluxo de acesso.

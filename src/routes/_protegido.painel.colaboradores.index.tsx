@@ -39,6 +39,9 @@ import { Switch } from "@/components/ui/switch";
 import { usePerfil } from "@/hooks/usePerfil";
 import { useSetores, type Setor } from "@/hooks/useEventos";
 import { SetoresELocais } from "@/components/painel/SetoresELocais";
+import { DialogoDoPin } from "@/components/painel/DialogoDoPin";
+import { PendentesDeCadastro } from "@/components/painel/PendentesDeCadastro";
+import { usePendentes } from "@/hooks/usePendentes";
 import { corDoTexto } from "@/lib/jogos/cores";
 import {
   MODELO_CSV_COLABORADORES,
@@ -62,7 +65,7 @@ type Colaborador = {
   ativo: boolean;
   anonimizado: boolean;
   bloqueado_ate: string | null;
-  pin_provisorio: boolean;
+  lgpd_aceite_em: string | null;
 };
 
 function useColaboradores() {
@@ -72,7 +75,7 @@ function useColaboradores() {
       const { data, error } = await supabase
         .from("colaboradores")
         .select(
-          "id, matricula, nome, turno, setor_id, ativo, anonimizado, bloqueado_ate, pin_provisorio",
+          "id, matricula, nome, turno, setor_id, ativo, anonimizado, bloqueado_ate, lgpd_aceite_em",
         )
         .order("nome");
       if (error) throw error;
@@ -477,7 +480,11 @@ function Colaboradores() {
   const { data: setores = [] } = useSetores();
 
   // Uma tela so para pessoas e setores: duas abas, sem outro item no menu.
-  const [aba, setAba] = useState<"pessoas" | "setores">(abaDaUrl ?? "pessoas");
+  const [aba, setAba] = useState<"pessoas" | "setores" | "pendentes">(abaDaUrl ?? "pessoas");
+  const { data: pendentes = [] } = usePendentes();
+  const [verPin, setVerPin] = useState<{ id: string; nome: string; matricula: string } | null>(
+    null,
+  );
 
   const [busca, setBusca] = useState("");
   const [setorFiltro, setSetorFiltro] = useState("");
@@ -510,7 +517,7 @@ function Colaboradores() {
     });
   }, [colaboradores, busca, setorFiltro, verInativos]);
 
-  /** Só faz sentido gerar PIN de quem está ativo — a RPC ignora os demais. */
+  /** Só quem está ativo tem cartão — a RPC ignora os demais. */
   const marcaveis = visiveis.filter((c) => c.ativo && !c.anonimizado);
   const todosMarcados = marcaveis.length > 0 && marcaveis.every((c) => marcados.has(c.id));
 
@@ -536,7 +543,7 @@ function Colaboradores() {
     setGerando(false);
 
     if (error || !data) {
-      toast.error("Não foi possível gerar os PINs.");
+      toast.error("Não foi possível preparar os cartões.");
       return;
     }
     const cartoes = data as unknown as CartaoDeAcesso[];
@@ -544,8 +551,8 @@ function Colaboradores() {
       toast.error("Nenhum colaborador ativo na seleção.");
       return;
     }
-    // O PIN puro existe só nesta resposta: a página de impressão o recebe em
-    // memória e o banco guarda apenas o hash.
+    // O PIN agora é fixo e a RPC só o devolve (cada consulta fica registrada).
+    // A página de impressão o recebe em memória, não pela URL nem pelo disco.
     guardarCartoes(cartoes);
     setMarcados(new Set());
     await queryClient.invalidateQueries({ queryKey: ["colaboradores"] });
@@ -585,7 +592,7 @@ function Colaboradores() {
           <h1 className="font-display text-2xl font-extrabold text-marinho">Colaboradores</h1>
           <p className="mt-1 text-sm text-texto-suave">
             {colaboradores.filter((c) => c.ativo).length} ativo(s) em {setores.length} setor(es). O
-            PIN aparece uma única vez, na hora de gerar os cartões.
+            PIN é fixo: use “PIN” na linha da pessoa ou imprima os cartões.
           </p>
         </div>
         {aba === "pessoas" && podeEditar && (
@@ -606,6 +613,7 @@ function Colaboradores() {
         {(
           [
             ["pessoas", `👷 Pessoas (${colaboradores.filter((c) => c.ativo).length})`],
+            ["pendentes", `📝 Pendentes (${pendentes.length})`],
             ["setores", `🏭 Setores e locais (${setores.length})`],
           ] as const
         ).map(([id, rotulo]) => (
@@ -625,6 +633,18 @@ function Colaboradores() {
       </div>
 
       {aba === "setores" && <SetoresELocais pessoasPorSetor={pessoasPorSetor} />}
+
+      {aba === "pendentes" && (
+        <PendentesDeCadastro
+          setores={setores}
+          {...(podeEditar
+            ? {
+                aoAprovar: (id: string, nome: string, matricula: string) =>
+                  setVerPin({ id, nome, matricula }),
+              }
+            : {})}
+        />
+      )}
 
       {aba === "pessoas" && (
         <>
@@ -669,7 +689,7 @@ function Colaboradores() {
                 ) : (
                   <KeyRound className="size-4" aria-hidden />
                 )}
-                Gerar PIN {marcados.size > 0 && `(${marcados.size})`}
+                Imprimir cartões {marcados.size > 0 && `(${marcados.size})`}
               </Button>
             )}
           </div>
@@ -742,12 +762,12 @@ function Colaboradores() {
                               bloqueado até {formatarHora(c.bloqueado_ate!)}
                             </span>
                           )}
-                          {c.ativo && c.pin_provisorio && (
+                          {c.ativo && !c.lgpd_aceite_em && (
                             <span className="rounded-full bg-amarelo/20 px-2 py-0.5 text-xs font-semibold text-marinho">
-                              PIN provisório
+                              aguardando 1º acesso
                             </span>
                           )}
-                          {c.ativo && !c.pin_provisorio && !estaBloqueado(c.bloqueado_ate) && (
+                          {c.ativo && c.lgpd_aceite_em && !estaBloqueado(c.bloqueado_ate) && (
                             <span className="text-xs text-texto-suave">em uso</span>
                           )}
                         </div>
@@ -762,6 +782,19 @@ function Colaboradores() {
                               title="Desbloquear"
                             >
                               <LockOpen className="size-4" aria-hidden />
+                            </Button>
+                          )}
+                          {podeEditar && c.ativo && !c.anonimizado && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                setVerPin({ id: c.id, nome: c.nome, matricula: c.matricula })
+                              }
+                              title="Ver PIN"
+                            >
+                              <KeyRound className="size-4" aria-hidden />
+                              PIN
                             </Button>
                           )}
                           {podeEditar && !c.anonimizado && (
@@ -788,6 +821,15 @@ function Colaboradores() {
             </div>
           )}
         </>
+      )}
+
+      {verPin && (
+        <DialogoDoPin
+          colaborador={verPin}
+          empresaCodigo={perfil?.empresa.codigo ?? ""}
+          podeReemitir={perfil?.papel === "admin"}
+          aoFechar={() => setVerPin(null)}
+        />
       )}
 
       {editando && (
@@ -822,12 +864,12 @@ function Colaboradores() {
 }
 
 /** `?aba=setores` abre direto a aba de setores e locais. */
-type Busca = { aba?: "setores" };
+type Busca = { aba?: "setores" | "pendentes" };
 
 export const Route = createFileRoute("/_protegido/painel/colaboradores/")({
   validateSearch: (bruto: Record<string, unknown>): Busca => {
     const busca: Busca = {};
-    if (bruto["aba"] === "setores") busca.aba = "setores";
+    if (bruto["aba"] === "setores" || bruto["aba"] === "pendentes") busca.aba = bruto["aba"];
     return busca;
   },
   component: Colaboradores,

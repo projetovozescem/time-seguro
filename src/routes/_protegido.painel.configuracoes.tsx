@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { usePerfil } from "@/hooks/usePerfil";
 import { formatarData } from "@/lib/datas";
+import { dominiosDaConfig, normalizarDominios } from "@/lib/cadastro";
 
 type Empresa = {
   id: string;
@@ -28,6 +29,8 @@ type Empresa = {
   logo_url: string | null;
   termo_lgpd_versao: number;
   termo_lgpd_texto: string;
+  /** JSON livre da empresa; aqui so `dominios_email` interessa. */
+  config: unknown;
 };
 
 type UsuarioDoPainel = {
@@ -53,7 +56,7 @@ function useEmpresa() {
     queryFn: async (): Promise<Empresa | null> => {
       const { data, error } = await supabase
         .from("empresas")
-        .select("id, nome, codigo, logo_url, termo_lgpd_versao, termo_lgpd_texto")
+        .select("id, nome, codigo, logo_url, termo_lgpd_versao, termo_lgpd_texto, config")
         .maybeSingle();
       if (error) throw error;
       return (data ?? null) as Empresa | null;
@@ -222,6 +225,90 @@ function DadosDaEmpresa({ empresa }: { empresa: Empresa }) {
   );
 }
 
+/**
+ * Domínios de e-mail aceitos no autocadastro (migration 0009).
+ *
+ * Sem nenhum domínio, o formulário público aceita qualquer e-mail — por isso o
+ * aviso. A lista vai para `empresas.config.dominios_email`, preservando as
+ * outras chaves do `config` (outros ajustes da empresa moram ali).
+ */
+function CadastroPorEmail({ empresa }: { empresa: Empresa }) {
+  const queryClient = useQueryClient();
+  const atuais = dominiosDaConfig(empresa.config);
+  const [texto, setTexto] = useState(atuais.join(", "));
+  const [salvando, setSalvando] = useState(false);
+
+  // A consulta chega depois da primeira renderizacao.
+  useEffect(() => setTexto(atuais.join(", ")), [atuais.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const { dominios, invalidos } = normalizarDominios(texto);
+  const mudou = dominios.join(",") !== atuais.join(",");
+
+  async function salvar() {
+    if (invalidos.length > 0) return;
+    setSalvando(true);
+    const base =
+      empresa.config && typeof empresa.config === "object" && !Array.isArray(empresa.config)
+        ? (empresa.config as Record<string, unknown>)
+        : {};
+    const { error } = await supabase
+      .from("empresas")
+      .update({ config: { ...base, dominios_email: dominios } as never })
+      .eq("id", empresa.id);
+    setSalvando(false);
+
+    if (error) {
+      toast.error("Não foi possível salvar. Só o administrador altera a empresa.");
+      return;
+    }
+    toast.success(
+      dominios.length > 0
+        ? "Domínios salvos. O cadastro só aceita e-mail deles."
+        : "Domínios removidos. O cadastro aceita qualquer e-mail.",
+    );
+    await queryClient.invalidateQueries({ queryKey: ["empresa"] });
+  }
+
+  return (
+    <section className="flex flex-col gap-3 rounded-2xl border border-borda bg-superficie p-4">
+      <h2 className="font-display text-lg font-bold text-marinho">Cadastro pelo app</h2>
+      <p className="text-sm text-texto-suave">
+        O colaborador pede o próprio cadastro em <code>/app/cadastro</code> e fica pendente até
+        alguém da SST, da CIPA ou o administrador aprovar. Informe o(s) domínio(s) do e-mail da
+        empresa para aceitar só e-mail daqui.
+      </p>
+
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="dominios">Domínios aceitos</Label>
+        <Input
+          id="dominios"
+          value={texto}
+          onChange={(e) => setTexto(e.target.value)}
+          placeholder="empresa.com.br, grupo.com.br"
+        />
+        {invalidos.length > 0 && (
+          <p className="text-xs text-vermelho">
+            Não parece um domínio: {invalidos.join(", ")}. Use só o que vem depois do @.
+          </p>
+        )}
+        {dominios.length === 0 && invalidos.length === 0 && (
+          <p className="text-xs text-texto-suave">
+            ⚠️ Sem domínio, qualquer e-mail pode pedir cadastro. Todo pedido ainda passa por
+            aprovação.
+          </p>
+        )}
+      </div>
+
+      <div>
+        <Button onClick={salvar} disabled={!mudou || invalidos.length > 0 || salvando}>
+          {salvando && <Loader2 className="size-4 animate-spin" aria-hidden />}
+          Salvar domínios
+        </Button>
+      </div>
+    </section>
+  );
+}
+
 function TermoLgpd({ empresa }: { empresa: Empresa }) {
   const queryClient = useQueryClient();
   const [texto, setTexto] = useState(empresa.termo_lgpd_texto);
@@ -383,6 +470,7 @@ function Configuracoes() {
       {empresa && (
         <>
           <DadosDaEmpresa empresa={empresa} />
+          <CadastroPorEmail empresa={empresa} />
           <TermoLgpd empresa={empresa} />
           <UsuariosDoPainel />
         </>

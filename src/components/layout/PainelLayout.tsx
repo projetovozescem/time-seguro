@@ -1,4 +1,5 @@
 import { Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { LogOut, Menu } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +29,7 @@ const MENU = [
     emoji: "👷",
     rotulo: "Colaboradores e setores",
     rota: "/painel/colaboradores" as const,
-    minimo: "tecnico" as const,
+    minimo: "cipa" as const,
   },
   { emoji: "📅", rotulo: "Eventos", rota: "/painel/eventos" as const, minimo: "cipa" as const },
   { emoji: "📢", rotulo: "Relatos", rota: "/painel/relatos" as const, minimo: "cipa" as const },
@@ -71,6 +72,7 @@ const MENU = [
 function Navegacao({ aoNavegar }: { aoNavegar?: () => void }) {
   const { data: perfil } = usePerfil();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const visiveis = MENU.filter((item) => {
     if (!podeAcessar(perfil?.papel, item.minimo)) return false;
@@ -80,6 +82,9 @@ function Navegacao({ aoNavegar }: { aoNavegar?: () => void }) {
 
   async function sair() {
     await supabase.auth.signOut();
+    // O perfil e tudo o mais fica em cache por usuario: sem limpar, quem entra em
+    // seguida (admin e CIPA no mesmo computador) veria o menu do anterior.
+    queryClient.clear();
     aoNavegar?.();
     await navigate({ to: "/painel/login", replace: true });
   }

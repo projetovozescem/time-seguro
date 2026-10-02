@@ -82,14 +82,19 @@ describe("relatos", () => {
 
 describe("alertasDeAcesso", () => {
   const agora = new Date("2026-03-10T12:00:00Z");
-  const c = { ativo: true, anonimizado: false, pin_provisorio: false, bloqueado_ate: null };
-  it("conta bloqueados com bloqueio vigente e quem não trocou o PIN", () => {
+  const c = {
+    ativo: true,
+    anonimizado: false,
+    lgpd_aceite_em: "2026-03-01T08:00:00Z" as string | null,
+    bloqueado_ate: null,
+  };
+  it("conta bloqueados com bloqueio vigente e quem ainda não fez o primeiro acesso", () => {
     const r = alertasDeAcesso(
       [
         { ...c, bloqueado_ate: "2026-03-10T12:10:00Z" },
         { ...c, bloqueado_ate: "2026-03-10T11:00:00Z" }, // já expirou
-        { ...c, pin_provisorio: true },
-        { ...c, ativo: false, pin_provisorio: true },
+        { ...c, lgpd_aceite_em: null },
+        { ...c, ativo: false, lgpd_aceite_em: null },
       ],
       agora,
     );

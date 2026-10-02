@@ -1,8 +1,8 @@
 /*
- * Service worker da campanha V.O.Z.E.S.
+ * Service worker do app do colaborador (T.I.M.E. Seguro).
  *
  * Propositalmente mínimo e conservador: um service worker agressivo demais
- * deixaria alunos presos numa versão quebrada do app. As regras são:
+ * deixaria colaboradores presos numa versão quebrada do app. As regras são:
  *   - só mexe em requisições GET da mesma origem (as chamadas ao Supabase,
  *     que são de outra origem, nunca passam pelo cache);
  *   - navegações: rede primeiro, cache como rede de segurança offline;
@@ -12,7 +12,7 @@
  * Suba a VERSAO para descartar o cache antigo num próximo deploy.
  */
 
-const VERSAO = "vozes-v1";
+const VERSAO = "time-v1";
 const CACHE = `${VERSAO}-cache`;
 
 self.addEventListener("install", (evento) => {
@@ -59,9 +59,7 @@ self.addEventListener("fetch", (evento) => {
         } catch {
           // Offline: devolve a última versão vista desta página, ou a entrada do app.
           const cache = await caches.open(CACHE);
-          return (
-            (await cache.match(requisicao)) ?? (await cache.match("/aluno")) ?? Response.error()
-          );
+          return (await cache.match(requisicao)) ?? (await cache.match("/app")) ?? Response.error();
         }
       })(),
     );

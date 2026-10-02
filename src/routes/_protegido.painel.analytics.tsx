@@ -25,6 +25,7 @@ import {
   MINIMO_RESPOSTAS,
   montarMatriz,
   percentual,
+  contarPorFaixa,
   prioridadeDeTreinamento,
   type Celula,
 } from "@/lib/lacunas";
@@ -32,6 +33,7 @@ import { baixarCsv, montarCsv } from "@/lib/eventos";
 import { LETRAS } from "@/lib/importacao/tipos";
 import { ROTULO_DO_STATUS } from "@/lib/campanha";
 import { AbaEngajamento, AbaRelatos } from "@/components/painel/AbasAnalytics";
+import { LegendaDasFaixas } from "@/components/painel/LegendaDasFaixas";
 
 type Aba = "geral" | "lacunas" | "perguntas" | "relatos" | "engajamento";
 
@@ -148,6 +150,7 @@ function Analytics() {
   );
 
   const prioridades = useMemo(() => prioridadeDeTreinamento(matriz), [matriz]);
+  const contagemPorFaixa = useMemo(() => contarPorFaixa(matriz), [matriz]);
 
   function exportarLacunas() {
     baixarCsv(
@@ -252,14 +255,7 @@ function Analytics() {
 
       {aba === "lacunas" && (
         <>
-          <ul className="flex flex-wrap gap-3">
-            {(["domina", "atencao", "lacuna", "insuficiente"] as const).map((f) => (
-              <li key={f} className="flex items-center gap-2 text-sm">
-                <span className={`size-5 rounded ${FAIXAS[f].cor}`} aria-hidden />
-                {FAIXAS[f].rotulo} — {FAIXAS[f].leitura}
-              </li>
-            ))}
-          </ul>
+          <LegendaDasFaixas contagem={contagemPorFaixa} />
 
           {carregandoLacunas && <p className="text-sm text-texto-suave">Carregando…</p>}
 

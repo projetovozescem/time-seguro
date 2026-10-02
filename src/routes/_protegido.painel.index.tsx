@@ -261,7 +261,7 @@ function PainelInicio() {
               <li>🔒 {alertas.bloqueados} colaborador(es) bloqueado(s) por PIN errado.</li>
             )}
             {alertas.semPrimeiroAcesso > 0 && (
-              <li>🆕 {alertas.semPrimeiroAcesso} ainda com PIN provisório (nunca entraram).</li>
+              <li>🆕 {alertas.semPrimeiroAcesso} ainda não fizeram o primeiro acesso.</li>
             )}
           </ul>
         </section>

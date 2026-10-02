@@ -65,15 +65,14 @@ describe("mensagem()", () => {
 });
 
 describe("pendências de login (docs/TIME_03 §3)", () => {
-  it("reconhece só as duas pendências que desviam de tela", () => {
-    expect(ehPendencia("trocar_pin")).toBe(true);
+  it("reconhece só a pendência que desvia de tela (o PIN é fixo: não há troca)", () => {
+    expect(ehPendencia("trocar_pin")).toBe(false);
     expect(ehPendencia("aceitar_lgpd")).toBe(true);
     expect(ehPendencia("credenciais_invalidas")).toBe(false);
     expect(ehPendencia(null)).toBe(false);
   });
 
   it("mapeia cada pendência para a rota do documento", () => {
-    expect(PENDENCIAS.trocar_pin).toBe("/app/novo-pin");
     expect(PENDENCIAS.aceitar_lgpd).toBe("/app/termo");
   });
 });

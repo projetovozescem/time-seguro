@@ -139,5 +139,15 @@ for (const l of lacunas) {
   console.log(`  ${l.setor.padEnd(14)} ${l.taxa_acerto}% em ${l.tentativas} respostas`);
 }
 
-console.log("\nPIN de demonstração de todos: 123456 (provisório). Senha das denúncias: demo123.");
+// O PIN agora é fixo e único por colaborador (0008): não há mais um PIN
+// "de todos". Mostra alguns para a demonstração poder entrar no app.
+const exemplos = await consultar(`
+  select c.matricula, c.nome, c.pin_fixo
+    from public.colaboradores c
+   where c.empresa_id = (select id from public.empresas where codigo = ${lit(CODIGO)})
+   order by c.matricula limit 5
+`);
+console.log("\nPara entrar no app (código da empresa: demo):");
+for (const c of exemplos) console.log(`  matrícula ${c.matricula}  PIN ${c.pin_fixo}  — ${c.nome}`);
+console.log("Senha das denúncias de demonstração: demo123.");
 console.log("Lembre: isto é DEMONSTRAÇÃO DO SISTEMA, nunca resultado de uso real.");

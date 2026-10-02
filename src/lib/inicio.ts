@@ -81,15 +81,19 @@ export function gravesParados(
 type Colab = {
   ativo: boolean;
   anonimizado: boolean;
-  pin_provisorio: boolean;
+  lgpd_aceite_em: string | null;
   bloqueado_ate: string | null;
 };
 
-/** Alertas de acesso: quem está bloqueado por PIN e quem nunca entrou. */
+/**
+ * Alertas de acesso: quem está bloqueado por PIN e quem nunca entrou. "Nunca
+ * entrou" é não ter aceito o termo LGPD: o PIN é fixo e já nasce pronto, então
+ * `pin_provisorio` deixou de dizer alguma coisa.
+ */
 export function alertasDeAcesso(colabs: readonly Colab[], agora = new Date()) {
   const ativos = colabs.filter((c) => c.ativo && !c.anonimizado);
   return {
     bloqueados: ativos.filter((c) => c.bloqueado_ate && new Date(c.bloqueado_ate) > agora).length,
-    semPrimeiroAcesso: ativos.filter((c) => c.pin_provisorio).length,
+    semPrimeiroAcesso: ativos.filter((c) => !c.lgpd_aceite_em).length,
   };
 }

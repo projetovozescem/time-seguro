@@ -97,3 +97,19 @@ a `respostas × 10 + 100`. Isso é do SQL de `docs/TIME_02`, que não pode ser
 editado — a regra de 1º/2º/3º lugar e a escada de 2 a 40 vivem no cliente.
 **Suposição:** aceitar como está e cobrir com teste de fluxo (o teto reprova
 999999 → 140). Mover a regra para o SQL seria migration nova.
+
+## 12. Textos novos de mensagens.ts (autocadastro e PIN fixo)
+
+`nome_invalido`, `matricula_invalida`, `email_invalido`, `email_fora_do_dominio`,
+`muitas_solicitacoes`, `solicitacao_nao_encontrada`, `matricula_ja_cadastrada`,
+`colaborador_nao_encontrado`, `pin_indisponivel` foram escritos por mim, em
+linguagem de chão de fábrica, e não vêm do `docs/TIME_05` §9. Pendente de
+revisão do dono do produto (mesma situação do item 8).
+
+## 13. Domínio de e-mail vazio deixa o cadastro aberto
+
+Sem `empresas.config.dominios_email`, qualquer e-mail pode pedir cadastro. Todo
+pedido ainda passa por aprovação humana e há teto de 30/hora e 200 pendentes.
+**Suposição:** não obrigar a configurar o domínio (a empresa pode usar e-mail
+pessoal no piloto) e avisar na tela de Configurações. Se preferir, é uma linha
+no SQL para recusar enquanto não houver domínio.

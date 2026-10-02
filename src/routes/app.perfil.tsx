@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Award, FileText, KeyRound, LogOut, ScrollText } from "lucide-react";
+import { Award, FileText, LogOut, ScrollText } from "lucide-react";
 import { AlunoLayout } from "@/components/layout/AlunoLayout";
 import { Button } from "@/components/ui/button";
 import { rpcApp } from "@/lib/rpc";
@@ -239,12 +239,6 @@ function PerfilColaborador() {
         </section>
 
         <div className="flex flex-col gap-2">
-          <Button variant="outline" asChild className="min-h-12 justify-start">
-            <Link to="/app/novo-pin">
-              <KeyRound className="size-4" aria-hidden />
-              Trocar meu PIN
-            </Link>
-          </Button>
           <Button variant="outline" asChild className="min-h-12 justify-start">
             <Link to="/app/termo">
               <ScrollText className="size-4" aria-hidden />

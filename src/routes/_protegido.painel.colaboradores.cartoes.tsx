@@ -21,16 +21,14 @@ function Cartao({ cartao, empresa }: { cartao: CartaoDeAcesso; empresa: string }
         {cartao.setor && ` · ${cartao.setor}`}
       </p>
       <div className="mt-1 rounded-lg bg-marinho px-3 py-2 text-center">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-amarelo">
-          Seu PIN provisório
-        </p>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-amarelo">Seu PIN</p>
         <p className="font-mono text-2xl font-extrabold tracking-[0.3em] text-white">
           {cartao.pin}
         </p>
       </div>
       <p className="text-[10px] leading-snug text-texto-suave">
-        Entre no app com a matrícula e este PIN. No primeiro acesso você escolhe um PIN só seu. Não
-        mostre este papel para ninguém.
+        Entre no app com a matrícula e este PIN. O número é só seu e não muda. Não mostre este papel
+        para ninguém.
       </p>
     </div>
   );
@@ -57,8 +55,8 @@ function Cartoes() {
       <div className="flex flex-col items-center gap-4 rounded-2xl border border-borda bg-superficie p-10 text-center">
         <p className="font-display text-lg font-bold text-marinho">Nada para imprimir</p>
         <p className="max-w-md text-sm text-texto-suave">
-          O PIN aparece uma única vez, logo depois de gerado — não fica guardado. Volte, marque os
-          colaboradores e gere os PINs de novo.
+          Os cartões só existem logo depois de você pedi-los, para o PIN não ficar no computador.
+          Volte, marque os colaboradores e peça de novo: o PIN é o mesmo de sempre.
         </p>
         <Button onClick={() => void navigate({ to: "/painel/colaboradores" })}>
           <ArrowLeft className="size-4" aria-hidden />
@@ -75,7 +73,7 @@ function Cartoes() {
           <h1 className="font-display text-2xl font-extrabold text-marinho">Cartões de acesso</h1>
           <p className="mt-1 text-sm text-texto-suave">
             {cartoes.length} cartão(ões) em {folhas.length} folha(s). Imprima, recorte e entregue em
-            mão. Esta tela não volta: ao sair, os PINs desaparecem.
+            mão. Ao sair desta tela, os cartões somem; é só pedir de novo.
           </p>
         </div>
         <div className="flex gap-2">
@@ -91,8 +89,8 @@ function Cartoes() {
       </header>
 
       <p className="rounded-xl border border-amarelo bg-amarelo/10 p-3 text-sm text-texto print:hidden">
-        <strong>Atenção:</strong> quem já tinha PIN perdeu o antigo e foi desconectado do app. O PIN
-        novo é provisório: o colaborador troca no primeiro acesso.
+        <strong>Atenção:</strong> o PIN é fixo e único. Reimprimir um cartão não muda o número nem
+        desconecta ninguém. Cada pedido fica registrado.
       </p>
 
       {folhas.map((folha, i) => (

@@ -60,6 +60,18 @@ export const MENSAGENS: Record<string, string> = {
   evento_ja_tem_sessao: "Este evento já tem uma sessão pontuada do Modo TV.",
   modo_invalido: "Modo de jogo inválido.",
 
+  // Autocadastro e PIN fixo (0008 e 0009). Texto escrito aqui, pendente de
+  // revisao — ver memory/duvidas.md.
+  nome_invalido: "Escreva seu nome completo.",
+  matricula_invalida: "Informe a sua matrícula.",
+  email_invalido: "Esse e-mail não parece certo. Confira.",
+  email_fora_do_dominio: "Use o e-mail da empresa.",
+  muitas_solicitacoes: "Muitos pedidos agora. Tente de novo mais tarde ou fale com o técnico.",
+  solicitacao_nao_encontrada: "Pedido de cadastro não encontrado.",
+  matricula_ja_cadastrada: "Já existe um colaborador com essa matrícula.",
+  colaborador_nao_encontrado: "Colaborador não encontrado ou inativo.",
+  pin_indisponivel: "Não consegui gerar um PIN agora. Tente de novo.",
+
   // docs/TIME_03 §5 (Edge Function da foto do relato)
   upload_nao_permitido: "Não foi possível enviar a foto. O relato foi salvo sem ela.",
   dados_invalidos: "Faltou alguma informação. Confira os campos e tente de novo.",
@@ -83,12 +95,12 @@ export function mensagem(motivo: string | null | undefined): string {
  * tela em vez de mostrar erro (docs/TIME_03 §3).
  */
 export const PENDENCIAS = {
-  trocar_pin: "/app/novo-pin",
+  // `trocar_pin` saiu na 0008: o PIN e fixo e o colaborador nao o troca.
   aceitar_lgpd: "/app/termo",
 } as const;
 
 export type Pendencia = keyof typeof PENDENCIAS;
 
 export function ehPendencia(motivo: string | null | undefined): motivo is Pendencia {
-  return motivo === "trocar_pin" || motivo === "aceitar_lgpd";
+  return motivo === "aceitar_lgpd";
 }

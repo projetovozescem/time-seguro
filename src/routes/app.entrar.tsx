@@ -5,7 +5,7 @@ import { AlunoLayout } from "@/components/layout/AlunoLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { rpcApp, rpcPublica } from "@/lib/rpc";
+import { rpcPublica } from "@/lib/rpc";
 import { sessao } from "@/lib/sessao";
 import { PENDENCIAS, ehPendencia, mensagem } from "@/lib/mensagens";
 import { limparPin } from "@/lib/pin";
@@ -13,8 +13,7 @@ import { limparPin } from "@/lib/pin";
 type Empresa = { nome: string; logo_url: string | null } | null;
 
 type Login =
-  | { ok: true; token: string; pendencia: "trocar_pin" | "aceitar_lgpd" | null }
-  | { ok: false; motivo: string };
+  { ok: true; token: string; pendencia: "aceitar_lgpd" | null } | { ok: false; motivo: string };
 
 /**
  * Entrada do colaborador (docs/TIME_05 §2): código da empresa + matrícula + PIN
@@ -64,8 +63,8 @@ function AppEntrar() {
     setErro(null);
     setEnviando(true);
     try {
-      const r = await rpcApp<Login>("colaborador_login", {
-        p_codigo: codigo,
+      const r = await rpcPublica<Login>("colaborador_login", {
+        p_empresa_codigo: codigo,
         p_matricula: matricula,
         p_pin: pin,
       });
@@ -167,6 +166,12 @@ function AppEntrar() {
         <p className="mt-5 text-center text-sm text-texto-suave">
           Esqueceu o PIN? Procure o técnico de SST.
         </p>
+        <a
+          href={`/app/cadastro${codigo ? `?empresa=${encodeURIComponent(codigo)}` : ""}`}
+          className="mt-3 block text-center text-sm font-semibold text-marinho underline-offset-4 hover:underline"
+        >
+          Primeiro acesso? Peça seu cadastro
+        </a>
       </div>
 
       {/*

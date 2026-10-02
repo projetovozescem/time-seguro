@@ -13,6 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:rls": "node scripts/test-rls.mjs",
+    "test:e2e": "node scripts/verificar-no-navegador.mjs",
+    "test:pwa": "node scripts/verificar-pwa.mjs",
     "verify": "npm run lint && npm run typecheck && npm run test && npm run test:rls && npm run test:fluxo",
     "db:tipos": "node scripts/db-tipos.mjs",
     "db:aplicar": "node scripts/db-aplicar.mjs",

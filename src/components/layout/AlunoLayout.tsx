@@ -1,6 +1,8 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { TimeLogo } from "@/components/TimeLogo";
 import { NavegacaoApp } from "@/components/layout/NavegacaoApp";
+import { BotaoInstalar } from "@/components/aluno/BotaoInstalar";
+import { registrarServiceWorker } from "@/lib/pwa";
 
 /**
  * Casca do app do colaborador (docs/TIME_05): mobile first, no máximo 480px
@@ -17,6 +19,9 @@ export function AlunoLayout({
   children: ReactNode;
   comNavegacao?: boolean;
 }) {
+  // O app do colaborador e o unico instalavel (manifest com escopo /app).
+  useEffect(() => registrarServiceWorker(), []);
+
   return (
     <div className="min-h-screen bg-[linear-gradient(170deg,#0B3C5D_0%,#13294B_38%,#F4F6F9_38.5%,#F4F6F9_100%)]">
       <div className="faixa-seguranca" />
@@ -29,6 +34,9 @@ export function AlunoLayout({
           <TimeLogo tamanho="md" claro />
         </div>
         <div className="mt-6 flex-1">{children}</div>
+        <div className="mt-6">
+          <BotaoInstalar />
+        </div>
       </div>
       {comNavegacao && <NavegacaoApp />}
     </div>

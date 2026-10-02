@@ -107,6 +107,13 @@ export function montarMatriz(
   return matriz;
 }
 
+/** Quantas células do mapa caem em cada faixa — alimenta a legenda. */
+export function contarPorFaixa(matriz: ReadonlyMap<string, Celula>): Record<Faixa, number> {
+  const contagem: Record<Faixa, number> = { domina: 0, atencao: 0, lacuna: 0, insuficiente: 0 };
+  for (const c of matriz.values()) contagem[c.faixa] += 1;
+  return contagem;
+}
+
 /**
  * As lacunas de verdade, da pior para a melhor — é a lista que responde "o que
  * treinar primeiro". Ignora as células sem dado suficiente.

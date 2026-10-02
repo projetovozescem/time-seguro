@@ -280,3 +280,31 @@ seção "Gabarito" não virou pergunta. O script está no scratchpad da sessão.
 Limite: 60 páginas por arquivo, e PDF escaneado (imagem, sem texto) é recusado
 com uma mensagem que explica o motivo em vez de devolver zero perguntas em
 silêncio.
+
+
+## 02/10/2026 — PIN fixo, autocadastro, PWA real, Canal em grade, legenda
+
+- **Banco:** 0008 (PIN fixo, único, auditado), 0009 (autocadastro), 0010 (fecha
+  EXECUTE de funções novas). RLS 282, fluxo 223.
+- **Painel:** aba Pendentes (aprovar/recusar, corrigir setor; aprovar abre o PIN
+  na hora), botão PIN por pessoa (copiar PIN e "mensagem pronta"; reemitir só
+  admin), "Imprimir cartões", domínios de e-mail em Configurações. CIPA agora
+  abre "Colaboradores e setores" para aprovar cadastros, sem ver PIN.
+- **App:** `/app/cadastro`, `/app` (raiz do PWA), login por `rpcPublica`
+  (conserto de um bug antigo), sem troca de PIN.
+- **PWA:** manifest, ícones e service worker do T.I.M.E. (ícones gerados por
+  `scripts/gerar-icones.mjs`), escopo `/app`, botão de instalar ligado.
+  Chrome: manifest sem erro, SW ativo, sem erros de instalabilidade.
+- **Canal de Respeito:** cards em grade (detalhe abre em diálogo). **Analytics:**
+  legenda em 4 cards com a contagem de células por faixa.
+- **Testes:** `npm run test:e2e` (34) e `npm run test:pwa` abrem o Chrome de
+  verdade; ficam FORA do `verify` porque precisam do servidor de dev.
+
+### Pendente / não verificado
+- **Envio do PIN por e-mail** (Resend + Edge Function): fica para depois.
+- **Instalar num celular de verdade:** não dá para automatizar; conferir no
+  aparelho (Android: menu > Instalar app; iOS: Compartilhar > Tela de Início).
+- O registro do service worker só roda em produção (`import.meta.env.DEV`); no
+  teste ele é registrado na mão.
+- Textos novos de `mensagens.ts` (autocadastro/PIN) pendentes de revisão.
+- Os PINs antigos deixaram de valer: **reimprimir os cartões** do piloto.

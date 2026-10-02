@@ -6,8 +6,8 @@ import type { Database } from "@/lib/database.types";
 /** Nomes de RPC que realmente existem no banco, vindos dos tipos gerados. */
 type NomeRpc = keyof Database["public"]["Functions"];
 
-/** RPCs do app do colaborador: todas recebem `p_token`. */
-type RpcDoApp = Extract<NomeRpc, `colaborador_${string}`>;
+/** RPCs do app do colaborador: todas recebem `p_token` (menos o login, que e publico). */
+type RpcDoApp = Exclude<Extract<NomeRpc, `colaborador_${string}`>, "colaborador_login">;
 
 /**
  * RPCs chamáveis sem token (docs/TIME_02 §3). Lista explícita, não derivada:
@@ -16,6 +16,12 @@ type RpcDoApp = Extract<NomeRpc, `colaborador_${string}`>;
  */
 type RpcPublica =
   | "empresa_publica"
+  // Antes de existir sessao nao ha token para mandar: o login e o autocadastro
+  // sao publicos. (O login ia por `rpcApp`, que acrescenta `p_token`, e a
+  // funcao nao tem esse parametro: ele nunca funcionou pela interface.)
+  | "colaborador_login"
+  | "publico_setores_da_empresa"
+  | "publico_solicitar_cadastro"
   | "registrar_denuncia_assedio"
   | "consultar_denuncia"
   | "responder_denuncia_denunciante"
@@ -29,8 +35,8 @@ type RpcPublica =
  *
  * Dois desvios automáticos:
  * - exceção `sessao_invalida` → limpa o token e volta ao login;
- * - resposta `{ ok: false, motivo: 'trocar_pin' | 'aceitar_lgpd' }` → manda para
- *   a tela da pendência, porque sem resolvê-la nada mais funciona.
+ * - resposta `{ ok: false, motivo: 'aceitar_lgpd' }` → manda para
+ *   a tela do termo, porque sem resolvê-la nada mais funciona.
  */
 export async function rpcApp<T>(fn: RpcDoApp, args: Record<string, unknown> = {}): Promise<T> {
   const token = sessao.token();
@@ -52,7 +58,7 @@ export async function rpcApp<T>(fn: RpcDoApp, args: Record<string, unknown> = {}
 }
 
 /** Pendência de login embutida numa resposta `{ ok: false, motivo }`. */
-function extrairPendencia(data: unknown): "trocar_pin" | "aceitar_lgpd" | null {
+function extrairPendencia(data: unknown): "aceitar_lgpd" | null {
   if (!data || typeof data !== "object") return null;
   const resposta = data as { ok?: boolean; motivo?: unknown };
   if (resposta.ok !== false) return null;
