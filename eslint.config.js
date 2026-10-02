@@ -12,6 +12,7 @@ export default tseslint.config(
   {
     ignores: [
       "dist",
+      ".netlify",
       ".output",
       ".vinxi",
       "docs/legado-maxgames",

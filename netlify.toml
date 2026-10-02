@@ -1,0 +1,21 @@
+# Deploy no Netlify (manual). Este arquivo prevalece sobre o que estiver
+# configurado na interface do Netlify.
+#
+# Por que existe: o build do projeto usa o wrapper do Lovable, que por padrao
+# gera a saida para Cloudflare (`.output`). O Netlify espera outra: arquivos
+# estaticos em `dist` e a funcao de servidor (SSR) em `.netlify/functions-internal`.
+# Publicar `dist/client`, como estava na interface, nao existe neste projeto.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Forca o preset do Nitro para o Netlify (ele tambem detectaria sozinho).
+  NITRO_PRESET = "netlify"
+  NODE_VERSION = "22"
+  # Variaveis que o front precisa NO BUILD (cadastrar em Site configuration >
+  # Environment variables; nao vao neste arquivo):
+  #   VITE_SUPABASE_URL
+  #   VITE_SUPABASE_ANON_KEY
+  # Nunca cadastrar SUPABASE_ACCESS_TOKEN nem a chave sb_secret_ aqui.

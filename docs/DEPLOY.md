@@ -9,6 +9,23 @@ O build já sai pronto para Cloudflare (`npm run build` gera `.output/server/wra
 
 ---
 
+## 0. Netlify (escolhido em 02/10/2026) — o que o `netlify.toml` resolve
+
+O primeiro deploy falhou com `Deploy directory 'dist/client' does not exist`: o
+build do projeto gera, por padrao, a saida para **Cloudflare** (`.output`), e o
+Netlify estava configurado para publicar `dist/client`. O `netlify.toml` na raiz
+corrige isso e prevalece sobre a interface: `command = npm run build`,
+`publish = dist`, `NITRO_PRESET = netlify` (a funcao de servidor, que faz o SSR,
+vai para `.netlify/functions-internal`) e Node 22.
+
+No Netlify, cadastre em *Site configuration > Environment variables*, antes de
+publicar: `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`. Nada mais. Depois, no
+Supabase, ajuste Site URL e Redirect URLs (secao 4 abaixo).
+
+Verificado localmente com `NITRO_PRESET=netlify npm run build`: gera `dist/` e
+`.netlify/functions-internal/`, sem nenhuma chave secreta no bundle. **Nao foi
+publicado**: o deploy e manual.
+
 ## 1. Decisão pendente: hospedagem
 
 | Opção                 | O que falta fazer                                                            |

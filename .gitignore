@@ -50,3 +50,6 @@ supabase/.temp/
 # MCP: o .mcp.json real carrega o ref do projeto DEV de cada pessoa.
 # O modelo versionado e o .mcp.json.example.
 .mcp.json
+
+# Saida do build para Netlify
+.netlify
