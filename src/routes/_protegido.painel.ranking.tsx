@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Download, Snowflake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { MaisOpcoes } from "@/components/painel/MaisOpcoes";
 import { useCampanhas } from "@/hooks/useCampanhas";
 import { useSetores } from "@/hooks/useEventos";
 import {
@@ -99,24 +100,19 @@ function Ranking() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-extrabold text-marinho">Ranking</h1>
-          <p className="mt-1 text-sm text-texto-suave">
-            Individual soma os pontos da campanha. Setor é a média por colaborador ativo mais os
-            pontos do Modo TV — assim um setor pequeno e engajado pode vencer um grande.
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          onClick={exportar}
-          disabled={
-            aba === "individual" ? comColocacao.length === 0 : setoresComColocacao.length === 0
-          }
-        >
-          <Download className="size-4" aria-hidden />
-          Exportar CSV
-        </Button>
+      <header className="flex flex-wrap items-start justify-end gap-3">
+        <h1 className="sr-only">Ranking</h1>
+        <MaisOpcoes
+          opcoes={[
+            {
+              rotulo: "Exportar CSV",
+              icone: <Download aria-hidden />,
+              aoClicar: exportar,
+              desabilitado:
+                aba === "individual" ? comColocacao.length === 0 : setoresComColocacao.length === 0,
+            },
+          ]}
+        />
       </header>
 
       <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-borda bg-superficie p-4">

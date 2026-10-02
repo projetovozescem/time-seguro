@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { MaisOpcoes } from "@/components/painel/MaisOpcoes";
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, Download, Loader2, Monitor, Pencil, Plus, Tv, Users } from "lucide-react";
@@ -325,6 +326,7 @@ function Presenca({ evento, aoFechar }: { evento: Evento; aoFechar: () => void }
 /** Calendário de eventos (docs/TIME_04 §8). */
 function Eventos() {
   const { data: perfil } = usePerfil();
+  const navigate = useNavigate();
   const { data: campanhaAtiva } = useCampanhaAtiva();
   const { data: eventos = [], isLoading } = useEventos();
   const { data: setores = [] } = useSetores();
@@ -343,13 +345,8 @@ function Eventos() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-extrabold text-marinho">Eventos</h1>
-          <p className="mt-1 text-sm text-texto-suave">
-            DDS, SIPAT e treinamentos. O check-in pontua pelo valor do evento.
-          </p>
-        </div>
+      <header className="flex flex-wrap items-start justify-end gap-3">
+        <h1 className="sr-only">Eventos</h1>
         {podeEditar && (
           <Button onClick={() => setEditando("novo")}>
             <Plus className="size-4" aria-hidden />
@@ -432,23 +429,30 @@ function Eventos() {
                       Presença
                     </Button>
                     {podeEditar && (
-                      <>
-                        <Button size="sm" variant="ghost" asChild>
-                          <Link to="/tv/checkin/$eventoId" params={{ eventoId: e.id }}>
-                            <Tv className="size-4" aria-hidden />
-                            Check-in na TV
-                          </Link>
-                        </Button>
-                        <Button size="sm" variant="ghost" asChild>
-                          <Link to="/tv" search={{ evento: e.id }}>
-                            <Monitor className="size-4" aria-hidden />
-                            Quiz na TV
-                          </Link>
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setEditando(e)}>
-                          <Pencil className="size-4" aria-hidden />
-                        </Button>
-                      </>
+                      <MaisOpcoes
+                        tamanho="sm"
+                        opcoes={[
+                          {
+                            rotulo: "Check-in na TV",
+                            icone: <Tv aria-hidden />,
+                            aoClicar: () =>
+                              void navigate({
+                                to: "/tv/checkin/$eventoId",
+                                params: { eventoId: e.id },
+                              }),
+                          },
+                          {
+                            rotulo: "Quiz na TV",
+                            icone: <Monitor aria-hidden />,
+                            aoClicar: () => void navigate({ to: "/tv", search: { evento: e.id } }),
+                          },
+                          {
+                            rotulo: "Editar",
+                            icone: <Pencil aria-hidden />,
+                            aoClicar: () => setEditando(e),
+                          },
+                        ]}
+                      />
                     )}
                   </div>
                 </li>

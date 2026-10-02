@@ -238,13 +238,7 @@ function Materiais() {
 
   return (
     <div className="flex flex-col gap-8">
-      <header>
-        <h1 className="font-display text-2xl font-extrabold text-marinho">Materiais</h1>
-        <p className="mt-1 text-sm text-texto-suave">
-          Cartazes prontos com o QR Code da sua empresa. Baixe o PNG e mande para a gráfica ou
-          imprima na impressora comum.
-        </p>
-      </header>
+      <h1 className="sr-only">Materiais</h1>
 
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-borda bg-superficie p-3">
         <label className="text-sm font-medium" htmlFor="formato-cartaz">

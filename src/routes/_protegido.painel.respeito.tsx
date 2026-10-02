@@ -133,8 +133,8 @@ function Respeito() {
       </div>
 
       <header>
-        <h1 className="font-display text-2xl font-extrabold text-respeito">Canal de Respeito</h1>
-        <p className="mt-1 text-sm text-texto-suave">
+        <h1 className="sr-only">Canal de Respeito</h1>
+        <p className="text-sm text-texto-suave">
           {isLoading
             ? "Carregando…"
             : `${denuncias.length} denúncia(s)${semResposta > 0 ? ` · ${semResposta} sem resposta` : ""}`}

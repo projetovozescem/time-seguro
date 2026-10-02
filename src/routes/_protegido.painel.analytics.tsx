@@ -34,6 +34,7 @@ import { LETRAS } from "@/lib/importacao/tipos";
 import { ROTULO_DO_STATUS } from "@/lib/campanha";
 import { AbaEngajamento, AbaRelatos } from "@/components/painel/AbasAnalytics";
 import { LegendaDasFaixas } from "@/components/painel/LegendaDasFaixas";
+import { MaisOpcoes } from "@/components/painel/MaisOpcoes";
 
 type Aba = "geral" | "lacunas" | "perguntas" | "relatos" | "engajamento";
 
@@ -179,15 +180,9 @@ function Analytics() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header>
-        <h1 className="font-display text-2xl font-extrabold text-marinho">Analytics</h1>
-        <p className="mt-1 text-sm text-texto-suave">
-          O mapa de lacunas mostra qual setor não domina qual tema — é o que transforma o próximo
-          treinamento em decisão com dado.
-        </p>
-      </header>
+      <h1 className="sr-only">Resultados</h1>
 
-      <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-borda bg-superficie p-4">
+      <div className="flex flex-wrap items-end justify-between gap-3 rounded-2xl border border-borda bg-superficie p-4">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="campanha-analytics">Campanha</Label>
           <select
@@ -204,10 +199,16 @@ function Analytics() {
           </select>
         </div>
         {aba === "lacunas" && (
-          <Button variant="outline" onClick={exportarLacunas} disabled={matriz.size === 0}>
-            <Download className="size-4" aria-hidden />
-            Exportar CSV
-          </Button>
+          <MaisOpcoes
+            opcoes={[
+              {
+                rotulo: "Exportar CSV",
+                icone: <Download aria-hidden />,
+                aoClicar: exportarLacunas,
+                desabilitado: matriz.size === 0,
+              },
+            ]}
+          />
         )}
       </div>
 

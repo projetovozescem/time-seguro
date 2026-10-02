@@ -308,3 +308,24 @@ silêncio.
   teste ele é registrado na mão.
 - Textos novos de `mensagens.ts` (autocadastro/PIN) pendentes de revisão.
 - Os PINs antigos deixaram de valer: **reimprimir os cartões** do piloto.
+
+## 02/10/2026 — Painel simplificado (menu de 14 → 7) e deploy no Netlify
+
+- **Netlify:** `netlify.toml` (preset netlify, publish `dist`). O primeiro deploy
+  publicado em `timeseguro.netlify.app` saiu **sem** as `VITE_*` no bundle
+  (conferido baixando o JS: a URL do Supabase não estava lá) → login dava "Não
+  foi possível entrar agora". Correção do usuário: redeploy com "Clear cache"
+  depois de cadastrar as variáveis com escopo Builds.
+- **Menu em seções** (`src/components/layout/secoes.ts` + `AbasDaSecao.tsx`):
+  Início, Pessoas, Campanhas (Campanhas·Perguntas·Eventos·Ranking·Certificados),
+  Relatos (Relatos·Canal), Resultados (Painel·Relatórios·Materiais), Modo TV,
+  Configurações. URLs iguais: link salvo continua valendo.
+- **Menos detalhe:** sem parágrafos de instrução sob os títulos; exportar,
+  importar e ações raras num "⋯" (`src/components/painel/MaisOpcoes.tsx`); lista
+  de pessoas com Nome (matrícula embaixo), Setor, Situação, PIN e "⋯" (sem Turno).
+- **Gates:** `npm run verify` exit 0 (466 testes, RLS 282, fluxo 223);
+  `npm run test:e2e` todo ok; conferência no Chrome: 7 itens no menu do admin,
+  `/painel/ranking` abre com a aba Ranking ativa, `/painel/campanhas/<id>` mantém
+  a aba Campanhas, 420 px sem rolagem horizontal. Filtro por papel coberto em
+  `secoes.test.ts` (CIPA e técnico não conferidos no navegador: só admin tem
+  senha no `.env`).

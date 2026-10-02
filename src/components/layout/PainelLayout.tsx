@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { LogOut, Menu } from "lucide-react";
@@ -6,79 +6,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { TimeLogo } from "@/components/TimeLogo";
-import { useCampanhaAtiva, usePerfil, diasRestantes, podeAcessar } from "@/hooks/usePerfil";
+import { useCampanhaAtiva, usePerfil, diasRestantes } from "@/hooks/usePerfil";
 import { cn } from "@/lib/utils";
+import { AbasDaSecao } from "./AbasDaSecao";
+import { secaoDaRota, secoesVisiveis } from "./secoes";
 
-/**
- * Menu lateral de docs/TIME_04 §2, na ordem do documento.
- *
- * `rota` só está preenchida onde a tela existe. O que falta aparece desabilitado
- * em vez de dar erro de rota — assim o técnico vê o mapa do produto e o que já
- * está pronto, sem link quebrado.
- */
-const MENU = [
-  { emoji: "🏠", rotulo: "Início", rota: "/painel" as const, minimo: "cipa" as const },
-  { emoji: "🏆", rotulo: "Campanhas", rota: "/painel/campanhas" as const, minimo: "cipa" as const },
-  {
-    emoji: "❓",
-    rotulo: "Perguntas",
-    rota: "/painel/perguntas" as const,
-    minimo: "tecnico" as const,
-  },
-  {
-    emoji: "👷",
-    rotulo: "Colaboradores e setores",
-    rota: "/painel/colaboradores" as const,
-    minimo: "cipa" as const,
-  },
-  { emoji: "📅", rotulo: "Eventos", rota: "/painel/eventos" as const, minimo: "cipa" as const },
-  { emoji: "📢", rotulo: "Relatos", rota: "/painel/relatos" as const, minimo: "cipa" as const },
-  {
-    emoji: "💜",
-    rotulo: "Canal de Respeito",
-    rota: "/painel/respeito" as const,
-    minimo: "cipa" as const,
-    soComite: true,
-  },
-  { emoji: "🥇", rotulo: "Ranking", rota: "/painel/ranking" as const, minimo: "cipa" as const },
-  { emoji: "📈", rotulo: "Analytics", rota: "/painel/analytics" as const, minimo: "cipa" as const },
-  {
-    emoji: "📄",
-    rotulo: "Relatórios",
-    rota: "/painel/relatorios" as const,
-    minimo: "cipa" as const,
-  },
-  {
-    emoji: "🎓",
-    rotulo: "Certificados",
-    rota: "/painel/certificados" as const,
-    minimo: "cipa" as const,
-  },
-  {
-    emoji: "🖼️",
-    rotulo: "Materiais",
-    rota: "/painel/materiais" as const,
-    minimo: "tecnico" as const,
-  },
-  { emoji: "📺", rotulo: "Modo TV", rota: "/tv" as const, minimo: "tecnico" as const },
-  {
-    emoji: "⚙️",
-    rotulo: "Configurações",
-    rota: "/painel/configuracoes" as const,
-    minimo: "admin" as const,
-  },
-];
-
+/** Menu lateral: 7 seções; as telas de cada uma viram abas (`secoes.ts`). */
 function Navegacao({ aoNavegar }: { aoNavegar?: () => void }) {
   const { data: perfil } = usePerfil();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { pathname } = useLocation();
+  const atual = secaoDaRota(pathname);
 
-  const visiveis = MENU.filter((item) => {
-    if (!podeAcessar(perfil?.papel, item.minimo)) return false;
-    if (item.soComite && !perfil?.comite_assedio) return false;
-    return true;
-  });
+  const visiveis = secoesVisiveis({ papel: perfil?.papel, comite: !!perfil?.comite_assedio });
 
   async function sair() {
     await supabase.auth.signOut();
@@ -91,17 +32,15 @@ function Navegacao({ aoNavegar }: { aoNavegar?: () => void }) {
 
   return (
     <nav className="flex h-full flex-col gap-0.5 overflow-y-auto p-3">
-      {/* Todas as telas do menu existem: nao ha mais item "em breve". */}
       {visiveis.map((item) => (
         <Link
           key={item.rotulo}
-          to={item.rota}
+          to={item.abas[0]!.rota}
           onClick={aoNavegar}
-          activeOptions={{ exact: item.rota === "/painel" }}
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-sidebar-accent"
-          activeProps={{
-            className: cn("bg-marinho text-white hover:bg-marinho"),
-          }}
+          className={cn(
+            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-sidebar-accent",
+            atual?.rotulo === item.rotulo && "bg-marinho text-white hover:bg-marinho",
+          )}
         >
           <span aria-hidden>{item.emoji}</span>
           {item.rotulo}
@@ -133,10 +72,7 @@ function Cabecalho() {
       {perfil && (
         <>
           <span className="font-semibold text-texto">{perfil.empresa.nome}</span>
-          <span className="text-texto-suave">
-            {perfil.nome} · {perfil.papel}
-            {perfil.comite_assedio && " · comitê"}
-          </span>
+          <span className="text-texto-suave">{perfil.nome}</span>
         </>
       )}
       {campanha && (
@@ -198,6 +134,7 @@ export function PainelLayout() {
 
       <div className="lg:pl-[250px]">
         <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:py-10">
+          <AbasDaSecao />
           <Outlet />
         </main>
       </div>

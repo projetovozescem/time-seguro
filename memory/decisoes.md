@@ -301,3 +301,14 @@ existem (não revela quem trabalha na empresa), limita 30 pedidos/hora e 200
 pendentes, e só aceita o domínio de e-mail que o admin configurou em
 Configurações (sem domínio configurado, qualquer e-mail pode pedir — o aviso
 está na tela).
+
+## Painel em 7 seções com abas (02/10/2026)
+
+Pedido: painel fácil para leigo, menos opções. Decisão: **agrupar, não fundir
+arquivos nem apagar função**. As telas continuam nas mesmas rotas; o menu mostra
+7 seções e as telas irmãs viram abas no topo (`secoes.ts`). Motivos: fundir
+arquivos de 400–900 linhas era risco alto a 3 dias da inscrição, e manter as
+URLs evita redirecionamento e não quebra o `test:e2e`. Perguntas ficou em
+Campanhas (não em Configurações) porque o técnico precisa dela e Configurações é
+só admin. Relatórios, certificados e o aviso de NR continuam (evidência
+TIME_09); o aviso só saiu da tela, segue no rodapé do PDF.

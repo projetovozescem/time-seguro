@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Certificado, type DadosCertificado } from "@/components/painel/Certificado";
+import { MaisOpcoes } from "@/components/painel/MaisOpcoes";
 import { usePerfil } from "@/hooks/usePerfil";
 import { useCampanhas } from "@/hooks/useCampanhas";
 import { baixarCsv, montarCsv } from "@/lib/eventos";
@@ -132,18 +133,21 @@ function Certificados() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-extrabold text-marinho">Certificados</h1>
-          <p className="mt-1 text-sm text-texto-suave">
-            {isLoading ? "Carregando…" : `${certificados.length} emitido(s)`}. Os certificados são
-            emitidos quando a campanha é encerrada.
-          </p>
-        </div>
-        <Button variant="outline" onClick={exportar} disabled={certificados.length === 0}>
-          <Download className="size-4" aria-hidden />
-          Exportar CSV
-        </Button>
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="sr-only">Certificados</h1>
+        <p className="text-sm text-texto-suave">
+          {isLoading ? "Carregando…" : `${certificados.length} emitido(s)`}
+        </p>
+        <MaisOpcoes
+          opcoes={[
+            {
+              rotulo: "Exportar CSV",
+              icone: <Download aria-hidden />,
+              aoClicar: exportar,
+              desabilitado: certificados.length === 0,
+            },
+          ]}
+        />
       </header>
 
       <div className="flex flex-col gap-1.5 rounded-2xl border border-borda bg-superficie p-4 sm:max-w-md">

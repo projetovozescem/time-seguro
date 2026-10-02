@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { MaisOpcoes } from "@/components/painel/MaisOpcoes";
 import { Textarea } from "@/components/ui/textarea";
 import { usePerfil } from "@/hooks/usePerfil";
 import {
@@ -355,18 +356,21 @@ function Relatos() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-extrabold text-marinho">Relatos</h1>
-          <p className="mt-1 text-sm text-texto-suave">
-            {isLoading ? "Carregando…" : `${relatos.length} relato(s)`}. O relato só pontua depois
-            de validado.
-          </p>
-        </div>
-        <Button variant="outline" onClick={exportar} disabled={relatos.length === 0}>
-          <Download className="size-4" aria-hidden />
-          Exportar CSV
-        </Button>
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="sr-only">Relatos</h1>
+        <p className="text-sm text-texto-suave">
+          {isLoading ? "Carregando…" : `${relatos.length} relato(s)`}
+        </p>
+        <MaisOpcoes
+          opcoes={[
+            {
+              rotulo: "Exportar CSV",
+              icone: <Download aria-hidden />,
+              aoClicar: exportar,
+              desabilitado: relatos.length === 0,
+            },
+          ]}
+        />
       </header>
 
       <div className="grid gap-3 lg:grid-cols-4">

@@ -46,14 +46,8 @@ function Campanhas() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-extrabold text-marinho">Campanhas</h1>
-          <p className="mt-1 text-sm text-texto-suave">
-            Uma campanha ativa por vez. A pontuação pertence à campanha, então cada ciclo começa do
-            zero.
-          </p>
-        </div>
+      <header className="flex flex-wrap items-start justify-end gap-3">
+        <h1 className="sr-only">Campanhas</h1>
         {podeEditar && (
           <Button onClick={() => setEditando("nova")}>
             <Plus className="size-4" aria-hidden />

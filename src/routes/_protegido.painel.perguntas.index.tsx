@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ChevronDown, Copy, Download, Pencil, Plus, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PerguntaForm } from "@/components/painel/PerguntaForm";
+import { MaisOpcoes } from "@/components/painel/MaisOpcoes";
 import { usePerfil } from "@/hooks/usePerfil";
 import { useDesempenho, usePerguntas, useTemas, type Pergunta } from "@/hooks/usePerguntas";
 import { escreverTxt } from "@/lib/importacao/txt";
@@ -19,6 +20,7 @@ const DIFICULDADES = ["Fácil", "Média", "Difícil"] as const;
 /** Banco de perguntas (docs/TIME_04 §5). */
 function Perguntas() {
   const { data: perfil } = usePerfil();
+  const navigate = useNavigate();
   const { data: temas = [] } = useTemas();
   const { data: perguntas = [], isLoading } = usePerguntas();
   const { data: desempenho } = useDesempenho();
@@ -108,24 +110,27 @@ function Perguntas() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-extrabold text-marinho">Perguntas</h1>
-          <p className="mt-1 text-sm text-texto-suave">
-            {isLoading ? "Carregando…" : `${filtradas.length} de ${perguntas.length} pergunta(s)`}
-          </p>
-        </div>
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="sr-only">Perguntas</h1>
+        <p className="text-sm text-texto-suave">
+          {isLoading ? "Carregando…" : `${filtradas.length} de ${perguntas.length} pergunta(s)`}
+        </p>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={exportarTxt} disabled={filtradas.length === 0}>
-            <Download className="size-4" aria-hidden />
-            Exportar TXT
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to="/painel/perguntas/importar">
-              <Upload className="size-4" aria-hidden />
-              Importar
-            </Link>
-          </Button>
+          <MaisOpcoes
+            opcoes={[
+              {
+                rotulo: "Importar de arquivo",
+                icone: <Upload aria-hidden />,
+                aoClicar: () => void navigate({ to: "/painel/perguntas/importar" }),
+              },
+              {
+                rotulo: "Exportar TXT",
+                icone: <Download aria-hidden />,
+                aoClicar: exportarTxt,
+                desabilitado: filtradas.length === 0,
+              },
+            ]}
+          />
           <Button onClick={() => setEditando("nova")}>
             <Plus className="size-4" aria-hidden />
             Nova pergunta

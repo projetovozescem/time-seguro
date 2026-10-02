@@ -183,7 +183,7 @@ try {
   checar(abas.includes("Pendentes"), `aba Pendentes existe (${abas})`);
   const linha = JSON.parse(
     await js(
-      `(() => { const tr = document.querySelector('tbody tr'); return JSON.stringify({ mat: tr.cells[1].innerText.trim(), nome: tr.cells[2].innerText.trim() }); })()`,
+      `(() => { const tr = document.querySelector('tbody tr'); return JSON.stringify({ mat: tr.querySelector('[data-matricula]').innerText.trim(), nome: tr.cells[1].querySelector('span').innerText.trim() }); })()`,
     ),
   );
   await js(

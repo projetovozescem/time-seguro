@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { usePerfil } from "@/hooks/usePerfil";
 import { useTemas } from "@/hooks/usePerguntas";
 import { Comparativo } from "@/components/painel/Comparativo";
+import { MaisOpcoes } from "@/components/painel/MaisOpcoes";
 import { useCampanhas, useLicoes } from "@/hooks/useCampanhas";
 import { useSetores } from "@/hooks/useEventos";
 import {
@@ -339,13 +340,7 @@ function Relatorios() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header>
-        <h1 className="font-display text-2xl font-extrabold text-marinho">Relatórios</h1>
-        <p className="mt-1 text-sm text-texto-suave">
-          Evidência de capacitação para auditoria, gestão e CIPA. Todo relatório traz o aviso de que
-          não substitui treinamento de NR.
-        </p>
-      </header>
+      <h1 className="sr-only">Relatórios</h1>
 
       <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-borda bg-superficie p-4">
         <div className="flex flex-col gap-1.5">
@@ -397,21 +392,22 @@ function Relatorios() {
         ))}
       </dl>
 
-      <p className="rounded-2xl bg-muted p-4 text-xs leading-relaxed text-texto-suave">
-        <strong className="text-texto">Aviso que vai no rodapé de toda página:</strong>{" "}
-        {AVISO_OBRIGATORIO}
-      </p>
-
       <div className="flex flex-wrap gap-2">
         <Button onClick={() => gerarPdf(false)} disabled={gerando || !campanha}>
           {gerando && <Loader2 className="size-4 animate-spin" aria-hidden />}
           <FileText className="size-4" aria-hidden />
           Evidência de treinamento (PDF)
         </Button>
-        <Button variant="outline" onClick={exportarCsv} disabled={linhas.length === 0}>
-          <Download className="size-4" aria-hidden />
-          Mesmos dados em CSV
-        </Button>
+        <MaisOpcoes
+          opcoes={[
+            {
+              rotulo: "Mesmos dados em CSV",
+              icone: <Download aria-hidden />,
+              aoClicar: exportarCsv,
+              desabilitado: linhas.length === 0,
+            },
+          ]}
+        />
         {perfil?.comite_assedio && (
           <Button
             variant="outline"

@@ -460,9 +460,6 @@ function Configuracoes() {
     <div className="flex flex-col gap-6">
       <header>
         <h1 className="font-display text-2xl font-extrabold text-marinho">Configurações</h1>
-        <p className="mt-1 text-sm text-texto-suave">
-          Identidade da empresa, termo LGPD e quem tem acesso ao painel.
-        </p>
       </header>
 
       {isLoading && <p className="text-sm text-texto-suave">Carregando…</p>}
