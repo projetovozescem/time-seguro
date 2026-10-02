@@ -272,8 +272,8 @@ function Materiais() {
         <h2 className="font-display text-lg font-bold text-marinho">Os outros dois materiais</h2>
         <ul className="mt-2 flex flex-col gap-1 text-sm text-texto-suave">
           <li>
-            <strong className="text-texto">Etiquetas de locais</strong> — em Setores e Locais, botão
-            “Etiqueta” de cada local.
+            <strong className="text-texto">Etiquetas de locais</strong> — em Colaboradores e setores
+            (aba Setores e locais), botão “Etiqueta” de cada local.
           </li>
           <li>
             <strong className="text-texto">Cartões de acesso</strong> — em Colaboradores, marque as

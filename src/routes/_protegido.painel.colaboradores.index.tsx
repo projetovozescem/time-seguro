@@ -37,6 +37,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { usePerfil } from "@/hooks/usePerfil";
+import { useSetores, type Setor } from "@/hooks/useEventos";
+import { SetoresELocais } from "@/components/painel/SetoresELocais";
+import { corDoTexto } from "@/lib/jogos/cores";
 import {
   MODELO_CSV_COLABORADORES,
   ROTULO_DO_TURNO,
@@ -62,8 +65,6 @@ type Colaborador = {
   pin_provisorio: boolean;
 };
 
-type Setor = { id: string; nome: string };
-
 function useColaboradores() {
   return useQuery({
     queryKey: ["colaboradores"],
@@ -80,15 +81,32 @@ function useColaboradores() {
   });
 }
 
-function useSetores() {
-  return useQuery({
-    queryKey: ["setores"],
-    queryFn: async (): Promise<Setor[]> => {
-      const { data, error } = await supabase.from("setores").select("id, nome").order("nome");
-      if (error) throw error;
-      return (data ?? []) as Setor[];
-    },
-  });
+/** Paleta de docs/TIME_10 §2: o setor criado no cadastro ja nasce com uma cor. */
+const CORES_DO_SETOR = [
+  "#0B3C5D",
+  "#F5A300",
+  "#2E86C1",
+  "#C0392B",
+  "#7F8C8D",
+  "#16A085",
+  "#8E44AD",
+];
+
+/** Valor da opcao "criar setor agora" no select de setor. */
+const NOVO_SETOR = "__novo__";
+
+/** Badge na cor do setor, com o texto claro ou escuro conforme o contraste. */
+function BadgeDoSetor({ setor }: { setor: Setor | undefined }) {
+  if (!setor) return <span className="text-texto-suave">—</span>;
+  const cor = setor.cor ?? "#7F8C8D";
+  return (
+    <span
+      style={{ backgroundColor: cor }}
+      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${corDoTexto(cor)}`}
+    >
+      {setor.nome}
+    </span>
+  );
 }
 
 /** Bloqueio por PIN errado é temporário (docs/TIME_03 §3): 15 min. */
@@ -114,24 +132,66 @@ function FormColaborador({
   const [turno, setTurno] = useState(colaborador?.turno ?? "");
   const [ativo, setAtivo] = useState(colaborador?.ativo ?? true);
   const [salvando, setSalvando] = useState(false);
+  // Setor criado no proprio cadastro: nome, e opcionalmente o primeiro local.
+  const [novoSetor, setNovoSetor] = useState("");
+  const [novoLocal, setNovoLocal] = useState("");
 
-  const completo = matricula.trim() !== "" && nome.trim().length >= 2 && !!empresaId;
+  const criandoSetor = setorId === NOVO_SETOR;
+  const completo =
+    matricula.trim() !== "" &&
+    nome.trim().length >= 2 &&
+    !!empresaId &&
+    (!criandoSetor || novoSetor.trim().length >= 2);
 
   async function salvar() {
     if (!completo) return;
     setSalvando(true);
+
+    // Setor novo: cria antes (e o primeiro local, se informado), para a pessoa
+    // ja nascer vinculada. Se o setor falhar, nada da pessoa e gravado.
+    let setorFinal = setorId;
+    if (criandoSetor) {
+      const { data: criado, error: erroSetor } = await supabase
+        .from("setores")
+        .insert({
+          empresa_id: empresaId!,
+          nome: novoSetor.trim(),
+          cor: CORES_DO_SETOR[setores.length % CORES_DO_SETOR.length]!,
+        })
+        .select("id")
+        .single();
+      if (erroSetor || !criado) {
+        setSalvando(false);
+        toast.error(
+          erroSetor?.code === "23505"
+            ? "Já existe um setor com esse nome. Escolha ele na lista."
+            : "Não foi possível criar o setor.",
+        );
+        return;
+      }
+      setorFinal = criado.id;
+      if (novoLocal.trim().length >= 2) {
+        await supabase
+          .from("locais")
+          .insert({ empresa_id: empresaId!, setor_id: criado.id, nome: novoLocal.trim() });
+        await queryClient.invalidateQueries({ queryKey: ["locais"] });
+      }
+      await queryClient.invalidateQueries({ queryKey: ["setores"] });
+      await queryClient.invalidateQueries({ queryKey: ["setores-completos"] });
+    }
+
     // `grant update` cobre só setor_id, nome, turno e ativo: matrícula não muda
     // depois de criada (docs/TIME_03 §5). O formulário respeita isso.
     const { error } = colaborador
       ? await supabase
           .from("colaboradores")
-          .update({ nome: nome.trim(), setor_id: setorId || null, turno: turno || null, ativo })
+          .update({ nome: nome.trim(), setor_id: setorFinal || null, turno: turno || null, ativo })
           .eq("id", colaborador.id)
       : await supabase.from("colaboradores").insert({
           empresa_id: empresaId!,
           matricula: matricula.trim(),
           nome: nome.trim(),
-          setor_id: setorId || null,
+          setor_id: setorFinal || null,
           turno: turno || null,
         });
     setSalvando(false);
@@ -195,7 +255,29 @@ function FormColaborador({
                   {s.nome}
                 </option>
               ))}
+              <option value={NOVO_SETOR}>＋ Criar setor novo…</option>
             </select>
+
+            {criandoSetor && (
+              <div className="mt-1 flex flex-col gap-2 rounded-xl border border-borda bg-fundo p-3">
+                <Input
+                  value={novoSetor}
+                  onChange={(e) => setNovoSetor(e.target.value)}
+                  placeholder="Nome do setor novo (ex.: Usinagem)"
+                  aria-label="Nome do setor novo"
+                />
+                <Input
+                  value={novoLocal}
+                  onChange={(e) => setNovoLocal(e.target.value)}
+                  placeholder="Primeiro local, com QR (opcional) — ex.: Prensa 03"
+                  aria-label="Primeiro local do setor"
+                />
+                <p className="text-xs text-texto-suave">
+                  O setor e o local ficam salvos junto com a pessoa. Mais locais e as etiquetas com
+                  QR ficam na aba “Setores e locais”.
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -389,9 +471,13 @@ function ImportarCsv({ aoFechar }: { aoFechar: () => void }) {
 function Colaboradores() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { aba: abaDaUrl } = Route.useSearch();
   const { data: perfil } = usePerfil();
   const { data: colaboradores = [], isLoading } = useColaboradores();
   const { data: setores = [] } = useSetores();
+
+  // Uma tela so para pessoas e setores: duas abas, sem outro item no menu.
+  const [aba, setAba] = useState<"pessoas" | "setores">(abaDaUrl ?? "pessoas");
 
   const [busca, setBusca] = useState("");
   const [setorFiltro, setSetorFiltro] = useState("");
@@ -403,7 +489,16 @@ function Colaboradores() {
   const [gerando, setGerando] = useState(false);
 
   const podeEditar = perfil?.papel === "admin" || perfil?.papel === "tecnico";
-  const nomeDoSetor = useMemo(() => new Map(setores.map((s) => [s.id, s.nome])), [setores]);
+  const setorPorId = useMemo(() => new Map(setores.map((s) => [s.id, s])), [setores]);
+  const pessoasPorSetor = useMemo(() => {
+    const contagem = new Map<string, number>();
+    for (const c of colaboradores) {
+      if (c.ativo && !c.anonimizado && c.setor_id) {
+        contagem.set(c.setor_id, (contagem.get(c.setor_id) ?? 0) + 1);
+      }
+    }
+    return contagem;
+  }, [colaboradores]);
 
   const visiveis = useMemo(() => {
     const termo = busca.trim().toLowerCase();
@@ -489,11 +584,11 @@ function Colaboradores() {
         <div>
           <h1 className="font-display text-2xl font-extrabold text-marinho">Colaboradores</h1>
           <p className="mt-1 text-sm text-texto-suave">
-            {colaboradores.filter((c) => c.ativo).length} ativo(s). O PIN aparece uma única vez, na
-            hora de gerar os cartões.
+            {colaboradores.filter((c) => c.ativo).length} ativo(s) em {setores.length} setor(es). O
+            PIN aparece uma única vez, na hora de gerar os cartões.
           </p>
         </div>
-        {podeEditar && (
+        {aba === "pessoas" && podeEditar && (
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setImportando(true)}>
               <Upload className="size-4" aria-hidden />
@@ -507,156 +602,192 @@ function Colaboradores() {
         )}
       </header>
 
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-borda bg-superficie p-3">
-        <div className="relative min-w-52 flex-1">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-texto-suave"
-            aria-hidden
-          />
-          <Input
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar por nome ou matrícula"
-            aria-label="Buscar colaborador"
-            className="pl-9"
-          />
-        </div>
-
-        <select
-          value={setorFiltro}
-          onChange={(e) => setSetorFiltro(e.target.value)}
-          aria-label="Filtrar por setor"
-          className="h-10 rounded-md border border-input bg-transparent px-3 text-sm"
-        >
-          <option value="">Todos os setores</option>
-          {setores.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.nome}
-            </option>
-          ))}
-        </select>
-
-        <label className="flex items-center gap-2 text-sm">
-          <Switch checked={verInativos} onCheckedChange={setVerInativos} />
-          Mostrar inativos
-        </label>
-
-        {podeEditar && (
-          <Button onClick={gerarPins} disabled={marcados.size === 0 || gerando}>
-            {gerando ? (
-              <Loader2 className="size-4 animate-spin" aria-hidden />
-            ) : (
-              <KeyRound className="size-4" aria-hidden />
-            )}
-            Gerar PIN {marcados.size > 0 && `(${marcados.size})`}
-          </Button>
-        )}
+      <div className="flex gap-1 rounded-xl bg-muted p-1" role="tablist">
+        {(
+          [
+            ["pessoas", `👷 Pessoas (${colaboradores.filter((c) => c.ativo).length})`],
+            ["setores", `🏭 Setores e locais (${setores.length})`],
+          ] as const
+        ).map(([id, rotulo]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={aba === id}
+            onClick={() => setAba(id)}
+            className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium ${
+              aba === id ? "bg-superficie text-marinho shadow-sm" : "text-texto-suave"
+            }`}
+          >
+            {rotulo}
+          </button>
+        ))}
       </div>
 
-      {isLoading && <p className="text-sm text-texto-suave">Carregando…</p>}
+      {aba === "setores" && <SetoresELocais pessoasPorSetor={pessoasPorSetor} />}
 
-      {!isLoading && visiveis.length === 0 && (
-        <p className="rounded-2xl border border-borda bg-superficie p-6 text-center text-sm text-texto-suave">
-          {colaboradores.length === 0
-            ? "Nenhum colaborador ainda. Importe a lista em CSV para começar."
-            : "Nenhum colaborador com esse filtro."}
-        </p>
-      )}
+      {aba === "pessoas" && (
+        <>
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-borda bg-superficie p-3">
+            <div className="relative min-w-52 flex-1">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-texto-suave"
+                aria-hidden
+              />
+              <Input
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Buscar por nome ou matrícula"
+                aria-label="Buscar colaborador"
+                className="pl-9"
+              />
+            </div>
 
-      {visiveis.length > 0 && (
-        <div className="overflow-x-auto rounded-2xl border border-borda bg-superficie">
-          <table className="w-full text-sm">
-            <thead className="bg-muted text-left">
-              <tr>
-                <th className="w-10 px-3 py-2">
-                  <Checkbox
-                    checked={todosMarcados}
-                    onCheckedChange={alternarTodos}
-                    disabled={marcaveis.length === 0}
-                    aria-label="Marcar todos"
-                  />
-                </th>
-                <th className="px-3 py-2">Matrícula</th>
-                <th className="px-3 py-2">Nome</th>
-                <th className="px-3 py-2">Setor</th>
-                <th className="px-3 py-2">Turno</th>
-                <th className="px-3 py-2">Situação</th>
-                <th className="px-3 py-2 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visiveis.map((c) => (
-                <tr key={c.id} className="border-t border-borda">
-                  <td className="px-3 py-2">
-                    <Checkbox
-                      checked={marcados.has(c.id)}
-                      onCheckedChange={() => alternar(c.id)}
-                      disabled={!c.ativo || c.anonimizado}
-                      aria-label={`Marcar ${c.nome}`}
-                    />
-                  </td>
-                  <td className="px-3 py-2 font-mono text-xs">{c.matricula}</td>
-                  <td className="px-3 py-2 font-medium text-texto">{c.nome}</td>
-                  <td className="px-3 py-2">
-                    {c.setor_id ? (nomeDoSetor.get(c.setor_id) ?? "—") : "—"}
-                  </td>
-                  <td className="px-3 py-2">{rotuloDoTurno(c.turno)}</td>
-                  <td className="px-3 py-2">
-                    <div className="flex flex-wrap gap-1">
-                      {!c.ativo && (
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-texto-suave">
-                          inativo
-                        </span>
-                      )}
-                      {estaBloqueado(c.bloqueado_ate) && (
-                        <span className="rounded-full bg-vermelho/10 px-2 py-0.5 text-xs font-semibold text-vermelho">
-                          bloqueado até {formatarHora(c.bloqueado_ate!)}
-                        </span>
-                      )}
-                      {c.ativo && c.pin_provisorio && (
-                        <span className="rounded-full bg-amarelo/20 px-2 py-0.5 text-xs font-semibold text-marinho">
-                          PIN provisório
-                        </span>
-                      )}
-                      {c.ativo && !c.pin_provisorio && !estaBloqueado(c.bloqueado_ate) && (
-                        <span className="text-xs text-texto-suave">em uso</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="flex justify-end gap-1">
-                      {podeEditar && estaBloqueado(c.bloqueado_ate) && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => void desbloquear(c)}
-                          title="Desbloquear"
-                        >
-                          <LockOpen className="size-4" aria-hidden />
-                        </Button>
-                      )}
-                      {podeEditar && !c.anonimizado && (
-                        <Button size="sm" variant="ghost" onClick={() => setEditando(c)}>
-                          <Pencil className="size-4" aria-hidden />
-                        </Button>
-                      )}
-                      {perfil?.papel === "admin" && !c.anonimizado && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setAnonimizar(c)}
-                          title="Anonimizar (LGPD)"
-                        >
-                          <UserX className="size-4 text-vermelho" aria-hidden />
-                        </Button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+            <select
+              value={setorFiltro}
+              onChange={(e) => setSetorFiltro(e.target.value)}
+              aria-label="Filtrar por setor"
+              className="h-10 rounded-md border border-input bg-transparent px-3 text-sm"
+            >
+              <option value="">Todos os setores</option>
+              {setores.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.nome}
+                </option>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </select>
+
+            <label className="flex items-center gap-2 text-sm">
+              <Switch checked={verInativos} onCheckedChange={setVerInativos} />
+              Mostrar inativos
+            </label>
+
+            {podeEditar && (
+              <Button onClick={gerarPins} disabled={marcados.size === 0 || gerando}>
+                {gerando ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                ) : (
+                  <KeyRound className="size-4" aria-hidden />
+                )}
+                Gerar PIN {marcados.size > 0 && `(${marcados.size})`}
+              </Button>
+            )}
+          </div>
+
+          {isLoading && <p className="text-sm text-texto-suave">Carregando…</p>}
+
+          {!isLoading && visiveis.length === 0 && (
+            <p className="rounded-2xl border border-borda bg-superficie p-6 text-center text-sm text-texto-suave">
+              {colaboradores.length === 0
+                ? "Nenhum colaborador ainda. Importe a lista em CSV para começar."
+                : "Nenhum colaborador com esse filtro."}
+            </p>
+          )}
+
+          {visiveis.length > 0 && (
+            <div className="overflow-x-auto rounded-2xl border border-borda bg-superficie">
+              <table className="w-full text-sm">
+                <thead className="bg-muted text-left">
+                  <tr>
+                    <th className="w-10 px-3 py-2">
+                      <Checkbox
+                        checked={todosMarcados}
+                        onCheckedChange={alternarTodos}
+                        disabled={marcaveis.length === 0}
+                        aria-label="Marcar todos"
+                      />
+                    </th>
+                    <th className="px-3 py-2">Matrícula</th>
+                    <th className="px-3 py-2">Nome</th>
+                    <th className="px-3 py-2">Setor</th>
+                    <th className="px-3 py-2">Turno</th>
+                    <th className="px-3 py-2">Situação</th>
+                    <th className="px-3 py-2 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visiveis.map((c) => (
+                    <tr key={c.id} className="border-t border-borda">
+                      <td className="px-3 py-2">
+                        <Checkbox
+                          checked={marcados.has(c.id)}
+                          onCheckedChange={() => alternar(c.id)}
+                          disabled={!c.ativo || c.anonimizado}
+                          aria-label={`Marcar ${c.nome}`}
+                        />
+                      </td>
+                      <td className="px-3 py-2 font-mono text-xs">{c.matricula}</td>
+                      <td className="px-3 py-2 font-medium text-texto">{c.nome}</td>
+                      <td className="px-3 py-2">
+                        <BadgeDoSetor setor={c.setor_id ? setorPorId.get(c.setor_id) : undefined} />
+                      </td>
+                      <td className="px-3 py-2">
+                        {c.turno ? (
+                          <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-texto">
+                            {rotuloDoTurno(c.turno)}
+                          </span>
+                        ) : (
+                          <span className="text-texto-suave">—</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex flex-wrap gap-1">
+                          {!c.ativo && (
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-texto-suave">
+                              inativo
+                            </span>
+                          )}
+                          {estaBloqueado(c.bloqueado_ate) && (
+                            <span className="rounded-full bg-vermelho/10 px-2 py-0.5 text-xs font-semibold text-vermelho">
+                              bloqueado até {formatarHora(c.bloqueado_ate!)}
+                            </span>
+                          )}
+                          {c.ativo && c.pin_provisorio && (
+                            <span className="rounded-full bg-amarelo/20 px-2 py-0.5 text-xs font-semibold text-marinho">
+                              PIN provisório
+                            </span>
+                          )}
+                          {c.ativo && !c.pin_provisorio && !estaBloqueado(c.bloqueado_ate) && (
+                            <span className="text-xs text-texto-suave">em uso</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex justify-end gap-1">
+                          {podeEditar && estaBloqueado(c.bloqueado_ate) && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => void desbloquear(c)}
+                              title="Desbloquear"
+                            >
+                              <LockOpen className="size-4" aria-hidden />
+                            </Button>
+                          )}
+                          {podeEditar && !c.anonimizado && (
+                            <Button size="sm" variant="ghost" onClick={() => setEditando(c)}>
+                              <Pencil className="size-4" aria-hidden />
+                            </Button>
+                          )}
+                          {perfil?.papel === "admin" && !c.anonimizado && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setAnonimizar(c)}
+                              title="Anonimizar (LGPD)"
+                            >
+                              <UserX className="size-4 text-vermelho" aria-hidden />
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
 
       {editando && (
@@ -690,6 +821,14 @@ function Colaboradores() {
   );
 }
 
+/** `?aba=setores` abre direto a aba de setores e locais. */
+type Busca = { aba?: "setores" };
+
 export const Route = createFileRoute("/_protegido/painel/colaboradores/")({
+  validateSearch: (bruto: Record<string, unknown>): Busca => {
+    const busca: Busca = {};
+    if (bruto["aba"] === "setores") busca.aba = "setores";
+    return busca;
+  },
   component: Colaboradores,
 });

@@ -240,3 +240,24 @@ Eu havia recomendado separar. A decisão foi usar o mesmo projeto
 em `docs/DEPLOY.md` §2: `test:fluxo` e `seed-demo.mjs` mexem nesse banco, e o
 seed **apaga e recria** a empresa `demo`. Não rodar nenhum dos dois perto de uma
 apresentação.
+
+## Colaboradores e Setores/Locais viraram uma tela só (02/10/2026)
+
+Pedido do usuário: simplificar o sistema. `/painel/setores` deixou de existir;
+a tela `/painel/colaboradores` tem duas abas (Pessoas | Setores e locais) e o
+menu perdeu um item (agora "Colaboradores e setores"). Deep link:
+`/painel/colaboradores?aba=setores`.
+
+- No cadastro da pessoa, o select de setor tem "＋ Criar setor novo…", com nome
+  e, opcionalmente, o primeiro local. Cria o setor antes e, se falhar, nada da
+  pessoa é gravado.
+- O setor aparece como **badge na cor do setor** (texto claro/escuro pelo
+  contraste de `jogos/cores.ts`); o turno também é badge.
+- Havia dois `useSetores` com a MESMA chave de cache (`["setores"]`) e colunas
+  diferentes: a tela de colaboradores selecionava só `id, nome` e podia envenenar
+  o cache de quem precisava de `cor`. Agora só existe o de `hooks/useEventos.ts`.
+
+Etiquetas de local (QR) continuam na aba "Setores e locais".
+Próximo passo sugerido (não feito): fundir Ranking+Certificados em Campanhas,
+Materiais em Configurações e Relatórios em Analytics; e decidir o login por
+e-mail depois de saber se os colaboradores têm e-mail.

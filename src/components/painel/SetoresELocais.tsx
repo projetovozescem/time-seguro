@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
@@ -329,8 +328,19 @@ function FormLocal({
   );
 }
 
-/** Setores e locais, com QR por local (docs/TIME_04 §7). */
-function SetoresELocais() {
+/**
+ * Setores e locais, com QR por local (docs/TIME_04 §7).
+ *
+ * Mora dentro da tela de Colaboradores (aba "Setores e locais"): quem cadastra
+ * pessoas cadastra setor junto, e o setor e a cor que aparecem como badge na
+ * lista de pessoas. `pessoasPorSetor` vem de la, para mostrar quantas pessoas
+ * cada setor tem sem consultar o banco duas vezes.
+ */
+export function SetoresELocais({
+  pessoasPorSetor,
+}: {
+  pessoasPorSetor: ReadonlyMap<string, number>;
+}) {
   const { data: perfil } = usePerfil();
   const { data: setores = [], isLoading } = useSetoresCompletos();
   const { data: locais = [] } = useLocais();
@@ -345,12 +355,9 @@ function SetoresELocais() {
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-extrabold text-marinho">Setores e Locais</h1>
-          <p className="mt-1 text-sm text-texto-suave">
-            Cada local tem um QR Code: quem escaneia cai direto no relato daquele ponto.
-          </p>
-        </div>
+        <p className="max-w-xl text-sm text-texto-suave">
+          Cada local tem um QR Code: quem escaneia cai direto no relato daquele ponto.
+        </p>
         {podeEditar && (
           <div className="flex gap-2">
             <Button
@@ -390,6 +397,9 @@ function SetoresELocais() {
               />
               <h2 className="flex-1 font-display text-lg font-bold text-texto">
                 {s.nome}
+                <span className="ml-2 rounded-full bg-marinho/10 px-2 py-0.5 text-xs font-semibold text-marinho">
+                  {pessoasPorSetor.get(s.id) ?? 0} pessoa(s)
+                </span>
                 {!s.ativo && (
                   <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-texto-suave">
                     inativo
@@ -450,7 +460,3 @@ function SetoresELocais() {
     </div>
   );
 }
-
-export const Route = createFileRoute("/_protegido/painel/setores")({
-  component: SetoresELocais,
-});

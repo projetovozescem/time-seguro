@@ -313,7 +313,8 @@ function SelecaoTv() {
             </div>
             {setores.length === 0 && (
               <p className="mt-2 text-lg text-white/60">
-                Nenhum setor cadastrado. Cadastre em Setores e Locais, no painel.
+                Nenhum setor cadastrado. Cadastre em Colaboradores e setores, aba Setores e locais,
+                no painel.
               </p>
             )}
           </section>

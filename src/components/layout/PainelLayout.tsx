@@ -26,14 +26,8 @@ const MENU = [
   },
   {
     emoji: "👷",
-    rotulo: "Colaboradores",
+    rotulo: "Colaboradores e setores",
     rota: "/painel/colaboradores" as const,
-    minimo: "tecnico" as const,
-  },
-  {
-    emoji: "🏭",
-    rotulo: "Setores e Locais",
-    rota: "/painel/setores" as const,
     minimo: "tecnico" as const,
   },
   { emoji: "📅", rotulo: "Eventos", rota: "/painel/eventos" as const, minimo: "cipa" as const },

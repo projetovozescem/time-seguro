@@ -33,7 +33,6 @@ import { Route as ProtegidoPainelRankingRouteImport } from './routes/_protegido.
 import { Route as ProtegidoPainelRelatoriosRouteImport } from './routes/_protegido.painel.relatorios'
 import { Route as ProtegidoPainelRelatosRouteImport } from './routes/_protegido.painel.relatos'
 import { Route as ProtegidoPainelRespeitoRouteImport } from './routes/_protegido.painel.respeito'
-import { Route as ProtegidoPainelSetoresRouteImport } from './routes/_protegido.painel.setores'
 import { Route as ProtegidoTvIndexRouteImport } from './routes/_protegido.tv.index'
 import { Route as ProtegidoTvJogoRouteImport } from './routes/_protegido.tv.jogo'
 import { Route as AppLocalLocalIdRouteImport } from './routes/app.local.$localId'
@@ -171,11 +170,6 @@ const ProtegidoPainelRespeitoRoute = ProtegidoPainelRespeitoRouteImport.update({
   path: '/painel/respeito',
   getParentRoute: () => ProtegidoRoute,
 } as any)
-const ProtegidoPainelSetoresRoute = ProtegidoPainelSetoresRouteImport.update({
-  id: '/painel/setores',
-  path: '/painel/setores',
-  getParentRoute: () => ProtegidoRoute,
-} as any)
 const ProtegidoTvIndexRoute = ProtegidoTvIndexRouteImport.update({
   id: '/tv/',
   path: '/tv/',
@@ -267,7 +261,6 @@ export interface FileRoutesByFullPath {
   '/painel/relatorios': typeof ProtegidoPainelRelatoriosRoute
   '/painel/relatos': typeof ProtegidoPainelRelatosRoute
   '/painel/respeito': typeof ProtegidoPainelRespeitoRoute
-  '/painel/setores': typeof ProtegidoPainelSetoresRoute
   '/tv/jogo': typeof ProtegidoTvJogoRoute
   '/app/local/$localId': typeof AppLocalLocalIdRoute
   '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
@@ -305,7 +298,6 @@ export interface FileRoutesByTo {
   '/painel/relatorios': typeof ProtegidoPainelRelatoriosRoute
   '/painel/relatos': typeof ProtegidoPainelRelatosRoute
   '/painel/respeito': typeof ProtegidoPainelRespeitoRoute
-  '/painel/setores': typeof ProtegidoPainelSetoresRoute
   '/tv/jogo': typeof ProtegidoTvJogoRoute
   '/app/local/$localId': typeof AppLocalLocalIdRoute
   '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
@@ -345,7 +337,6 @@ export interface FileRoutesById {
   '/_protegido/painel/relatorios': typeof ProtegidoPainelRelatoriosRoute
   '/_protegido/painel/relatos': typeof ProtegidoPainelRelatosRoute
   '/_protegido/painel/respeito': typeof ProtegidoPainelRespeitoRoute
-  '/_protegido/painel/setores': typeof ProtegidoPainelSetoresRoute
   '/_protegido/tv/jogo': typeof ProtegidoTvJogoRoute
   '/app/local/$localId': typeof AppLocalLocalIdRoute
   '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
@@ -385,7 +376,6 @@ export interface FileRouteTypes {
     | '/painel/relatorios'
     | '/painel/relatos'
     | '/painel/respeito'
-    | '/painel/setores'
     | '/tv/jogo'
     | '/app/local/$localId'
     | '/app/trilha/$licaoId'
@@ -423,7 +413,6 @@ export interface FileRouteTypes {
     | '/painel/relatorios'
     | '/painel/relatos'
     | '/painel/respeito'
-    | '/painel/setores'
     | '/tv/jogo'
     | '/app/local/$localId'
     | '/app/trilha/$licaoId'
@@ -462,7 +451,6 @@ export interface FileRouteTypes {
     | '/_protegido/painel/relatorios'
     | '/_protegido/painel/relatos'
     | '/_protegido/painel/respeito'
-    | '/_protegido/painel/setores'
     | '/_protegido/tv/jogo'
     | '/app/local/$localId'
     | '/app/trilha/$licaoId'
@@ -668,13 +656,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtegidoPainelRespeitoRouteImport
       parentRoute: typeof ProtegidoRoute
     }
-    '/_protegido/painel/setores': {
-      id: '/_protegido/painel/setores'
-      path: '/painel/setores'
-      fullPath: '/painel/setores'
-      preLoaderRoute: typeof ProtegidoPainelSetoresRouteImport
-      parentRoute: typeof ProtegidoRoute
-    }
     '/_protegido/tv/': {
       id: '/_protegido/tv/'
       path: '/tv'
@@ -772,7 +753,6 @@ interface ProtegidoRouteChildren {
   ProtegidoPainelRelatoriosRoute: typeof ProtegidoPainelRelatoriosRoute
   ProtegidoPainelRelatosRoute: typeof ProtegidoPainelRelatosRoute
   ProtegidoPainelRespeitoRoute: typeof ProtegidoPainelRespeitoRoute
-  ProtegidoPainelSetoresRoute: typeof ProtegidoPainelSetoresRoute
   ProtegidoTvJogoRoute: typeof ProtegidoTvJogoRoute
   ProtegidoPainelIndexRoute: typeof ProtegidoPainelIndexRoute
   ProtegidoTvIndexRoute: typeof ProtegidoTvIndexRoute
@@ -795,7 +775,6 @@ const ProtegidoRouteChildren: ProtegidoRouteChildren = {
   ProtegidoPainelRelatoriosRoute: ProtegidoPainelRelatoriosRoute,
   ProtegidoPainelRelatosRoute: ProtegidoPainelRelatosRoute,
   ProtegidoPainelRespeitoRoute: ProtegidoPainelRespeitoRoute,
-  ProtegidoPainelSetoresRoute: ProtegidoPainelSetoresRoute,
   ProtegidoTvJogoRoute: ProtegidoTvJogoRoute,
   ProtegidoPainelIndexRoute: ProtegidoPainelIndexRoute,
   ProtegidoTvIndexRoute: ProtegidoTvIndexRoute,
