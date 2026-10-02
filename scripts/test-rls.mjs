@@ -48,6 +48,9 @@ const TABELAS = [
   "selos_conquistados",
   "campanha_resultados",
   "certificados",
+  // 0008 e 0009 (02/10/2026)
+  "acessos_pin",
+  "solicitacoes_cadastro",
 ];
 
 /** Assinaturas liberadas para `anon` na 0005 §10 (app do colaborador + públicas). */
@@ -55,7 +58,6 @@ const RPCS_ANON = [
   "public.empresa_publica(text)",
   "public.colaborador_login(text, text, text)",
   "public.colaborador_logout(text)",
-  "public.colaborador_trocar_pin(text, text, text)",
   "public.colaborador_termo_lgpd(text)",
   "public.colaborador_aceitar_lgpd(text)",
   "public.colaborador_resumo(text)",
@@ -75,11 +77,17 @@ const RPCS_ANON = [
   "public.consultar_denuncia(text, text)",
   "public.responder_denuncia_denunciante(text, text, text)",
   "public.verificar_certificado(text)",
+  // 0009: o autocadastro e uma pagina publica, como o Canal de Respeito.
+  "public.publico_setores_da_empresa(text)",
+  "public.publico_solicitar_cadastro(text, text, text, text, uuid)",
 ];
 
 /** Assinaturas do painel: `authenticated` executa, `anon` NÃO. */
 const RPCS_SO_PAINEL = [
   "public.tecnico_gerar_pins(uuid[])",
+  "public.tecnico_ver_pin(uuid)",
+  "public.tecnico_reemitir_pin(uuid)",
+  "public.tecnico_decidir_solicitacao(uuid, boolean, uuid, text)",
   "public.tecnico_importar_colaboradores(jsonb)",
   "public.tecnico_desbloquear_colaborador(uuid)",
   "public.tecnico_anonimizar_colaborador(uuid)",
@@ -92,8 +100,17 @@ const RPCS_SO_PAINEL = [
   "public.comite_responder_denuncia(uuid, text, text)",
 ];
 
-/** Só a Edge Function (service_role) autoriza upload de foto de relato. */
-const RPCS_SO_SERVICE_ROLE = ["public._relato_caminho_foto(text, uuid)"];
+/**
+ * Nem `anon` nem `authenticated` executam: so service_role (Edge Function) ou
+ * uma funcao interna. Inclui as da 0008: o colaborador nao troca mais o PIN, e
+ * o gerador de PIN e a trigger sao internos.
+ */
+const RPCS_SO_SERVICE_ROLE = [
+  "public._relato_caminho_foto(text, uuid)",
+  "public.colaborador_trocar_pin(text, text, text)",
+  "public._pin_unico(uuid)",
+  "public._colaborador_define_pin()",
+];
 
 /** Colunas que o painel pode ler em `colaboradores` (0005 §5). */
 const COLUNAS_COLABORADOR_LEGIVEIS = [
@@ -111,11 +128,14 @@ const COLUNAS_COLABORADOR_LEGIVEIS = [
   "bloqueado_ate",
   "anonimizado",
   "criado_em",
+  "email",
 ];
 
 /** Segredos que nem `anon` nem `authenticated` podem ler. */
 const COLUNAS_SECRETAS = [
   ["colaboradores", "pin_hash"],
+  // 0008: PIN fixo guardado de forma recuperavel — so as RPCs o devolvem.
+  ["colaboradores", "pin_fixo"],
   ["denuncias_assedio", "senha_hash"],
 ];
 

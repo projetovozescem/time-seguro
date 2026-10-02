@@ -180,10 +180,10 @@ const fluxo = novos.find((c) => c.matricula.endsWith("a"));
 const cobaia = novos.find((c) => c.matricula.endsWith("b"));
 console.log(`  colaboradores de teste: ${fluxo.matricula}, ${cobaia.matricula}`);
 
-// PINs provisórios (a RPC devolve uma única vez)
+// PIN fixo (0008): nasce com o colaborador e a RPC apenas o DEVOLVE.
 const pins = await rpc("tecnico_gerar_pins", { p_colaboradores: [fluxo.id, cobaia.id] }, jwtAdmin);
 // A RPC devolve TABLE(colaborador_id, matricula, nome, setor, pin), ou seja,
-// um array de linhas. O PIN só aparece aqui, uma vez (docs/TIME_03 §3).
+// um array de linhas.
 const linhasPin = Array.isArray(pins.corpo) ? pins.corpo : [];
 const porId = new Map(linhasPin.map((p) => [p.colaborador_id, p.pin]));
 const pinFluxo = porId.get(fluxo.id);
@@ -197,6 +197,16 @@ if (!pinFluxo) {
   console.error("\nSem PIN não há como seguir. Abortando.");
   process.exit(1);
 }
+checar(pinFluxo !== pinCobaia, "PINs de colaboradores diferentes sao numeros diferentes (unicos)");
+const repetidoPin = await rpc("tecnico_gerar_pins", { p_colaboradores: [fluxo.id] }, jwtAdmin);
+checar(
+  repetidoPin.corpo?.[0]?.pin === pinFluxo,
+  "pedir o PIN de novo devolve o MESMO numero (fixo, nao gera outro)",
+);
+const [naBase] = await consultar(
+  `select pin_fixo from public.colaboradores where id = ${lit(fluxo.id)}`,
+);
+checar(naBase.pin_fixo === pinFluxo, "o PIN foi dado na criacao do colaborador (trigger)");
 
 // =====================================================================
 console.log("\n--- família 4: anon sem acesso a tabela ---");
@@ -219,6 +229,10 @@ console.log("\n--- família 5: pin_hash ilegível pelo painel ---");
     headers: { apikey: ANON, Authorization: `Bearer ${jwtAdmin}` },
   });
   checar(r.status === 403, `admin recusado em colaboradores.pin_hash (http ${r.status})`);
+  const fixo = await fetch(`${URL}/rest/v1/colaboradores?select=pin_fixo&limit=1`, {
+    headers: { apikey: ANON, Authorization: `Bearer ${jwtAdmin}` },
+  });
+  checar(fixo.status === 403, `admin recusado em colaboradores.pin_fixo (http ${fixo.status})`);
   const ok = await fetch(`${URL}/rest/v1/colaboradores?select=nome,matricula&limit=1`, {
     headers: { apikey: ANON, Authorization: `Bearer ${jwtAdmin}` },
   });
@@ -234,30 +248,25 @@ const login1 = await rpc("colaborador_login", {
 });
 checar(
   login1.corpo?.ok === true,
-  "login com PIN provisório",
+  "login com o PIN fixo",
   JSON.stringify(login1.corpo).slice(0, 140),
 );
 checar(
-  login1.corpo?.pendencia === "trocar_pin",
-  `pendência é trocar_pin (veio ${login1.corpo?.pendencia})`,
+  login1.corpo?.pendencia === "aceitar_lgpd",
+  `sem PIN provisorio: a unica pendencia e o termo (veio ${login1.corpo?.pendencia})`,
 );
 const token = login1.corpo?.token;
 
-const novoPin = "418275";
-const troca = await rpc("colaborador_trocar_pin", {
+// O colaborador NAO troca o PIN: a RPC deixou de ser executavel por anon.
+const tentaTrocar = await rpc("colaborador_trocar_pin", {
   p_token: token,
   p_pin_atual: pinFluxo,
-  p_pin_novo: novoPin,
+  p_pin_novo: "418275",
 });
-checar(troca.corpo?.ok === true, "troca de PIN", JSON.stringify(troca.corpo).slice(0, 140));
-
-const fraco = await rpc("colaborador_trocar_pin", {
-  p_token: token,
-  p_pin_atual: novoPin,
-  p_pin_novo: "123456",
-});
-checar(fraco.corpo?.motivo === "pin_fraco", "servidor recusa PIN em sequência (pin_fraco)");
-
+checar(
+  tentaTrocar.status >= 400,
+  `colaborador_trocar_pin recusada para anon (http ${tentaTrocar.status})`,
+);
 const termo = await rpc("colaborador_termo_lgpd", { p_token: token });
 checar(typeof termo.corpo?.texto === "string", "termo LGPD devolvido");
 const aceite = await rpc("colaborador_aceitar_lgpd", { p_token: token });
@@ -985,7 +994,7 @@ console.log("\n--- item 5: ciclo de relatos ---");
   const relogin = await rpc("colaborador_login", {
     p_empresa_codigo: empresa.codigo,
     p_matricula: fluxo.matricula,
-    p_pin: novoPin,
+    p_pin: pinFluxo,
   });
   checar(relogin.corpo?.ok === true, "login de novo depois do logout");
   const tk = relogin.corpo?.token;
@@ -1384,7 +1393,7 @@ console.log("\n--- item 7: check-in e Modo TV ---");
     const relogin = await rpc("colaborador_login", {
       p_empresa_codigo: empresa.codigo,
       p_matricula: fluxo.matricula,
-      p_pin: novoPin,
+      p_pin: pinFluxo,
     });
     const tk2 = relogin.corpo?.token;
 
@@ -1855,6 +1864,241 @@ console.log("\n--- item 13: Modo TV Duelo e Eliminacao ---");
     `delete from public.setores where id = ${lit(setorDescartavel.id)} returning id`,
   );
   checar(setorRemovido.length === 1, "o setor de teste foi removido no fim");
+}
+// =====================================================================
+console.log("\n--- item 14: PIN fixo, reemissao e autocadastro ---");
+{
+  const L = (jwt) => ({ apikey: ANON, Authorization: `Bearer ${jwt}` });
+
+  // ---- ver o PIN ----
+  const ver = await rpc("tecnico_ver_pin", { p_colaborador: fluxo.id }, jwtAdmin);
+  checar(
+    ver.corpo?.ok === true && ver.corpo?.pin === pinFluxo,
+    "admin ve o PIN fixo do colaborador",
+    JSON.stringify(ver.corpo).slice(0, 100),
+  );
+  const verAnon = await rpc("tecnico_ver_pin", { p_colaborador: fluxo.id });
+  checar(
+    verAnon.status >= 400 && !verAnon.corpo?.pin,
+    `anon recusado em tecnico_ver_pin (http ${verAnon.status})`,
+  );
+  const verCipa = await rpc("tecnico_ver_pin", { p_colaborador: fluxo.id }, jwtCipa);
+  checar(verCipa.status >= 400 && !verCipa.corpo?.pin, "CIPA NAO ve o PIN (so admin e tecnico)");
+
+  // ---- reemitir (so admin) ----
+  const reemCipa = await rpc("tecnico_reemitir_pin", { p_colaborador: cobaia.id }, jwtCipa);
+  checar(reemCipa.status >= 400 && !reemCipa.corpo?.pin, "CIPA nao reemite PIN");
+
+  // A cobaia foi bloqueada mais acima (5 PINs errados): reemitir tambem desbloqueia.
+  const reem = await rpc("tecnico_reemitir_pin", { p_colaborador: cobaia.id }, jwtAdmin);
+  const pinNovoCobaia = reem.corpo?.pin;
+  checar(
+    reem.corpo?.ok === true && /^\d{6}$/.test(pinNovoCobaia ?? ""),
+    "admin reemite o PIN",
+    JSON.stringify(reem.corpo).slice(0, 100),
+  );
+  checar(pinNovoCobaia !== pinCobaia, "o PIN reemitido e outro numero");
+  const antigo = await rpc("colaborador_login", {
+    p_empresa_codigo: empresa.codigo,
+    p_matricula: cobaia.matricula,
+    p_pin: pinCobaia,
+  });
+  checar(antigo.corpo?.ok === false, "o PIN antigo deixa de valer");
+  const entrou = await rpc("colaborador_login", {
+    p_empresa_codigo: empresa.codigo,
+    p_matricula: cobaia.matricula,
+    p_pin: pinNovoCobaia,
+  });
+  checar(entrou.corpo?.ok === true, "o PIN novo entra (e o bloqueio foi zerado)");
+
+  // Unicidade: nenhum PIN repetido dentro da empresa.
+  const [dup] = await consultar(`
+    select count(*)::int as repetidos from (
+      select pin_fixo from public.colaboradores
+       where empresa_id = ${lit(empresa.id)} and pin_fixo is not null
+       group by pin_fixo having count(*) > 1) x
+  `);
+  checar(dup.repetidos === 0, `nenhum PIN repetido na empresa (repetidos: ${dup.repetidos})`);
+
+  // ---- auditoria ----
+  const [log] = await consultar(`
+    select count(*) filter (where acao = 'ver')::int as vistas,
+           count(*) filter (where acao = 'reemitir')::int as reemitidas
+      from public.acessos_pin
+     where colaborador_id in (${lit(fluxo.id)}, ${lit(cobaia.id)})
+  `);
+  checar(log.vistas >= 3, `consultas de PIN ficam registradas (${log.vistas})`);
+  checar(log.reemitidas === 1, `reemissao fica registrada (${log.reemitidas})`);
+  const logAdmin = await fetch(`${URL}/rest/v1/acessos_pin?select=id&limit=5`, {
+    headers: L(jwtAdmin),
+  });
+  checar(logAdmin.status === 200, `admin le o registro de acessos (http ${logAdmin.status})`);
+  const logCipa = await (
+    await fetch(`${URL}/rest/v1/acessos_pin?select=id&limit=5`, { headers: L(jwtCipa) })
+  ).json();
+  checar(Array.isArray(logCipa) && logCipa.length === 0, "CIPA nao ve o registro de acessos");
+
+  // ---- autocadastro ----
+  const pub = await rpc("publico_setores_da_empresa", { p_empresa_codigo: empresa.codigo });
+  checar(
+    pub.corpo?.ok === true && pub.corpo?.setores?.length > 0,
+    "anon lista os setores da empresa para o cadastro",
+  );
+  const setorId = pub.corpo?.setores?.[0]?.id;
+  const matCad = `ac${selo}`;
+  const emailCad = `${matCad}@empresa-teste.invalid`;
+  const pedir = (extra = {}) =>
+    rpc("publico_solicitar_cadastro", {
+      p_empresa_codigo: empresa.codigo,
+      p_nome: "Pessoa de Teste Cadastro",
+      p_matricula: matCad,
+      p_email: emailCad,
+      p_setor: setorId,
+      ...extra,
+    });
+
+  const ruim = await pedir({ p_email: "isto-nao-e-email" });
+  checar(ruim.corpo?.motivo === "email_invalido", "e-mail invalido e recusado");
+
+  // Dominio da empresa: configura, testa e RESTAURA o config original.
+  const [{ config: configOriginal }] = await consultar(
+    `select config from public.empresas where id = ${lit(empresa.id)}`,
+  );
+  try {
+    await consultar(`
+      update public.empresas
+         set config = config || '{"dominios_email":["empresa-certa.com.br"]}'::jsonb
+       where id = ${lit(empresa.id)}`);
+    const fora = await pedir();
+    checar(
+      fora.corpo?.motivo === "email_fora_do_dominio",
+      "e-mail fora do dominio da empresa e recusado",
+    );
+  } finally {
+    await consultar(
+      `update public.empresas set config = ${lit(JSON.stringify(configOriginal))}::jsonb where id = ${lit(empresa.id)}`,
+    );
+  }
+
+  const pedido = await pedir();
+  checar(pedido.corpo?.ok === true, "pedido de cadastro aceito", JSON.stringify(pedido.corpo));
+  const pend = await consultar(`
+    select id, status from public.solicitacoes_cadastro
+     where empresa_id = ${lit(empresa.id)} and matricula = ${lit(matCad)}`);
+  checar(pend.length === 1 && pend[0].status === "pendente", "fica PENDENTE");
+
+  const repetido = await pedir();
+  const [{ n: copias }] = await consultar(`
+    select count(*)::int as n from public.solicitacoes_cadastro
+     where empresa_id = ${lit(empresa.id)} and matricula = ${lit(matCad)}`);
+  checar(
+    repetido.corpo?.ok === true && copias === 1,
+    `pedido repetido responde igual e nao duplica (copias: ${copias})`,
+  );
+
+  const [{ n: jaColab }] = await consultar(`
+    select count(*)::int as n from public.colaboradores
+     where empresa_id = ${lit(empresa.id)} and matricula = ${lit(matCad)}`);
+  checar(jaColab === 0, "pendente ainda NAO e colaborador (sem acesso)");
+
+  const anonLe = await fetch(`${URL}/rest/v1/solicitacoes_cadastro?select=*&limit=1`, {
+    headers: L(ANON),
+  });
+  checar(
+    anonLe.status === 401 || anonLe.status === 403,
+    `anon nao le as solicitacoes (http ${anonLe.status})`,
+  );
+
+  const lista = await fetch(
+    `${URL}/rest/v1/solicitacoes_cadastro?select=id,status&matricula=eq.${matCad}`,
+    { headers: L(jwtCipa) },
+  );
+  const linhasSol = await lista.json();
+  checar(lista.status === 200 && linhasSol.length === 1, "CIPA ve a solicitacao pendente");
+
+  // CIPA aprova (admin, tecnico e CIPA podem).
+  const aprova = await rpc(
+    "tecnico_decidir_solicitacao",
+    { p_id: pend[0].id, p_aprovar: true },
+    jwtCipa,
+  );
+  checar(
+    aprova.corpo?.ok === true && !!aprova.corpo?.colaborador_id,
+    "CIPA aprova a solicitacao",
+    JSON.stringify(aprova.corpo).slice(0, 100),
+  );
+  const [aprovado] = await consultar(`
+    select id, pin_fixo, email, ativo, setor_id from public.colaboradores
+     where id = ${lit(aprova.corpo?.colaborador_id)}`);
+  checar(
+    /^\d{6}$/.test(aprovado?.pin_fixo ?? "") &&
+      aprovado?.email === emailCad &&
+      aprovado?.ativo === true,
+    "aprovado ja nasce ativo, com PIN fixo e com o e-mail",
+  );
+  checar(aprovado?.setor_id === setorId, "o setor do pedido foi para o colaborador");
+
+  const verNovo = await rpc("tecnico_ver_pin", { p_colaborador: aprovado.id }, jwtAdmin);
+  const loginNovo = await rpc("colaborador_login", {
+    p_empresa_codigo: empresa.codigo,
+    p_matricula: matCad,
+    p_pin: verNovo.corpo?.pin,
+  });
+  checar(loginNovo.corpo?.ok === true, "o aprovado entra com o PIN que o gestor viu");
+
+  const denovo = await rpc(
+    "tecnico_decidir_solicitacao",
+    { p_id: pend[0].id, p_aprovar: true },
+    jwtAdmin,
+  );
+  checar(denovo.corpo?.motivo === "ja_decidida", "decidir duas vezes devolve ja_decidida");
+
+  // Recusa guarda o motivo e nao cria colaborador.
+  const matRec = `${matCad}r`;
+  await rpc("publico_solicitar_cadastro", {
+    p_empresa_codigo: empresa.codigo,
+    p_nome: "Pessoa Recusada Teste",
+    p_matricula: matRec,
+    p_email: `${matRec}@empresa-teste.invalid`,
+    p_setor: setorId,
+  });
+  const [pedRec] = await consultar(`
+    select id from public.solicitacoes_cadastro
+     where empresa_id = ${lit(empresa.id)} and matricula = ${lit(matRec)}`);
+  const recusa = await rpc(
+    "tecnico_decidir_solicitacao",
+    { p_id: pedRec.id, p_aprovar: false, p_motivo: "Nao consta no quadro" },
+    jwtAdmin,
+  );
+  const [recusada] = await consultar(`
+    select status, motivo from public.solicitacoes_cadastro where id = ${lit(pedRec.id)}`);
+  checar(
+    recusa.corpo?.ok === true &&
+      recusada.status === "recusada" &&
+      recusada.motivo === "Nao consta no quadro",
+    "recusa guarda o motivo",
+  );
+  const [{ n: criouRec }] = await consultar(`
+    select count(*)::int as n from public.colaboradores
+     where empresa_id = ${lit(empresa.id)} and matricula = ${lit(matRec)}`);
+  checar(criouRec === 0, "recusada NAO vira colaborador");
+
+  // Reemitir derruba a sessao aberta: o token antigo deixa de valer.
+  await rpc("tecnico_reemitir_pin", { p_colaborador: fluxo.id }, jwtAdmin);
+  const aposReemitir = await rpc("colaborador_resumo", { p_token: token });
+  checar(
+    JSON.stringify(aposReemitir.corpo).includes("sessao_invalida"),
+    "reemitir o PIN derruba a sessao aberta (sessao_invalida)",
+  );
+
+  // Limpa o que ESTE bloco criou (solicitacoes e o colaborador aprovado).
+  await consultar(`
+    delete from public.solicitacoes_cadastro
+     where empresa_id = ${lit(empresa.id)} and matricula in (${lit(matCad)}, ${lit(matRec)})`);
+  const apagado = await consultar(
+    `delete from public.colaboradores where id = ${lit(aprovado.id)} returning id`,
+  );
+  checar(apagado.length === 1, "o colaborador aprovado do teste foi removido no fim");
 }
 // =====================================================================
 console.log(

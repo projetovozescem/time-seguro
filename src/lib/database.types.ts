@@ -17,6 +17,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      acessos_pin: {
+        Row: {
+          acao: string
+          colaborador_id: string
+          criado_em: string
+          empresa_id: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          acao: string
+          colaborador_id: string
+          criado_em?: string
+          empresa_id: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          acao?: string
+          colaborador_id?: string
+          criado_em?: string
+          empresa_id?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "acessos_pin_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "acessos_pin_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       atividade_diaria: {
         Row: {
           campanha_id: string
@@ -369,12 +411,14 @@ export type Database = {
           ativo: boolean
           bloqueado_ate: string | null
           criado_em: string
+          email: string | null
           empresa_id: string
           id: string
           lgpd_aceite_em: string | null
           lgpd_aceite_versao: number | null
           matricula: string
           nome: string
+          pin_fixo: string | null
           pin_hash: string | null
           pin_provisorio: boolean
           setor_id: string | null
@@ -386,12 +430,14 @@ export type Database = {
           ativo?: boolean
           bloqueado_ate?: string | null
           criado_em?: string
+          email?: string | null
           empresa_id: string
           id?: string
           lgpd_aceite_em?: string | null
           lgpd_aceite_versao?: number | null
           matricula: string
           nome: string
+          pin_fixo?: string | null
           pin_hash?: string | null
           pin_provisorio?: boolean
           setor_id?: string | null
@@ -403,12 +449,14 @@ export type Database = {
           ativo?: boolean
           bloqueado_ate?: string | null
           criado_em?: string
+          email?: string | null
           empresa_id?: string
           id?: string
           lgpd_aceite_em?: string | null
           lgpd_aceite_versao?: number | null
           matricula?: string
           nome?: string
+          pin_fixo?: string | null
           pin_hash?: string | null
           pin_provisorio?: boolean
           setor_id?: string | null
@@ -1716,6 +1764,80 @@ export type Database = {
           },
         ]
       }
+      solicitacoes_cadastro: {
+        Row: {
+          colaborador_id: string | null
+          criado_em: string
+          decidido_em: string | null
+          decidido_por: string | null
+          email: string
+          empresa_id: string
+          id: string
+          matricula: string
+          motivo: string | null
+          nome: string
+          setor_id: string | null
+          status: string
+        }
+        Insert: {
+          colaborador_id?: string | null
+          criado_em?: string
+          decidido_em?: string | null
+          decidido_por?: string | null
+          email: string
+          empresa_id: string
+          id?: string
+          matricula: string
+          motivo?: string | null
+          nome: string
+          setor_id?: string | null
+          status?: string
+        }
+        Update: {
+          colaborador_id?: string | null
+          criado_em?: string
+          decidido_em?: string | null
+          decidido_por?: string | null
+          email?: string
+          empresa_id?: string
+          id?: string
+          matricula?: string
+          motivo?: string | null
+          nome?: string
+          setor_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_cadastro_colaborador_id_fkey"
+            columns: ["colaborador_id"]
+            isOneToOne: false
+            referencedRelation: "colaboradores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitacoes_cadastro_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitacoes_cadastro_setor_id_fkey"
+            columns: ["setor_id"]
+            isOneToOne: false
+            referencedRelation: "setores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitacoes_cadastro_setor_id_fkey"
+            columns: ["setor_id"]
+            isOneToOne: false
+            referencedRelation: "v_ranking_setor"
+            referencedColumns: ["setor_id"]
+          },
+        ]
+      }
       temas: {
         Row: {
           cor: string
@@ -1924,12 +2046,14 @@ export type Database = {
           ativo: boolean
           bloqueado_ate: string | null
           criado_em: string
+          email: string | null
           empresa_id: string
           id: string
           lgpd_aceite_em: string | null
           lgpd_aceite_versao: number | null
           matricula: string
           nome: string
+          pin_fixo: string | null
           pin_hash: string | null
           pin_provisorio: boolean
           setor_id: string | null
@@ -1988,6 +2112,7 @@ export type Database = {
         }
       }
       _pin_aleatorio: { Args: never; Returns: string }
+      _pin_unico: { Args: { p_empresa: string }; Returns: string }
       _registrar_atividade: {
         Args: {
           p_camp: Database["public"]["Tables"]["campanhas"]["Row"]
@@ -2076,6 +2201,20 @@ export type Database = {
       empresa_publica: { Args: { p_codigo: string }; Returns: Json }
       meu_papel: { Args: never; Returns: string }
       minha_empresa: { Args: never; Returns: string }
+      publico_setores_da_empresa: {
+        Args: { p_empresa_codigo: string }
+        Returns: Json
+      }
+      publico_solicitar_cadastro: {
+        Args: {
+          p_email: string
+          p_empresa_codigo: string
+          p_matricula: string
+          p_nome: string
+          p_setor?: string
+        }
+        Returns: Json
+      }
       registrar_denuncia_assedio: {
         Args: {
           p_categoria: string
@@ -2106,6 +2245,15 @@ export type Database = {
         }
         Returns: Json
       }
+      tecnico_decidir_solicitacao: {
+        Args: {
+          p_aprovar: boolean
+          p_id: string
+          p_motivo?: string
+          p_setor?: string
+        }
+        Returns: Json
+      }
       tecnico_desbloquear_colaborador: {
         Args: { p_colaborador: string }
         Returns: Json
@@ -2128,6 +2276,7 @@ export type Database = {
         Args: { p_linhas: Json }
         Returns: Json
       }
+      tecnico_reemitir_pin: { Args: { p_colaborador: string }; Returns: Json }
       tecnico_rotacionar_codigo: { Args: { p_evento: string }; Returns: Json }
       tecnico_salvar_quiz_tv: {
         Args: {
@@ -2149,6 +2298,7 @@ export type Database = {
         }
         Returns: Json
       }
+      tecnico_ver_pin: { Args: { p_colaborador: string }; Returns: Json }
       verificar_certificado: { Args: { p_codigo: string }; Returns: Json }
     }
     Enums: {
