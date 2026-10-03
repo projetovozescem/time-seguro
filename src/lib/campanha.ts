@@ -191,7 +191,7 @@ export function configParaGravar(valores: Record<string, unknown>): Config {
 export type Status = "rascunho" | "ativa" | "encerrada";
 
 export const ROTULO_DO_STATUS: Record<Status, string> = {
-  rascunho: "Rascunho",
+  rascunho: "Em breve",
   ativa: "Ativa",
   encerrada: "Encerrada",
 };

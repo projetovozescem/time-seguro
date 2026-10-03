@@ -49,7 +49,9 @@ const perguntas = lerTxt(readFileSync(resolve(raiz, "scripts/perguntas-nr1.txt")
 const total = PERGUNTAS_POR_LICAO.reduce((a, b) => a + b, 0);
 const comAviso = perguntas.filter((p) => p.avisos.length > 0);
 if (comAviso.length > 0 || perguntas.length !== total) {
-  console.error(`Perguntas lidas: ${perguntas.length} (esperado ${total}); com aviso: ${comAviso.length}`);
+  console.error(
+    `Perguntas lidas: ${perguntas.length} (esperado ${total}); com aviso: ${comAviso.length}`,
+  );
   for (const p of comAviso) console.error(`  - ${p.enunciado}: ${p.avisos.join("; ")}`);
   process.exit(1);
 }
@@ -145,3 +147,6 @@ for (const c of exemplos) {
   console.log(`  matrícula ${c.matricula}  PIN ${c.pin_fixo}  — ${c.nome} (${c.setor})`);
 }
 console.log("\nMaterial público: /m/enerpeixe/nr1");
+
+// Campanha "Outubro Rosa" (Em breve) e suas perguntas: só insere, não repete.
+await import("./seed-outubro-rosa.mjs");

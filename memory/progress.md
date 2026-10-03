@@ -366,3 +366,15 @@ silêncio.
 - (02/10/2026, depois) Modo TV volta a abrir **dentro do layout** (menu à esquerda), no tamanho
   normal do site. Só o botão "Tela cheia" esconde menu/cabeçalho (`PainelLayout` com
   `useTelaCheia`) e liga a escala por resolução; "Sair da tela cheia" ou Esc volta ao layout.
+
+## 03/10/2026 — Campanha "Outubro Rosa" (Em breve)
+
+- Campanha `rascunho` (1 a 31/10/2026) na empresa `enerpeixe`, igual à "Violência
+  contra a mulher": um tema (`outubro-rosa`), sem lições; 8 perguntas sobre
+  prevenção do câncer de mama. Entrou por `scripts/seed-outubro-rosa.mjs`, que só
+  insere e não duplica (também chamado no fim de `seed-enerpeixe.mjs`).
+- Conferido: consulta no banco (3 campanhas; só "Foco Total na NR-1" ativa) e no
+  painel, logado como admin (`/painel/campanhas` mostra Em breve / Encerrada /
+  Ativa; `/painel/perguntas` lista as 8). tsc, lint e 474 testes ok.
+- **Pendente:** conferir as respostas de `perguntas-outubro-rosa.txt` com o
+  INCA/Ministério da Saúde (idade e intervalo da mamografia) antes de ativar.

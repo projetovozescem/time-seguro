@@ -321,3 +321,11 @@ do QR lê pela RPC `material_publico` (anon só executa RPC, regra 4). A campanh
 "Violência contra a mulher" foi feita com alunos e gestores de uma escola, mas no banco
 aparece só pelo nome da campanha (regra 9). A escala da TV usa `font-size` da raiz em vez
 de `transform: scale`: todas as telas TV são em rem, e o layout continua fluido.
+
+## "Em breve" é o status `rascunho` com outro rótulo (03/10/2026)
+
+O banco só aceita `rascunho | ativa | encerrada`. Em vez de criar um status novo
+(migration, constraint, tipos), `ROTULO_DO_STATUS.rascunho` passou a mostrar "Em
+breve". O valor gravado continua `rascunho`. Efeito: qualquer campanha ainda não
+ativada aparece como "Em breve". A "Violência contra a mulher" é o modelo (tema
+sem lições): "Outubro Rosa" copia essa forma.
