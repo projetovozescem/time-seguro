@@ -144,9 +144,20 @@ export function PainelLayout() {
         <div className="lg:pl-[250px]">
           <Cabecalho />
         </div>
-        <span className="ml-auto hidden shrink-0 rounded-full bg-marinho px-3 py-1 text-xs font-semibold tracking-wide text-amarelo md:inline-block">
-          Treinar · Identificar · Mobilizar · Evoluir
-        </span>
+        <ul aria-label="T.I.M.E." className="ml-auto hidden shrink-0 items-center gap-1.5 md:flex">
+          {(
+            [
+              ["Treinar", "bg-marinho text-white"],
+              ["Identificar", "bg-amarelo text-texto"],
+              ["Mobilizar", "bg-marinho text-white"],
+              ["Evoluir", "bg-amarelo text-texto"],
+            ] as const
+          ).map(([palavra, cor]) => (
+            <li key={palavra} className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${cor}`}>
+              {palavra}
+            </li>
+          ))}
+        </ul>
       </header>
 
       <div className="lg:pl-[250px]">

@@ -56,3 +56,6 @@ supabase/.temp/
 
 # Cópia sem ponto criada por engano: nunca versionar
 env
+
+# Configuracao pessoal do Claude Code: nao versionar
+.claude/settings.local.json
