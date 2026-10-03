@@ -143,3 +143,10 @@ a cada execucao (68 ate agora). Nao apaga por falta de confirmacao do usuario.
 
 **Lição única:** `npm run test:e2e` (Chrome headless, pela interface) é o único
 teste que pegou 1, 2 e 5. Rodar sempre que mexer em tela ou em fluxo de acesso.
+
+## e2e dependia de dado da empresa (02/10/2026)
+
+Depois de recriar a Enerpeixe, o bloco "Canal de Respeito em grade" do `test:e2e` falhou
+4 vezes: ele contava com denúncias já existentes na empresa. Não se inventa denúncia de
+assédio em empresa real: o teste agora registra duas pela RPC pública (prefixo da matrícula
+`e2e…`) e apaga no fim. Teste que lê tela precisa trazer o próprio dado.

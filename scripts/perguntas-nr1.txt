@@ -1,0 +1,270 @@
+Tema: nr1
+Pergunta: Por que a NR-1 é chamada de "norma mãe"?
+A) Porque só vale para mulheres gestantes
+B) Porque traz as regras gerais que valem para todas as outras NRs
+C) Porque substitui todas as outras normas
+D) Porque só vale para escritórios
+Correta: B
+Explicação: A NR-1 é o guarda-chuva das Normas Regulamentadoras: define termos, direitos, deveres e o gerenciamento de riscos que guiam todas as outras NRs.
+Dificuldade: 1
+
+Pergunta: Quem deve cumprir as Normas Regulamentadoras na usina?
+A) Só os técnicos de segurança
+B) Só a diretoria
+C) Empregador e empregados com carteira assinada (CLT)
+D) Só quem trabalha na subestação
+Correta: C
+Explicação: As NRs são obrigatórias para empregadores e empregados regidos pela CLT, urbanos e rurais, inclusive em órgãos públicos com empregados CLT.
+Dificuldade: 1
+
+Pergunta: O que significa GRO?
+A) Gerenciamento de Riscos Ocupacionais
+B) Grupo de Resgate Operacional
+C) Guia de Registro de Ocorrências
+D) Gestão de Recursos Orçamentários
+Correta: A
+Explicação: GRO é o Gerenciamento de Riscos Ocupacionais: o processo contínuo de identificar, avaliar e controlar os riscos do trabalho.
+Dificuldade: 1
+
+Pergunta: Cumprir a NR-1 libera a usina de seguir as regras sanitárias do município e a convenção coletiva?
+A) Sim, a NR-1 substitui tudo
+B) Não, as outras regras continuam valendo
+C) Sim, mas só no turno da noite
+D) Só se o sindicato concordar
+Correta: B
+Explicação: A NR-1 não desobriga a empresa de cumprir códigos de obras, regulamentos sanitários estaduais e municipais e convenções coletivas.
+Dificuldade: 2
+
+Pergunta: Qual é o objetivo principal da NR-1?
+A) Definir o valor do salário mínimo
+B) Organizar as férias coletivas
+C) Estabelecer regras gerais e o gerenciamento de riscos para prevenir acidentes e doenças
+D) Controlar o horário do refeitório
+Correta: C
+Explicação: A NR-1 estabelece disposições gerais, termos comuns e os requisitos mínimos do GRO e das medidas de prevenção em SST.
+Dificuldade: 1
+
+Pergunta: Na hierarquia de prevenção da NR-1, qual medida vem PRIMEIRO?
+A) Entregar EPI
+B) Eliminar o fator de risco
+C) Colocar uma placa de aviso
+D) Fazer um DDS
+Correta: B
+Explicação: A ordem é: 1) eliminar o risco; 2) proteção coletiva (EPC); 3) medidas administrativas e de organização; 4) EPI.
+Dificuldade: 1
+
+Pergunta: Na casa de força, instalar uma barreira acústica fixa ao redor do gerador é um exemplo de:
+A) EPI
+B) Medida administrativa
+C) Proteção coletiva (EPC)
+D) Eliminação do risco
+Correta: C
+Explicação: A barreira acústica protege todo mundo que passa pelo local, por isso é um Equipamento de Proteção Coletiva (EPC).
+Dificuldade: 2
+
+Pergunta: Na hierarquia de prevenção, o EPI aparece em qual posição?
+A) Primeira, é sempre a melhor opção
+B) Segunda, logo depois de eliminar o risco
+C) Última, quando as outras medidas não bastam
+D) O EPI não faz parte da hierarquia
+Correta: C
+Explicação: O EPI é a última barreira. Primeiro se elimina o risco, depois se usa proteção coletiva e organização do trabalho.
+Dificuldade: 1
+
+Pergunta: O que é dever do empregador segundo a NR-1?
+A) Informar os trabalhadores sobre os riscos e as medidas de prevenção
+B) Esconder os resultados dos exames médicos
+C) Deixar cada um escolher se usa EPI
+D) Pagar o EPI com desconto no salário
+Correta: A
+Explicação: O empregador deve informar riscos, medidas de prevenção, resultados de exames médicos e de avaliações ambientais.
+Dificuldade: 1
+
+Pergunta: O trabalhador que se recusa, sem justificativa, a usar o EPI fornecido:
+A) Não sofre nenhuma consequência
+B) Comete ato faltoso
+C) Ganha pontos extras
+D) Pode trocar o EPI por dinheiro
+Correta: B
+Explicação: Usar o EPI fornecido é dever do trabalhador. A recusa injustificada constitui ato faltoso.
+Dificuldade: 1
+
+Pergunta: Qual destes é um dever do trabalhador pela NR-1?
+A) Faltar ao exame médico se estiver ocupado
+B) Cumprir as ordens de serviço e colaborar com a segurança
+C) Mudar o procedimento por conta própria
+D) Guardar o EPI no armário durante o serviço
+Correta: B
+Explicação: O trabalhador deve cumprir as disposições legais e ordens de serviço, fazer os exames médicos, usar o EPI e colaborar com a aplicação das NRs.
+Dificuldade: 1
+
+Pergunta: Durante a manutenção de uma turbina, você percebe que o bloqueio de energia não foi feito e há risco de morte. O que a NR-1 permite?
+A) Continuar o serviço e avisar no fim do turno
+B) Interromper a atividade e avisar imediatamente o superior
+C) Fazer o bloqueio sozinho e não contar a ninguém
+D) Pedir demissão
+Correta: B
+Explicação: Diante de risco grave e iminente, o trabalhador pode interromper a atividade e deve informar imediatamente o superior hierárquico.
+Dificuldade: 1
+
+Pergunta: Depois que o trabalhador usa o direito de recusa, quando o empregador pode exigir a volta ao serviço?
+A) Em 5 minutos
+B) Só depois que o risco for neutralizado
+C) Na hora, se o chefe mandar
+D) Nunca mais
+Correta: B
+Explicação: O empregador não pode exigir o retorno ao trabalho enquanto o risco grave e iminente não for neutralizado.
+Dificuldade: 2
+
+Pergunta: Quem usa o direito de recusa por risco grave e iminente pode ser punido por isso?
+A) Sim, sempre leva advertência
+B) Sim, perde o dia de trabalho
+C) Não, deve ser protegido de consequências injustificadas
+D) Depende do humor do encarregado
+Correta: C
+Explicação: A NR-1 garante que o trabalhador que usa o direito de recusa seja protegido de consequências injustificadas.
+Dificuldade: 1
+
+Pergunta: Qual situação justifica o direito de recusa na usina?
+A) A marmita esfriou
+B) Trabalho em altura no vertedouro sem ponto de ancoragem
+C) O rádio da sala de comando está com chiado
+D) O uniforme está apertado
+Correta: B
+Explicação: O direito de recusa vale para risco GRAVE e IMINENTE à vida ou à saúde, como trabalho em altura sem como se prender.
+Dificuldade: 2
+
+Pergunta: Qual a diferença entre GRO e PGR?
+A) São a mesma coisa com nomes diferentes
+B) O GRO é o processo contínuo de gestão; o PGR é o documento desse processo
+C) O PGR é feito só pelo sindicato
+D) O GRO só vale para empresas pequenas
+Correta: B
+Explicação: O GRO é o processo de gestão dos riscos; o PGR (Programa de Gerenciamento de Riscos) é a materialização documental desse processo.
+Dificuldade: 2
+
+Pergunta: O PGR substituiu qual programa antigo?
+A) PCMSO
+B) CIPA
+C) PPRA
+D) SIPAT
+Correta: C
+Explicação: O PGR substituiu o antigo PPRA (Programa de Prevenção de Riscos Ambientais).
+Dificuldade: 2
+
+Pergunta: Quais são os dois documentos mínimos do PGR?
+A) Inventário de riscos e plano de ação
+B) Folha de ponto e holerite
+C) Mapa da barragem e lista de ramais
+D) Cardápio e escala de turno
+Correta: A
+Explicação: O PGR deve ter, no mínimo, o inventário de riscos (perigos e avaliação) e o plano de ação (medidas, responsáveis e prazos).
+Dificuldade: 1
+
+Pergunta: Na avaliação de riscos, o nível de risco combina:
+A) Cor do capacete e tamanho da equipe
+B) Severidade da lesão e probabilidade de acontecer
+C) Horário do turno e dia da semana
+D) Idade do trabalhador e salário
+Correta: B
+Explicação: O nível de risco é definido combinando a severidade da possível lesão com a probabilidade de ela ocorrer.
+Dificuldade: 2
+
+Pergunta: Por quanto tempo, no mínimo, o histórico do inventário de riscos deve ser guardado?
+A) 1 ano
+B) 5 anos
+C) 10 anos
+D) 20 anos
+Correta: D
+Explicação: O histórico das atualizações do inventário de riscos deve ser mantido por, no mínimo, 20 anos.
+Dificuldade: 3
+
+Pergunta: Quando a avaliação de riscos deve ser revisada, além do prazo de 2 anos?
+A) Só quando trocar o presidente da empresa
+B) Quando houver mudança no processo, acidente ou medida que não funcionou
+C) Nunca, ela vale para sempre
+D) Só no Natal
+Correta: B
+Explicação: A avaliação deve ser revisada a cada 2 anos (3 com certificação em gestão de SST) ou sempre que houver mudanças, acidentes ou ineficácia das medidas.
+Dificuldade: 2
+
+Pergunta: Quando acontece o treinamento INICIAL?
+A) Antes de a pessoa começar a função
+B) Um ano depois da contratação
+C) Só se houver acidente
+D) Na aposentadoria
+Correta: A
+Explicação: O treinamento inicial deve ser feito antes de o trabalhador iniciar suas atividades.
+Dificuldade: 1
+
+Pergunta: Um operador volta à usina depois de 200 dias afastado. O que a NR-1 prevê?
+A) Nada, ele já sabe o serviço
+B) Treinamento eventual antes de voltar à atividade
+C) Que ele só trabalhe à noite
+D) Que ele mude de setor
+Correta: B
+Explicação: O treinamento eventual é exigido em mudança de processo, acidente grave ou retorno de afastamento superior a 180 dias.
+Dificuldade: 2
+
+Pergunta: É possível aproveitar um treinamento feito em outra empresa?
+A) Nunca
+B) Sim, se estiver na validade e for avaliado por um responsável técnico
+C) Sim, basta apresentar uma foto do certificado
+D) Só se for de outra usina hidrelétrica
+Correta: B
+Explicação: A NR-1 permite convalidar treinamentos de outras empresas, desde que dentro da validade e avaliados por um responsável técnico.
+Dificuldade: 2
+
+Pergunta: Treinamento a distância (EAD) vale pela NR-1?
+A) Não, só vale presencial
+B) Sim, seguindo as regras do Anexo II (requisitos pedagógicos, tecnológicos e registros)
+C) Sim, qualquer vídeo da internet serve
+D) Só se for assistido no celular pessoal
+Correta: B
+Explicação: O Anexo II da NR-1 valida o EAD e o semipresencial com regras de conteúdo, ambiente virtual e registro de acesso. A parte prática segue diretrizes próprias.
+Dificuldade: 2
+
+Pergunta: Empresas obrigadas a ter CIPA devem, sobre assédio:
+A) Ignorar o assunto
+B) Ter regras de conduta, canal de denúncia anônima e treinamento pelo menos anual
+C) Resolver tudo na conversa com o chefe
+D) Só tratar se houver processo na justiça
+Correta: B
+Explicação: A NR-1 exige regras de conduta, procedimentos para denúncias anônimas e treinamentos, no mínimo anuais, contra assédio sexual e outras formas de violência.
+Dificuldade: 1
+
+Pergunta: Como a NR-1 prefere que os documentos de SST sejam guardados?
+A) Em papel, na gaveta do almoxarifado
+B) Preferencialmente em formato digital
+C) Só na memória do técnico
+D) Em fotos no celular de cada um
+Correta: B
+Explicação: Os documentos de SST devem ser preferencialmente emitidos e armazenados em formato digital, com integridade e disponibilidade para a fiscalização.
+Dificuldade: 1
+
+Pergunta: Uma empresa contratada vai fazer a pintura das comportas do vertedouro. O que a NR-1 exige?
+A) Cada empresa cuida só de si e não conversa
+B) Troca de informações sobre os riscos, com a contratante coordenando a prevenção no local
+C) A contratada trabalha sem PGR
+D) Só a contratada é responsável por tudo
+Correta: B
+Explicação: Contratante e contratada devem trocar informações sobre seus riscos, e a contratante coordena as medidas de prevenção no local.
+Dificuldade: 2
+
+Pergunta: A assinatura digital de um documento de SST deve usar:
+A) Qualquer rabisco na tela
+B) Certificado no padrão ICP-Brasil
+C) Foto da carteira de trabalho
+D) Senha do e-mail pessoal
+Correta: B
+Explicação: Assinaturas digitais de documentos de SST devem ter certificado digital no padrão ICP-Brasil.
+Dificuldade: 3
+
+Pergunta: Um microempreendedor individual (MEI) presta serviço na usina. Quem inclui os riscos da atividade dele no PGR?
+A) O próprio MEI, num PGR separado
+B) A empresa contratante, no PGR dela
+C) Ninguém, MEI não tem risco
+D) O sindicato
+Correta: B
+Explicação: O MEI é dispensado de elaborar PGR; o contratante deve incluir os riscos da atividade dele no próprio PGR.
+Dificuldade: 3

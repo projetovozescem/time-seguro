@@ -53,3 +53,6 @@ supabase/.temp/
 
 # Saida do build para Netlify
 .netlify
+
+# Cópia sem ponto criada por engano: nunca versionar
+env

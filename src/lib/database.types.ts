@@ -916,6 +916,64 @@ export type Database = {
           },
         ]
       }
+      materiais: {
+        Row: {
+          blocos: Json
+          campanha_id: string | null
+          criado_em: string
+          empresa_id: string
+          id: string
+          publicado: boolean
+          slug: string
+          subtitulo: string | null
+          titulo: string
+        }
+        Insert: {
+          blocos?: Json
+          campanha_id?: string | null
+          criado_em?: string
+          empresa_id: string
+          id?: string
+          publicado?: boolean
+          slug: string
+          subtitulo?: string | null
+          titulo: string
+        }
+        Update: {
+          blocos?: Json
+          campanha_id?: string | null
+          criado_em?: string
+          empresa_id?: string
+          id?: string
+          publicado?: boolean
+          slug?: string
+          subtitulo?: string | null
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "materiais_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "materiais_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "v_ranking_setor"
+            referencedColumns: ["campanha_id"]
+          },
+          {
+            foreignKeyName: "materiais_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       perfis_tecnicos: {
         Row: {
           comite_assedio: boolean
@@ -2199,6 +2257,10 @@ export type Database = {
       }
       dia_operacional: { Args: never; Returns: string }
       empresa_publica: { Args: { p_codigo: string }; Returns: Json }
+      material_publico: {
+        Args: { p_empresa_codigo: string; p_slug: string }
+        Returns: Json
+      }
       meu_papel: { Args: never; Returns: string }
       minha_empresa: { Args: never; Returns: string }
       publico_setores_da_empresa: {

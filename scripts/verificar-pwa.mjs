@@ -57,7 +57,7 @@ const js = async (e) =>
 
 await cdp("Page.enable");
 await cdp("Runtime.enable");
-await cdp("Page.navigate", { url: `${BASE}/app/entrar?empresa=piloto` });
+await cdp("Page.navigate", { url: `${BASE}/app/entrar?empresa=enerpeixe` });
 await dorme(9000);
 
 let falhas = 0;

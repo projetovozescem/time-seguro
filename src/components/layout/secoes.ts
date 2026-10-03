@@ -41,8 +41,8 @@ export const SECOES: readonly Secao[] = [
   { emoji: "🏠", rotulo: "Início", abas: [{ rotulo: "Início", rota: "/painel", minimo: "cipa" }] },
   {
     emoji: "👷",
-    rotulo: "Pessoas",
-    abas: [{ rotulo: "Pessoas", rota: "/painel/colaboradores", minimo: "cipa" }],
+    rotulo: "Colaboradores",
+    abas: [{ rotulo: "Colaboradores", rota: "/painel/colaboradores", minimo: "cipa" }],
   },
   {
     emoji: "🏆",

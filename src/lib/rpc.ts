@@ -25,7 +25,9 @@ type RpcPublica =
   | "registrar_denuncia_assedio"
   | "consultar_denuncia"
   | "responder_denuncia_denunciante"
-  | "verificar_certificado";
+  | "verificar_certificado"
+  // Pagina do material informativo (destino do QR do cartaz).
+  | "material_publico";
 
 /**
  * Chamada única para as RPCs do app do colaborador (docs/TIME_03 §3).

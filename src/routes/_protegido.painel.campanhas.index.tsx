@@ -4,7 +4,7 @@ import { CalendarRange, Pencil, Plus, Trophy, Users } from "lucide-react";
 import { CampanhaForm } from "@/components/painel/CampanhaForm";
 import { Button } from "@/components/ui/button";
 import { usePerfil } from "@/hooks/usePerfil";
-import { useCampanhas, useTemasDaCampanha, type Campanha } from "@/hooks/useCampanhas";
+import { useCampanhas, useCoresDasCampanhas, useTemasDaCampanha, type Campanha } from "@/hooks/useCampanhas";
 import { useTemas } from "@/hooks/usePerguntas";
 import { COR_DO_STATUS, ROTULO_DO_STATUS } from "@/lib/campanha";
 import { formatarData } from "@/lib/datas";
@@ -40,6 +40,7 @@ function Campanhas() {
   const { data: perfil } = usePerfil();
   const { data: temas = [] } = useTemas();
   const { data: campanhas = [], isLoading } = useCampanhas();
+  const { data: cores } = useCoresDasCampanhas();
   const [editando, setEditando] = useState<Campanha | "nova" | null>(null);
 
   const podeEditar = perfil?.papel === "admin" || perfil?.papel === "tecnico";
@@ -73,7 +74,8 @@ function Campanhas() {
         {campanhas.map((c) => (
           <li
             key={c.id}
-            className="flex flex-col rounded-2xl border border-borda bg-superficie p-4"
+            style={{ borderTopColor: cores?.get(c.id) ?? "#0B3C5D" }}
+            className="flex flex-col rounded-2xl border border-t-4 border-borda bg-superficie p-4"
           >
             <div className="flex items-start justify-between gap-3">
               <h2 className="font-display text-lg font-bold text-texto">{c.nome}</h2>

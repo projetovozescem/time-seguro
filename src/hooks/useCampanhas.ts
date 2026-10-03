@@ -65,6 +65,25 @@ export function useCampanha(id: string) {
 }
 
 /** Temas vinculados a uma campanha — é o pool do quiz diário. */
+/** Cor do primeiro tema de cada campanha (borda do card). */
+export function useCoresDasCampanhas() {
+  return useQuery({
+    queryKey: ["campanha-cores"],
+    queryFn: async (): Promise<Map<string, string>> => {
+      const { data, error } = await supabase
+        .from("campanha_temas")
+        .select("campanha_id, temas ( cor )");
+      if (error) throw error;
+      const cores = new Map<string, string>();
+      for (const l of data ?? []) {
+        const cor = (l.temas as { cor: string } | null)?.cor;
+        if (cor && !cores.has(l.campanha_id)) cores.set(l.campanha_id, cor);
+      }
+      return cores;
+    },
+  });
+}
+
 export function useTemasDaCampanha(campanhaId: string) {
   return useQuery({
     queryKey: ["campanha-temas", campanhaId],

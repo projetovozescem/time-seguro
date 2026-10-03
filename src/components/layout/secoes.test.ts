@@ -37,7 +37,7 @@ describe("menu do painel em seções", () => {
   it("admin do comitê vê tudo", () => {
     expect(rotulos({ papel: "admin", comite: true })).toEqual([
       "Início: Início",
-      "Pessoas: Pessoas",
+      "Colaboradores: Colaboradores",
       "Campanhas: Campanhas,Perguntas,Eventos,Ranking,Certificados",
       "Relatos: Relatos,Canal de Respeito",
       "Resultados: Painel,Relatórios,Materiais",
@@ -49,7 +49,7 @@ describe("menu do painel em seções", () => {
   it("técnico sem comitê: sem Configurações e sem Canal", () => {
     expect(rotulos({ papel: "tecnico", comite: false })).toEqual([
       "Início: Início",
-      "Pessoas: Pessoas",
+      "Colaboradores: Colaboradores",
       "Campanhas: Campanhas,Perguntas,Eventos,Ranking,Certificados",
       "Relatos: Relatos",
       "Resultados: Painel,Relatórios,Materiais",
@@ -60,7 +60,7 @@ describe("menu do painel em seções", () => {
   it("CIPA: sem Perguntas, Materiais, Modo TV e Configurações", () => {
     expect(rotulos({ papel: "cipa", comite: false })).toEqual([
       "Início: Início",
-      "Pessoas: Pessoas",
+      "Colaboradores: Colaboradores",
       "Campanhas: Campanhas,Eventos,Ranking,Certificados",
       "Relatos: Relatos",
       "Resultados: Painel,Relatórios",

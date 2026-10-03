@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Download, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Download, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import { useCampanhaAtiva, usePerfil } from "@/hooks/usePerfil";
 import { formatarData } from "@/lib/datas";
+import { ICONES_MATERIAL, caminhoDoMaterial, lerBlocos } from "@/lib/materiais";
 
 /**
  * Cartazes para imprimir (docs/TIME_04 §13).
@@ -228,6 +231,137 @@ function CartazRespeito({ empresa, codigo }: { empresa: string; codigo: string }
   );
 }
 
+/**
+ * Cartaz do material informativo (tabela `materiais`, migration 0011): textos
+ * curtos do banco + QR para a página pública com o mesmo conteúdo.
+ */
+function CartazMaterial({ empresa, codigo }: { empresa: string; codigo: string }) {
+  const { data: materiais = [] } = useQuery({
+    queryKey: ["materiais"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("materiais")
+        .select("id, slug, titulo, subtitulo, blocos, campanhas ( nome )")
+        .eq("publicado", true)
+        .order("criado_em", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+  const [escolhido, setEscolhido] = useState<string>("");
+  const material = materiais.find((m) => m.id === escolhido) ?? materiais[0];
+
+  const { alvo, gerando, baixar } = useBaixarPng(`cartaz-${material?.slug ?? "material"}`);
+  const { largura, altura } = FORMATOS.a4;
+  const origem = useOrigem();
+
+  if (!material) return null;
+
+  const blocos = lerBlocos(material.blocos);
+  const url = `${origem}${caminhoDoMaterial(codigo, material.slug)}`;
+
+  return (
+    <section className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-display text-lg font-bold text-marinho">
+          Material da campanha: {material.titulo}
+        </h2>
+        <div className="flex flex-wrap items-center gap-2">
+          {materiais.length > 1 && (
+            <select
+              aria-label="Escolher material"
+              value={material.id}
+              onChange={(e) => setEscolhido(e.target.value)}
+              className="h-10 rounded-md border border-input bg-transparent px-3 text-sm"
+            >
+              {materiais.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.titulo}
+                </option>
+              ))}
+            </select>
+          )}
+          <Button variant="outline" asChild>
+            <a href={caminhoDoMaterial(codigo, material.slug)} target="_blank" rel="noreferrer">
+              <ExternalLink className="size-4" aria-hidden />
+              Ver página do QR
+            </a>
+          </Button>
+          <Button onClick={baixar} disabled={gerando}>
+            {gerando ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+            ) : (
+              <Download className="size-4" aria-hidden />
+            )}
+            Baixar PNG
+          </Button>
+        </div>
+      </div>
+
+      <p className="text-sm text-texto-suave">
+        Cole no refeitório, na portaria e perto dos pontos de DDS. O QR abre, sem login, uma página
+        com estes mesmos textos.
+      </p>
+
+      <div className="overflow-auto rounded-2xl border border-borda bg-muted p-4">
+        <div ref={alvo} style={{ width: largura, height: altura }} className="flex flex-col bg-white">
+          <div className="faixa-seguranca" style={{ height: 14 }} />
+
+          <div className="bg-marinho px-12 py-8 text-white">
+            <p className="text-base font-bold uppercase tracking-[0.2em] text-white/75">{empresa}</p>
+            <p className="mt-2 font-display text-6xl font-extrabold leading-none text-amarelo">
+              {material.titulo.toUpperCase()}
+            </p>
+            {material.subtitulo && (
+              <p className="mt-3 font-display text-2xl font-bold">{material.subtitulo}</p>
+            )}
+          </div>
+
+          <div className="grid flex-1 grid-cols-2 content-start gap-4 px-10 py-7">
+            {blocos.map((b, i) => {
+              const Icone = ICONES_MATERIAL[b.icone];
+              return (
+                <div key={i} className="flex gap-3 rounded-2xl border-2 border-borda p-4">
+                  <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-amarelo text-marinho">
+                    <Icone className="size-7" aria-hidden />
+                  </span>
+                  <div>
+                    <p className="font-display text-xl font-bold leading-tight text-marinho">
+                      {b.titulo}
+                    </p>
+                    <p className="mt-1 text-base leading-snug text-texto">{b.texto}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center gap-8 bg-fundo px-10 py-6">
+            <div className="rounded-2xl border-4 border-marinho bg-white p-3">
+              <QRCodeSVG value={url} size={190} level="M" />
+            </div>
+            <div>
+              <p className="font-display text-3xl font-extrabold text-marinho">
+                Aponte a câmera e saiba mais
+              </p>
+              <p className="mt-2 text-xl text-texto">
+                Depois, entre no app com sua matrícula e PIN e responda o quiz do dia.
+              </p>
+              {material.campanhas?.nome && (
+                <p className="mt-3 text-lg font-semibold text-texto-suave">
+                  Campanha {material.campanhas.nome}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="faixa-seguranca" style={{ height: 14 }} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /** Materiais de divulgação em PNG (docs/TIME_04 §13). */
 function Materiais() {
   const { data: perfil } = usePerfil();
@@ -239,6 +373,8 @@ function Materiais() {
   return (
     <div className="flex flex-col gap-8">
       <h1 className="sr-only">Materiais</h1>
+
+      {codigo !== "" && <CartazMaterial empresa={empresa} codigo={codigo} />}
 
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-borda bg-superficie p-3">
         <label className="text-sm font-medium" htmlFor="formato-cartaz">

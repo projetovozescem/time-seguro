@@ -329,3 +329,40 @@ silêncio.
   a aba Campanhas, 420 px sem rolagem horizontal. Filtro por papel coberto em
   `secoes.test.ts` (CIPA e técnico não conferidos no navegador: só admin tem
   senha no `.env`).
+
+## Enerpeixe + campanha NR-1 + material com QR + TV em tela cheia (02/10/2026)
+
+- **Dados:** a empresa `piloto` virou **Enerpeixe S.A. (Usina Hidrelétrica)**, código
+  `enerpeixe` (mesmo id e mesmos `perfis_tecnicos`: o login do admin continua). A `demo`
+  foi apagada. Tudo recriado por `node scripts/seed-enerpeixe.mjs` (idempotente):
+  6 setores, 12 locais, 36 colaboradores (matrículas 2001–2036), tema `nr1`, 30 perguntas
+  (`scripts/perguntas-nr1.txt`), campanha ativa "Foco Total na NR-1" (28/09 a 27/10/2026,
+  6 lições), campanha encerrada e vazia "Violência contra a mulher" (21 a 25/09/2026),
+  4 eventos, 10 relatos, respostas, trilha e pontos (só por `_lancar_pontos`).
+- **Migration 0011** `materiais` + RPC pública `material_publico`. Página pública
+  `/m/<empresa>/<slug>` (destino do QR) e cartaz A4 em Resultados → Materiais, os dois
+  lendo o mesmo conteúdo do banco (`src/lib/materiais.ts`).
+- **Modo TV:** fora do layout do painel; `CascaTv` com escala por resolução
+  (`src/lib/escalaTv.ts`, base 1280×720, `font-size` da raiz), botão "Tela cheia"/"Sair da
+  tela cheia" sincronizado pelo evento `fullscreenchange` (Esc também).
+- Scripts de teste (`teste-fluxo`, `verificar-no-navegador`, `verificar-pwa`) agora usam
+  `enerpeixe`. O e2e cria e apaga as próprias denúncias de teste.
+- O arquivo de credenciais `env` foi renomeado para `.env`; `env` entrou no `.gitignore`.
+- Pendente: fotos antigas de relatos no bucket `relatos-fotos` ficaram (sem dono no banco).
+  Reimprimir cartões de acesso: os PINs da Enerpeixe são novos.
+
+## Ajustes de painel (02/10/2026)
+
+- "Pessoas" virou **Colaboradores** (menu, aba e título); o gráfico "Pessoas ativas por dia" ficou.
+- Cards de Campanhas com `border-t-4` na cor do primeiro tema (`useCoresDasCampanhas`).
+- `scripts/seed-enerpeixe-extras.sql` (rodado também pelo `seed-enerpeixe.mjs`): cadastro
+  pendente **Max Eldon Martins** (matrícula 2037, max.eldon@gmail.com, Administrativo) e **10
+  denúncias** de exemplo `RESP-ENER-0001…0010` (moral, sexual, discriminação, convívio/respeito;
+  senha de acompanhamento `demo123`). `max.eldon@gmail.com` já era admin + comitê: nada a habilitar.
+- Modo TV: só entra em tela cheia pelo botão; ao sair da TV (histórico, menu) o `PainelLayout`
+  sai da tela cheia.
+- O e2e aprovava o PRIMEIRO pendente da fila e aprovou o cadastro do Max: agora aprova só o
+  pedido do próprio teste. O Max foi devolvido a pendente.
+- (02/10/2026, depois) Modo TV volta a abrir **dentro do layout** (menu à esquerda), no tamanho
+  normal do site. Só o botão "Tela cheia" esconde menu/cabeçalho (`PainelLayout` com
+  `useTelaCheia`) e liga a escala por resolução; "Sair da tela cheia" ou Esc volta ao layout.

@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useTelaCheia } from "@/hooks/useTelaCheia";
 import { LogOut, Menu } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -89,6 +90,15 @@ function Cabecalho() {
 export function PainelLayout() {
   const [aberto, setAberto] = useState(false);
   const { data: perfil, isLoading } = usePerfil();
+  const { pathname } = useLocation();
+  const naTv = pathname.startsWith("/tv");
+  const cheia = useTelaCheia();
+
+  // A TV só entra em tela cheia pelo botão. Ao sair da TV (voltar do navegador,
+  // menu), a tela cheia não pode continuar valendo para o resto do painel.
+  useEffect(() => {
+    if (!naTv && document.fullscreenElement) void document.exitFullscreen().catch(() => {});
+  }, [naTv]);
 
   // Usuário existe no Auth mas não foi vinculado a uma empresa (docs/TIME_03 §2).
   if (!isLoading && perfil === null) {
@@ -103,6 +113,10 @@ export function PainelLayout() {
       </div>
     );
   }
+
+  // Modo TV abre no layout normal, com o menu ao lado. Só em tela cheia (botão
+  // da `CascaTv`) ocupa a tela inteira, sem menu nem cabeçalho.
+  if (naTv && cheia) return <Outlet />;
 
   return (
     <div className="min-h-screen bg-background">
@@ -130,6 +144,9 @@ export function PainelLayout() {
         <div className="lg:pl-[250px]">
           <Cabecalho />
         </div>
+        <span className="ml-auto hidden shrink-0 rounded-full bg-marinho px-3 py-1 text-xs font-semibold tracking-wide text-amarelo md:inline-block">
+          Treinar · Identificar · Mobilizar · Evoluir
+        </span>
       </header>
 
       <div className="lg:pl-[250px]">

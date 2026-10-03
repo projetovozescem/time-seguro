@@ -312,3 +312,12 @@ URLs evita redirecionamento e não quebra o `test:e2e`. Perguntas ficou em
 Campanhas (não em Configurações) porque o técnico precisa dela e Configurações é
 só admin. Relatórios, certificados e o aviso de NR continuam (evidência
 TIME_09); o aviso só saiu da tela, segue no rodapé do PDF.
+
+## Material informativo no banco, QR público (02/10/2026)
+
+O usuário pediu que **todas** as informações fiquem no banco. Por isso o texto do material
+NR-1 não é constante de código: tabela `materiais` (0011, RLS igual a `licoes`) e a página
+do QR lê pela RPC `material_publico` (anon só executa RPC, regra 4). A campanha anterior
+"Violência contra a mulher" foi feita com alunos e gestores de uma escola, mas no banco
+aparece só pelo nome da campanha (regra 9). A escala da TV usa `font-size` da raiz em vez
+de `transform: scale`: todas as telas TV são em rem, e o layout continua fluido.

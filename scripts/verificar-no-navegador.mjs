@@ -12,7 +12,7 @@
 // Pre-requisitos: servidor de dev em http://localhost:8080 (ou BASE=...), Google
 // Chrome instalado (CHROME_PATH se nao estiver no caminho padrao do Windows), e
 // o .env com BOOTSTRAP_EMAIL/BOOTSTRAP_SENHA. Cria dados de TESTE com prefixo
-// `e2e` na empresa piloto e os remove no fim.
+// `e2e` na empresa enerpeixe e os remove no fim.
 
 import { spawn } from "node:child_process";
 import { readFileSync, mkdtempSync } from "node:fs";
@@ -133,6 +133,14 @@ try {
   );
 
   console.log("\n--- Canal de Respeito em grade ---");
+  // O teste traz as proprias denuncias (pela RPC publica, como o denunciante) e
+  // apaga no fim: nao depende de a empresa ter denuncia real.
+  for (const cat of ["moral", "discriminacao"]) {
+    const texto = `${MAT} denuncia de teste automatizado, apagada no fim.`;
+    await consultar(
+      `select public.registrar_denuncia_assedio('enerpeixe', ${lit(cat)}, ${lit(texto)}, 'Area de teste', 'Hoje', false)`,
+    );
+  }
   await ir("/painel/respeito");
   const respeito = JSON.parse(
     await js(`(() => { const ul = [...document.querySelectorAll('main ul, ul')].find(u => u.className.includes('grid') && u.querySelector('li button'));
@@ -194,7 +202,7 @@ try {
     `(document.querySelector('[role=dialog] .font-mono.text-5xl')||{}).innerText || ''`,
   );
   const [{ pin_fixo: pinBanco }] = await consultar(
-    `select pin_fixo from public.colaboradores where matricula = ${lit(linha.mat)} and empresa_id = (select id from public.empresas where codigo='piloto')`,
+    `select pin_fixo from public.colaboradores where matricula = ${lit(linha.mat)} and empresa_id = (select id from public.empresas where codigo='enerpeixe')`,
   );
   checar(/^\d{6}$/.test(pinTela), `o dialogo mostra um PIN de 6 digitos (${pinTela})`);
   checar(pinTela === pinBanco, "o PIN mostrado e o que esta no banco");
@@ -208,7 +216,7 @@ try {
 
   // ---------------------------------------------------------- autocadastro
   console.log("\n--- autocadastro (pagina publica do app) ---");
-  await ir("/app/cadastro?empresa=piloto", 4000);
+  await ir("/app/cadastro?empresa=enerpeixe", 4000);
   checar(((await texto()) ?? "").includes("Peça seu cadastro"), "a pagina de cadastro abre");
   await preencher("#nome", NOME);
   await preencher("#matricula", MAT);
@@ -226,7 +234,11 @@ try {
   await ir("/painel/colaboradores?aba=pendentes");
   const pend = await texto();
   checar(pend.includes(NOME), "o pedido aparece na aba Pendentes");
-  await clicarTexto("Aprovar");
+  // Aprova o pedido DESTE teste (a fila pode ter outros pendentes, como os do seed).
+  await js(`(() => { const bs = [...document.querySelectorAll("button")].filter(b => b.innerText.trim().includes("Aprovar"));
+    const b = bs.find(x => { let e = x.parentElement; while (e && !e.innerText.includes(${JSON.stringify(NOME)})) e = e.parentElement;
+      return e && [...e.querySelectorAll("button")].filter(y => y.innerText.includes("Aprovar")).length === 1; });
+    if (b) b.click(); })()`);
   await dorme(3500);
   const dialogoPin = await js(`(document.querySelector('[role=dialog]')||{}).innerText || ''`);
   checar(
@@ -252,7 +264,7 @@ try {
 
   // ---------------------------------------------------------- app: login real
   console.log("\n--- app do colaborador: entrar pela interface ---");
-  await ir("/app/entrar?empresa=piloto", 4000);
+  await ir("/app/entrar?empresa=enerpeixe", 4000);
   await preencher("#matricula", MAT);
   await preencher("#pin", "000000");
   await dorme(400);
@@ -300,6 +312,7 @@ try {
 } finally {
   // ---------------------------------------------------------- limpeza
   await consultar(`delete from public.solicitacoes_cadastro where matricula = ${lit(MAT)}`);
+  await consultar(`delete from public.denuncias_assedio where descricao like ${lit(MAT + " %")}`);
   const apagados = await consultar(
     `delete from public.colaboradores where matricula = ${lit(MAT)} returning id`,
   );

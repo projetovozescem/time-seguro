@@ -39,6 +39,7 @@ export const MENSAGENS: Record<string, string> = {
   // `grep "'motivo', '...'"`. Textos escritos aqui e pendentes de revisão:
   // ver memory/duvidas.md item 8.
   empresa_nao_encontrada: "Código da empresa não encontrado. Confira no seu cartão de acesso.",
+  material_nao_encontrado: "Este material não está disponível. Confira o QR Code do cartaz.",
   alternativa_invalida: "Alternativa inválida.",
   protocolo_ou_senha_invalidos: "Protocolo ou senha incorretos.",
   denuncia_invalida: "Denúncia não encontrada.",

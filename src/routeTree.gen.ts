@@ -39,6 +39,7 @@ import { Route as ProtegidoTvJogoRouteImport } from './routes/_protegido.tv.jogo
 import { Route as AppLocalLocalIdRouteImport } from './routes/app.local.$localId'
 import { Route as AppTrilhaIndexRouteImport } from './routes/app.trilha.index'
 import { Route as AppTrilhaLicaoIdRouteImport } from './routes/app.trilha.$licaoId'
+import { Route as MCodigoSlugRouteImport } from './routes/m.$codigo.$slug'
 import { Route as ProtegidoPainelCampanhasIndexRouteImport } from './routes/_protegido.painel.campanhas.index'
 import { Route as ProtegidoPainelCampanhasIdRouteImport } from './routes/_protegido.painel.campanhas.$id'
 import { Route as ProtegidoPainelColaboradoresIndexRouteImport } from './routes/_protegido.painel.colaboradores.index'
@@ -201,6 +202,11 @@ const AppTrilhaLicaoIdRoute = AppTrilhaLicaoIdRouteImport.update({
   path: '/app/trilha/$licaoId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MCodigoSlugRoute = MCodigoSlugRouteImport.update({
+  id: '/m/$codigo/$slug',
+  path: '/m/$codigo/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProtegidoPainelCampanhasIndexRoute =
   ProtegidoPainelCampanhasIndexRouteImport.update({
     id: '/painel/campanhas/',
@@ -271,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/tv/jogo': typeof ProtegidoTvJogoRoute
   '/app/local/$localId': typeof AppLocalLocalIdRoute
   '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
+  '/m/$codigo/$slug': typeof MCodigoSlugRoute
   '/painel/': typeof ProtegidoPainelIndexRoute
   '/tv/': typeof ProtegidoTvIndexRoute
   '/app/trilha/': typeof AppTrilhaIndexRoute
@@ -309,6 +316,7 @@ export interface FileRoutesByTo {
   '/tv/jogo': typeof ProtegidoTvJogoRoute
   '/app/local/$localId': typeof AppLocalLocalIdRoute
   '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
+  '/m/$codigo/$slug': typeof MCodigoSlugRoute
   '/painel': typeof ProtegidoPainelIndexRoute
   '/tv': typeof ProtegidoTvIndexRoute
   '/app/trilha': typeof AppTrilhaIndexRoute
@@ -349,6 +357,7 @@ export interface FileRoutesById {
   '/_protegido/tv/jogo': typeof ProtegidoTvJogoRoute
   '/app/local/$localId': typeof AppLocalLocalIdRoute
   '/app/trilha/$licaoId': typeof AppTrilhaLicaoIdRoute
+  '/m/$codigo/$slug': typeof MCodigoSlugRoute
   '/_protegido/painel/': typeof ProtegidoPainelIndexRoute
   '/_protegido/tv/': typeof ProtegidoTvIndexRoute
   '/app/trilha/': typeof AppTrilhaIndexRoute
@@ -389,6 +398,7 @@ export interface FileRouteTypes {
     | '/tv/jogo'
     | '/app/local/$localId'
     | '/app/trilha/$licaoId'
+    | '/m/$codigo/$slug'
     | '/painel/'
     | '/tv/'
     | '/app/trilha/'
@@ -427,6 +437,7 @@ export interface FileRouteTypes {
     | '/tv/jogo'
     | '/app/local/$localId'
     | '/app/trilha/$licaoId'
+    | '/m/$codigo/$slug'
     | '/painel'
     | '/tv'
     | '/app/trilha'
@@ -466,6 +477,7 @@ export interface FileRouteTypes {
     | '/_protegido/tv/jogo'
     | '/app/local/$localId'
     | '/app/trilha/$licaoId'
+    | '/m/$codigo/$slug'
     | '/_protegido/painel/'
     | '/_protegido/tv/'
     | '/app/trilha/'
@@ -496,6 +508,7 @@ export interface RootRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppLocalLocalIdRoute: typeof AppLocalLocalIdRoute
   AppTrilhaLicaoIdRoute: typeof AppTrilhaLicaoIdRoute
+  MCodigoSlugRoute: typeof MCodigoSlugRoute
   AppTrilhaIndexRoute: typeof AppTrilhaIndexRoute
 }
 
@@ -711,6 +724,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTrilhaLicaoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/m/$codigo/$slug': {
+      id: '/m/$codigo/$slug'
+      path: '/m/$codigo/$slug'
+      fullPath: '/m/$codigo/$slug'
+      preLoaderRoute: typeof MCodigoSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_protegido/painel/campanhas/': {
       id: '/_protegido/painel/campanhas/'
       path: '/painel/campanhas'
@@ -831,6 +851,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppLocalLocalIdRoute: AppLocalLocalIdRoute,
   AppTrilhaLicaoIdRoute: AppTrilhaLicaoIdRoute,
+  MCodigoSlugRoute: MCodigoSlugRoute,
   AppTrilhaIndexRoute: AppTrilhaIndexRoute,
 }
 export const routeTree = rootRouteImport

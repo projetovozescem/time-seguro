@@ -51,6 +51,8 @@ const TABELAS = [
   // 0008 e 0009 (02/10/2026)
   "acessos_pin",
   "solicitacoes_cadastro",
+  // 0011: material informativo com QR
+  "materiais",
 ];
 
 /** Assinaturas liberadas para `anon` na 0005 §10 (app do colaborador + públicas). */
@@ -80,6 +82,8 @@ const RPCS_ANON = [
   // 0009: o autocadastro e uma pagina publica, como o Canal de Respeito.
   "public.publico_setores_da_empresa(text)",
   "public.publico_solicitar_cadastro(text, text, text, text, uuid)",
+  // 0011: pagina publica do material (destino do QR)
+  "public.material_publico(text, text)",
 ];
 
 /** Assinaturas do painel: `authenticated` executa, `anon` NÃO. */

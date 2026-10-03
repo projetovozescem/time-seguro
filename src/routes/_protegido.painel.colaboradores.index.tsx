@@ -589,7 +589,7 @@ function Colaboradores() {
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-wrap items-start justify-between gap-3">
-        <h1 className="font-display text-2xl font-extrabold text-marinho">Pessoas</h1>
+        <h1 className="font-display text-2xl font-extrabold text-marinho">Colaboradores</h1>
         {aba === "pessoas" && (
           <div className="flex gap-2">
             <MaisOpcoes
@@ -618,7 +618,7 @@ function Colaboradores() {
       <div className="flex gap-1 rounded-xl bg-muted p-1" role="tablist">
         {(
           [
-            ["pessoas", `👷 Pessoas (${colaboradores.filter((c) => c.ativo).length})`],
+            ["pessoas", `👷 Colaboradores (${colaboradores.filter((c) => c.ativo).length})`],
             ["pendentes", `📝 Pendentes (${pendentes.length})`],
             ["setores", `🏭 Setores e locais (${setores.length})`],
           ] as const
