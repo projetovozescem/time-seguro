@@ -133,7 +133,9 @@ async function criarUsuario(email, senha) {
 // =====================================================================
 console.log("\n--- preparação ---");
 
-const [empresa] = await consultar("select id, codigo from public.empresas where codigo = 'enerpeixe'");
+const [empresa] = await consultar(
+  "select id, codigo from public.empresas where codigo = 'enerpeixe'",
+);
 if (!empresa) {
   console.error("Empresa piloto não existe. Rode npm run db:bootstrap e npm run db:seed.");
   process.exit(1);

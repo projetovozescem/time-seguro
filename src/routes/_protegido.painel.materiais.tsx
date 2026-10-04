@@ -304,11 +304,17 @@ function CartazMaterial({ empresa, codigo }: { empresa: string; codigo: string }
       </p>
 
       <div className="overflow-auto rounded-2xl border border-borda bg-muted p-4">
-        <div ref={alvo} style={{ width: largura, height: altura }} className="flex flex-col bg-white">
+        <div
+          ref={alvo}
+          style={{ width: largura, height: altura }}
+          className="flex flex-col bg-white"
+        >
           <div className="faixa-seguranca" style={{ height: 14 }} />
 
           <div className="bg-marinho px-12 py-8 text-white">
-            <p className="text-base font-bold uppercase tracking-[0.2em] text-white/75">{empresa}</p>
+            <p className="text-base font-bold uppercase tracking-[0.2em] text-white/75">
+              {empresa}
+            </p>
             <p className="mt-2 font-display text-6xl font-extrabold leading-none text-amarelo">
               {material.titulo.toUpperCase()}
             </p>

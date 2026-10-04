@@ -9,7 +9,9 @@ describe("lerBlocos (conteúdo do material vindo do banco)", () => {
   });
 
   it("ícone desconhecido ou ausente vira o ícone padrão", () => {
-    expect(lerBlocos([{ titulo: "A", texto: "B", icone: "Inexistente" }])[0]?.icone).toBe("BookOpen");
+    expect(lerBlocos([{ titulo: "A", texto: "B", icone: "Inexistente" }])[0]?.icone).toBe(
+      "BookOpen",
+    );
     expect(lerBlocos([{ titulo: "A", texto: "B" }])[0]?.icone).toBe("BookOpen");
   });
 

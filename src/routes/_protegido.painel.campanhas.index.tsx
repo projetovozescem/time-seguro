@@ -4,7 +4,12 @@ import { CalendarRange, Pencil, Plus, Trophy, Users } from "lucide-react";
 import { CampanhaForm } from "@/components/painel/CampanhaForm";
 import { Button } from "@/components/ui/button";
 import { usePerfil } from "@/hooks/usePerfil";
-import { useCampanhas, useCoresDasCampanhas, useTemasDaCampanha, type Campanha } from "@/hooks/useCampanhas";
+import {
+  useCampanhas,
+  useCoresDasCampanhas,
+  useTemasDaCampanha,
+  type Campanha,
+} from "@/hooks/useCampanhas";
 import { useTemas } from "@/hooks/usePerguntas";
 import { COR_DO_STATUS, ROTULO_DO_STATUS } from "@/lib/campanha";
 import { formatarData } from "@/lib/datas";
