@@ -9,6 +9,8 @@ import {
   temasPorPiorDesempenho,
   type LinhaLacuna,
   contarPorFaixa,
+  comTaxaCorrigida,
+  taxaDe,
 } from "./lacunas";
 
 describe("faixaDaCelula — as faixas de docs/TIME_09 §1.2", () => {
@@ -191,5 +193,31 @@ describe("contarPorFaixa", () => {
       lacuna: 0,
       insuficiente: 0,
     });
+  });
+});
+
+describe("taxa vinda das views (0–100) é corrigida para 0–1", () => {
+  // Formato REAL de `v_lacunas`: taxa_acerto = round(100.0 * acertos / tentativas, 1).
+  // Os testes acima usavam 0–1 e por isso deixaram passar o mapa todo verde e "10000%".
+  const daView = [
+    { setor_id: "s1", tema_id: "t1", tentativas: 30, acertos: 30, taxa_acerto: 100 },
+    { setor_id: "s2", tema_id: "t1", tentativas: 30, acertos: 9, taxa_acerto: 30 },
+  ];
+
+  it("refaz a taxa das contagens", () => {
+    expect(taxaDe(18, 20)).toBe(0.9);
+    expect(taxaDe(0, 0)).toBe(0);
+    expect(comTaxaCorrigida(daView[0]!).taxa_acerto).toBe(1);
+    expect(comTaxaCorrigida({ ...daView[1]!, taxa_acerto: "30" as never }).taxa_acerto).toBe(0.3);
+  });
+
+  it("célula com 30% de acerto cai em Lacuna e 100% mostra 100", () => {
+    const m = montarMatriz(daView.map(comTaxaCorrigida), ["s1", "s2"], ["t1"]);
+    const ruim = m.get("s2|t1");
+    const bom = m.get("s1|t1");
+    expect(ruim?.faixa).toBe("lacuna");
+    expect(percentual(ruim!.taxa)).toBe(30);
+    expect(bom?.faixa).toBe("domina");
+    expect(percentual(bom!.taxa)).toBe(100);
   });
 });

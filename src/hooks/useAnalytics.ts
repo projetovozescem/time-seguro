@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { LinhaLacuna } from "@/lib/lacunas";
+import { comTaxaCorrigida, type LinhaLacuna } from "@/lib/lacunas";
 
 export function useLacunas(campanhaId: string | null) {
   return useQuery({
@@ -13,7 +13,7 @@ export function useLacunas(campanhaId: string | null) {
         .select("setor_id, tema_id, tentativas, acertos, taxa_acerto")
         .eq("campanha_id", campanhaId);
       if (error) throw error;
-      return (data ?? []) as LinhaLacuna[];
+      return ((data ?? []) as LinhaLacuna[]).map(comTaxaCorrigida);
     },
   });
 }
@@ -42,7 +42,7 @@ export function useDesempenhoPerguntas(campanhaId: string | null) {
         .eq("campanha_id", campanhaId)
         .order("taxa_acerto", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as DesempenhoPergunta[];
+      return ((data ?? []) as DesempenhoPergunta[]).map(comTaxaCorrigida);
     },
   });
 }
@@ -152,7 +152,7 @@ export function usePerguntasMaisErradas(campanhaId: string | null, temaId: strin
         .order("taxa_acerto", { ascending: true })
         .limit(5);
       if (error) throw error;
-      return (data ?? []) as DesempenhoPergunta[];
+      return ((data ?? []) as DesempenhoPergunta[]).map(comTaxaCorrigida);
     },
   });
 }

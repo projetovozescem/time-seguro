@@ -150,3 +150,15 @@ Depois de recriar a Enerpeixe, o bloco "Canal de Respeito em grade" do `test:e2e
 4 vezes: ele contava com denúncias já existentes na empresa. Não se inventa denúncia de
 assédio em empresa real: o teste agora registra duas pela RPC pública (prefixo da matrícula
 `e2e…`) e apaga no fim. Teste que lê tela precisa trazer o próprio dado.
+
+## Mapa de lacunas "10000%" e sempre verde (03/10/2026)
+
+- **Sintoma:** em Resultados > Mapa de lacunas, 100% aparecia como "10000%" e toda
+  célula com 10+ respostas ficava verde ("Domina"), mesmo com 33% de acerto; o
+  Início dizia "nenhuma lacuna". Achado ao tirar os prints das telas.
+- **Causa:** `v_lacunas` e `v_desempenho_pergunta` devolvem `taxa_acerto` em 0–100
+  (`round(100.0 * ...)`), mas `lacunas.ts` tratava como 0–1. Os testes usavam
+  fixtures em 0–1, então passaram por meses.
+- **Correção:** `taxaDe`/`comTaxaCorrigida` em `lacunas.ts` refazem a taxa das
+  contagens nos 3 hooks de `useAnalytics.ts`; teste com linhas no formato REAL da view.
+- **Lição:** fixture de teste tem de ter o formato que o banco devolve de verdade.

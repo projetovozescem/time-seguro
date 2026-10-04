@@ -57,6 +57,23 @@ export function percentual(taxa: number): number {
   return Math.round(taxa * 100);
 }
 
+/**
+ * Taxa 0–1 a partir das contagens. As views `v_lacunas` e `v_desempenho_pergunta`
+ * devolvem `taxa_acerto` em 0–100 (`round(100.0 * ...)`), mas a tela e a faixa
+ * pensam em 0–1: usar a coluna crua deixava todo mapa verde e mostrava "10000%".
+ * Por isso a taxa é sempre refeita aqui, das contagens.
+ */
+export function taxaDe(acertos: number, tentativas: number): number {
+  return tentativas > 0 ? acertos / tentativas : 0;
+}
+
+/** Linha de uma view com `taxa_acerto` já corrigida para 0–1. */
+export function comTaxaCorrigida<
+  T extends { acertos: number; tentativas: number; taxa_acerto: number },
+>(linha: T): T {
+  return { ...linha, taxa_acerto: taxaDe(Number(linha.acertos), Number(linha.tentativas)) };
+}
+
 export type LinhaLacuna = {
   setor_id: string;
   tema_id: string;
